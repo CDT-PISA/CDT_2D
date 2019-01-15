@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/cdt_2d.dir/main.cpp.o  -o cdt_2d 
