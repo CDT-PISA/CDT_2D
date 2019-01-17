@@ -1,6 +1,9 @@
 #include <iostream>
 
-int main(int argc, char **argv) {
-    std::cout << "Hello, world!" << std::endl;
+using namespace std;
+
+int main() {
+    for(int i=0; i<10; i++)
+        cout << i << " Hello, world!" << endl;
     return 0;
 }
