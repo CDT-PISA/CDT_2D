@@ -20,26 +20,28 @@
 #define SIMPLEX_H
 
 /**
- * @todo write docs
+ * @todo check docs
  */
 class Simplex
 {
-public:
+protected:
     virtual ~Simplex() {}
     
-    /// DATA
+    // DATA
     
     /**
-    * @brief index in list of simplices
+    * @var index in list of simplices
     * 
-    * TODO come lo gestisco in modo sensato?
-    * 
+    * @todo come lo gestisco in modo sensato?\n
     * il suo senso credo sia risalire al Label che lo possiede, in modo da includerlo in altre strutture (qui solo i triangoli)
     */
     int id;
     
+    friend class Triangulation;
     
-    /// METHODS
+public:
+    
+    // METHODS
 
     /** 
      * @param other the triangle I'm comparing with
@@ -52,6 +54,13 @@ public:
      * @return the  truth value of the Simplex::id of the two
      */
     bool operator!= ( const Simplex& other ) const;
+    
+    /**
+    * @brief interface method
+    * 
+    * @return id
+    */
+    int position();
 };
 
 #endif // SIMPLEX_H

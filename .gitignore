@@ -32,6 +32,6 @@
 *.app
 
 # Folders
-html/*
-latex/*
 build/*
+doc/*
+output/*

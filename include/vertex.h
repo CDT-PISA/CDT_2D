@@ -25,15 +25,14 @@
 using namespace std;
 
 /**
- * @todo write docs
+ * @todo check docs
+ * @todo how to link in Doxygen class data members? e.g. how to link t_slice in time() description?
  */
 class Vertex : public Simplex
 {
-public:    
+private:    
     /**
-     * @brief Default Constructor
-     * 
-     * @usage Constructor with explicit coord_num
+     * @brief Constructor
      * 
      * @param list_position the Simplex::id, that is the position in Triangulation::list0
      * @param Time the time slice to which the Vertex belongs
@@ -45,30 +44,58 @@ public:
     /**
      * Destructor
      */
-    ~Vertex();
+    ~Vertex(){}
 
     
-    /// DATA
+    // DATA
     
     /**
-    * @brief time label of the slice
+    * @var time label of the slice
     * 
     */
     int t_slice;
     
     /**
-    * @brief number of adjacent Triangles
+    * @var number of adjacent Triangles
     * 
     */
     int coord_num;
     
     /**
-    * @brief label of a neighbouring Triangle
+    * @var label of a neighbouring Triangle
     * 
     */
     Label near_t;
     
-    //int r; Appena scopro a che serve lo aggiungo TODO
+    /** 
+    * @todo Appena scopro a che serve lo aggiungo
+    * int r; 
+    */
+    
+    friend class Triangulation;
+    
+public:
+
+    /**
+    * @brief interface method
+    * 
+    * @return t_slice
+    */
+    int time();
+
+    /**
+    * @brief interface method
+    * 
+    * @return coord_num
+    */
+    int coordination();
+
+    /**
+    * @brief interface method
+    * 
+    * @return near_t
+    */
+    Label adjacent_triangle();
 
 };
 

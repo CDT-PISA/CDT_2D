@@ -20,13 +20,14 @@
 #define TRIANGULATION_H
 
 #include <vector>
+#include <string>
 #include "label.h"
-#include "vertex.h"
-#include "triangle.h"
 using namespace std;
 
 /**
  * @todo write docs
+ * @todo function create_vertex, create_triangle (e create_empty_triangle, che può essere una funzione indipendente o la stessa funzione create_triangle overloadata senza argomenti): le funzioni ritornano id
+ * @todo usare ovunque, quindi per cominciare nel costruttore, le funzioni create_vertex e create_triangle anziché fare vertici a mano
  */
 class Triangulation
 {
@@ -39,10 +40,10 @@ public:
     /**
      * Destructor
      */
-    ~Triangulation();
+    ~Triangulation(){}
 
     
-    /// DATA
+    // DATA
     
     /**
     * @brief the space-time volume of the triangulation
@@ -62,13 +63,17 @@ public:
     vector<Label> list0;
     
     /**
-    * @brief the number of vertices of coordination number 4 in the triangulation
+    * @brief vert. coord. 4 
+    * 
+    * the number of vertices of coordination number 4 in the triangulation
     * 
     */
     int num40;
     
     /**
-    * @brief the number of vertices of coordination number 4 "patological", i.e. that belongs to patological time-slices (slices with only 3 vertices)
+    * @brief vert. coord. 4 patological
+    * 
+    * the number of vertices of coordination number 4 "patological", i.e. that belongs to patological time-slices (slices with only 3 vertices)
     * 
     */
     int num40p;
@@ -80,26 +85,38 @@ public:
     vector<Label> list2;
     
     /**
-    * @brief list of (1,2)-triangles that are right-members of cells for the move (2,2)
+    * @brief list of 1st type transition
+    * 
+    * list of (1,2)-triangles that are right-members of cells for the move (2,2)
     * 
     * the advantage of using a vector of Label instead of a vector of positions in list2 (int) is that I don't have to update it when I do the moves (2,4)-(4,2) if I do these correctly
     */
     vector<Label> transition2112;
     
     /**
-    * @brief list of (2,1)-triangles that are right-members of cells for the move (2,2)
+    * @brief list of 2nd type transition
+    * 
+    * list of (2,1)-triangles that are right-members of cells for the move (2,2)
     * 
     */
     vector<Label> transition1221;
     
     /**
-    * @brief the list of spatial volumes of each slice in the triangulation
+    * @brief sizes of time slices
+    * 
+    * the list of spatial volumes of each slice in the triangulation
     * 
     */
     vector<int> spatial_profile;  
     
     
-    /// METHODS
+    // METHODS
+    
+    int create_vertex(int Time, int coordination_number, Label triangle);
+    
+    int create_triangle(Label vertices[3], Label adjacents_t[3]);
+    
+    int create_triangle();
     
     /**
      * TODO initialization from file

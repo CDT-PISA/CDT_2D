@@ -30,8 +30,7 @@ using namespace std;
  *      - posso implementare come se fossero unique_ptr, se in futuro mi venisse comodo posso aggiungere struttura e metodi a Label
  *      - ultimo, ma quasi primo: è molto più corto scrivere Label che unique_ptr<Simplex>
  */
-class Label : public shared_ptr<Simplex>
-{    
+class Label : public shared_ptr<Simplex>{
 };
 
 #endif // LABEL_H

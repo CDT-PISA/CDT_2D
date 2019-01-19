@@ -68,6 +68,18 @@ install/strip/fast: preinstall/fast
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -99,18 +111,6 @@ list_install_components:
 list_install_components/fast: list_install_components
 
 .PHONY : list_install_components/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
 
 # Special rule for the target install
 install: preinstall
@@ -169,6 +169,19 @@ cdt_2d/fast:
 	$(MAKE) -f CMakeFiles/cdt_2d.dir/build.make CMakeFiles/cdt_2d.dir/build
 .PHONY : cdt_2d/fast
 
+#=============================================================================
+# Target rules for targets named cdt_2d_lib
+
+# Build rule for target.
+cdt_2d_lib: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 cdt_2d_lib
+.PHONY : cdt_2d_lib
+
+# fast build rule for target.
+cdt_2d_lib/fast:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/build
+.PHONY : cdt_2d_lib/fast
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -196,6 +209,141 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/cdt_2d.dir/build.make CMakeFiles/cdt_2d.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/label.o: src/label.cpp.o
+
+.PHONY : src/label.o
+
+# target to build an object file
+src/label.cpp.o:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/label.cpp.o
+.PHONY : src/label.cpp.o
+
+src/label.i: src/label.cpp.i
+
+.PHONY : src/label.i
+
+# target to preprocess a source file
+src/label.cpp.i:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/label.cpp.i
+.PHONY : src/label.cpp.i
+
+src/label.s: src/label.cpp.s
+
+.PHONY : src/label.s
+
+# target to generate assembly for a file
+src/label.cpp.s:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/label.cpp.s
+.PHONY : src/label.cpp.s
+
+src/simplex.o: src/simplex.cpp.o
+
+.PHONY : src/simplex.o
+
+# target to build an object file
+src/simplex.cpp.o:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/simplex.cpp.o
+.PHONY : src/simplex.cpp.o
+
+src/simplex.i: src/simplex.cpp.i
+
+.PHONY : src/simplex.i
+
+# target to preprocess a source file
+src/simplex.cpp.i:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/simplex.cpp.i
+.PHONY : src/simplex.cpp.i
+
+src/simplex.s: src/simplex.cpp.s
+
+.PHONY : src/simplex.s
+
+# target to generate assembly for a file
+src/simplex.cpp.s:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/simplex.cpp.s
+.PHONY : src/simplex.cpp.s
+
+src/triangle.o: src/triangle.cpp.o
+
+.PHONY : src/triangle.o
+
+# target to build an object file
+src/triangle.cpp.o:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangle.cpp.o
+.PHONY : src/triangle.cpp.o
+
+src/triangle.i: src/triangle.cpp.i
+
+.PHONY : src/triangle.i
+
+# target to preprocess a source file
+src/triangle.cpp.i:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangle.cpp.i
+.PHONY : src/triangle.cpp.i
+
+src/triangle.s: src/triangle.cpp.s
+
+.PHONY : src/triangle.s
+
+# target to generate assembly for a file
+src/triangle.cpp.s:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangle.cpp.s
+.PHONY : src/triangle.cpp.s
+
+src/triangulation.o: src/triangulation.cpp.o
+
+.PHONY : src/triangulation.o
+
+# target to build an object file
+src/triangulation.cpp.o:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangulation.cpp.o
+.PHONY : src/triangulation.cpp.o
+
+src/triangulation.i: src/triangulation.cpp.i
+
+.PHONY : src/triangulation.i
+
+# target to preprocess a source file
+src/triangulation.cpp.i:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangulation.cpp.i
+.PHONY : src/triangulation.cpp.i
+
+src/triangulation.s: src/triangulation.cpp.s
+
+.PHONY : src/triangulation.s
+
+# target to generate assembly for a file
+src/triangulation.cpp.s:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/triangulation.cpp.s
+.PHONY : src/triangulation.cpp.s
+
+src/vertex.o: src/vertex.cpp.o
+
+.PHONY : src/vertex.o
+
+# target to build an object file
+src/vertex.cpp.o:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/vertex.cpp.o
+.PHONY : src/vertex.cpp.o
+
+src/vertex.i: src/vertex.cpp.i
+
+.PHONY : src/vertex.i
+
+# target to preprocess a source file
+src/vertex.cpp.i:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/vertex.cpp.i
+.PHONY : src/vertex.cpp.i
+
+src/vertex.s: src/vertex.cpp.s
+
+.PHONY : src/vertex.s
+
+# target to generate assembly for a file
+src/vertex.cpp.s:
+	$(MAKE) -f CMakeFiles/cdt_2d_lib.dir/build.make CMakeFiles/cdt_2d_lib.dir/src/vertex.cpp.s
+.PHONY : src/vertex.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -203,15 +351,31 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... edit_cache"
+	@echo "... install/local"
 	@echo "... cdt_2d"
+	@echo "... cdt_2d_lib"
+	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... list_install_components"
-	@echo "... install/local"
 	@echo "... install"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/label.o"
+	@echo "... src/label.i"
+	@echo "... src/label.s"
+	@echo "... src/simplex.o"
+	@echo "... src/simplex.i"
+	@echo "... src/simplex.s"
+	@echo "... src/triangle.o"
+	@echo "... src/triangle.i"
+	@echo "... src/triangle.s"
+	@echo "... src/triangulation.o"
+	@echo "... src/triangulation.i"
+	@echo "... src/triangulation.s"
+	@echo "... src/vertex.o"
+	@echo "... src/vertex.i"
+	@echo "... src/vertex.s"
 .PHONY : help
 
 

@@ -1,9 +1,11 @@
+/** @file */
 #include <iostream>
+#include "triangulation.h"
 
 using namespace std;
 
 int main() {
-    for(int i=0; i<10; i++)
-        cout << i << " Hello, world!" << endl;
-    return 0;
+    Triangulation universe(2);
+    
+    cout << universe.num40;
 }

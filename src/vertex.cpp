@@ -16,14 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INITIALIZE_TRIANGULATION_H
-#define INITIALIZE_TRIANGULATION_H
+#include "vertex.h"
 
-/**
- * @todo write docs
- */
-void initialize_triangulation()
-{
-};
+Vertex::Vertex(int list_position, int Time, int coordination_number, Label triangle)
+{   
+    id = list_position;
+    t_slice = Time;
+    coord_num = coordination_number;
+    near_t = triangle;
+}
 
-#endif // INITIALIZE_TRIANGULATION_H
+int Vertex::time(){ return t_slice; }
+
+int Vertex::coordination(){ return coord_num; }
+
+Label Vertex::adjacent_triangle(){ return near_t; }

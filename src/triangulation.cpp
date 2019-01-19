@@ -16,14 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "simplex.h"
+#include "triangulation.h"
 
-bool Simplex::operator==(const Simplex& other) const
+Triangulation::Triangulation(int TimeLength)
 {
-    return id == other.id;
-}
+    num40 = TimeLength;
+    
+    for(int i=0;i<TimeLength;i++){
+        for(int t=0;t<3;t++){
+//             Vertex v(i,);
+            num40++;
+//             list0.push_back(v);
+        }
+    }
 
-bool Simplex::operator!= ( const Simplex& other ) const
-{
-    return not (*this == other);
 }

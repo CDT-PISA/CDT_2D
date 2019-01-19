@@ -12,7 +12,7 @@ CMake Binary=/usr/bin/cmake
 CMake Executable=/usr/bin/cmake
 Environment Profile=
 Extra Arguments=
-Install Directory=
+Install Directory=/usr/local
 Runtime=Host System
 
 [Launch]
@@ -27,22 +27,22 @@ Type=Native Application
 [Launch][Launch Configuration 0][Data]
 Arguments=
 Debugger Shell=
-Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00\x0c\x00C\x00D\x00T\x00_\x002\x00D\x00\x00\x00\x0c\x00c\x00d\x00t\x00_\x002\x00d)
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Build
 Display Demangle Names=true
 Display Static Members=false
 EnvironmentGroup=
-Executable=file:///home/alessandro/projects/CDT_2D
+Executable=file:///home/alessandro/projects/CDT_2D/build/cdt_2d
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 GDB Path=
-Project Target=CDT_2D,cdt_2d
+Project Target=
 Remote GDB Config Script=
 Remote GDB Run Script=
 Remote GDB Shell Script=
 Start With=ApplicationOutput
 Use External Terminal=false
-Working Directory=file:///home/alessandro/projects/CDT_2D
-isExecutable=false
+Working Directory=file:///home/alessandro/projects/CDT_2D/
+isExecutable=true
 
 [Project]
 VersionControlSupport=kdevgit

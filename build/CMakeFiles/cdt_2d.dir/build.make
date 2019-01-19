@@ -79,6 +79,7 @@ cdt_2d_EXTERNAL_OBJECTS =
 
 cdt_2d: CMakeFiles/cdt_2d.dir/main.cpp.o
 cdt_2d: CMakeFiles/cdt_2d.dir/build.make
+cdt_2d: libcdt_2d_lib.a
 cdt_2d: CMakeFiles/cdt_2d.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/alessandro/projects/CDT_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable cdt_2d"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cdt_2d.dir/link.txt --verbose=$(VERBOSE)

@@ -16,44 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRIANGLE_H
-#define TRIANGLE_H
-
 #include "simplex.h"
-#include "label.h"
-using namespace std;
 
-/**
- * @todo write docs
- */
-class Triangle : public Simplex
+bool Simplex::operator==(const Simplex& other) const
 {
-public:
-    /**
-     * Default constructor
-     */
-    Triangle();
+    return id == other.id;
+}
 
-    /**
-     * Destructor
-     */
-    ~Triangle();
-    
-    
-    /// DATA
-    
-    /**
-    * @brief labels of owned Vertices
-    * 
-    */
-    Label v[3];
-    
-    /**
-    * @brief labels of adjacent Triangles;
-    * 
-    */
-    Label t[3];
-    
-};
+bool Simplex::operator!= ( const Simplex& other ) const
+{
+    return not (*this == other);
+}
 
-#endif // TRIANGLE_H
+int Simplex::position()
+{
+    return id;
+}
+

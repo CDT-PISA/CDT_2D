@@ -16,20 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "triangulation.h"
+#include "triangle.h"
 
-Triangulation::Triangulation(int TimeLength)
+Triangle::Triangle(int list_position)
 {
-    num40 = 0;
-    
-    for(int i=0;i<TimeLength;i++){
-        for(int t=0;t<3;t++){
-            Vertex v(i,);
-            
-            list0.push_back(v);
-        }
-    }
-
+    id = list_position;
 }
 
-Triangulation::~Triangulation(){}
+Triangle::Triangle(int list_position, Label vertices[3], Label adjacents_t[3])
+{
+    id = list_position;
+    
+    for(int i=0;i<3;i++){
+        v[i] = vertices[i];
+        t[i] = adjacents_t[i];
+    }
+    
+}
+
+Label* Triangle::vertices(){ return v; }
+
+Label * Triangle::adjacent_triangles(){ return t; }
+
+
