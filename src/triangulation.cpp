@@ -17,6 +17,13 @@
  */
 
 #include "triangulation.h"
+#include <memory>
+/**
+ * @todo Is a good practice to reinclude in the .cpp the header already included in the corresponding .h?
+ */
+#include "vertex.h"
+#include "triangle.h"
+
 
 Triangulation::Triangulation(int TimeLength)
 {
@@ -31,3 +38,37 @@ Triangulation::Triangulation(int TimeLength)
     }
 
 }
+
+int Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
+{
+    int list_position=list0.size();
+    Label lab(new Vertex(list_position, Time, coordination_number, triangle));
+    
+    list0.push_back(lab);
+    
+    return list_position;
+}
+
+int Triangulation::create_triangle()
+{
+    int list_position=list2.size();
+    Label lab(new Triangle(list_position));
+    
+    list2.push_back(lab);
+    
+    return list_position;
+}
+
+int Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3])
+{
+    int list_position=list2.size();
+    Label lab(new Triangle(list_position,vertices,adjacents_t));
+    
+    list2.push_back(lab);
+    
+    return list_position;
+    
+}
+
+
+

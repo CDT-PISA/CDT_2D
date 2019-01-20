@@ -25,7 +25,6 @@
 class Simplex
 {
 protected:
-    virtual ~Simplex() {}
     
     // DATA
     
@@ -40,6 +39,7 @@ protected:
     friend class Triangulation;
     
 public:
+    virtual ~Simplex() {}
     
     // METHODS
 

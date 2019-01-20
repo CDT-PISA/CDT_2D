@@ -17,3 +17,33 @@
  */
 
 #include "label.h"
+#include "vertex.h"
+#include "triangle.h"
+
+Label::Label(Simplex* s) : shared_ptr<Simplex>(s){}
+
+/**
+* @todo migliorare il cast e completare con errore (ramo else)
+*/
+Vertex* Label::dync_vertex()
+{
+    if(Vertex* v_ptr = dynamic_cast<Vertex*>(&**this)){
+        return v_ptr;
+    }
+    else{
+        return nullptr;
+    }
+}
+
+/**
+* @todo migliorare il cast e completare con errore (ramo else)
+*/
+Triangle* Label::dync_triangle()
+{
+    if(Triangle* t_ptr = dynamic_cast<Triangle*>(&**this)){
+        return t_ptr;
+    }
+    else{
+        return nullptr;
+    }
+}

@@ -112,11 +112,31 @@ public:
     
     // METHODS
     
+    /**
+    * @brief
+    * 
+    * @param Time
+    * @param coordination_number
+    * @param triangle
+    * @return
+    */
     int create_vertex(int Time, int coordination_number, Label triangle);
     
-    int create_triangle(Label vertices[3], Label adjacents_t[3]);
-    
+    /**
+    * @brief
+    * 
+    * @return
+    */
     int create_triangle();
+    
+    /**
+    * @brief 
+    * 
+    * @param vertices 
+    * @param adjacents_t 
+    * @return int
+    */
+    int create_triangle(Label vertices[3], Label adjacents_t[3]);
     
     /**
      * TODO initialization from file

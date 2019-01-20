@@ -22,6 +22,7 @@
 #include "simplex.h"
 #include "label.h"
 #include "triangulation.h"
+#include <memory>
 using namespace std;
 
 /**
@@ -41,10 +42,6 @@ private:
      */
     Vertex(int list_position, int Time, int coordination_number, Label triangle);
 
-    /**
-     * Destructor
-     */
-    ~Vertex(){}
 
     
     // DATA
@@ -73,9 +70,16 @@ private:
     */
     
     friend class Triangulation;
+    friend class shared_ptr<Vertex>;
     
 public:
 
+     /**
+     * Destructor
+     */
+    ~Vertex(){}
+
+    
     /**
     * @brief interface method
     * 

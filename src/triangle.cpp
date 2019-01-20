@@ -34,6 +34,11 @@ Triangle::Triangle(int list_position, Label vertices[3], Label adjacents_t[3])
     
 }
 
+
+/**
+* @todo in questi metodi (Triangle::vertices Triangle::adjacent_triangles) devo inserire un controllo degli errori più stringente:\n
+* gli "empty triangle" possiedono solo liste vuote, per cui se provo a fare l'accesso a quelle devo comunicare che c'è un errore, perché il triangolo è in costruzione (o faccio fallire l'esecuzione, o come minimo stampo un log)
+*/
 Label* Triangle::vertices(){ return v; }
 
 Label * Triangle::adjacent_triangles(){ return t; }
