@@ -8,15 +8,12 @@
 using namespace std;
 
 int main() {
-    Triangulation universe(2);
+    Triangulation universe(10);
     
-    for(int i=0;i<20;i++)
-        cout << universe.create_triangle() << endl;
-    universe.create_vertex(0,6,universe.list2[0]);
+    Triangle* tri_lab = universe.list2[9].dync_triangle();
+    /** @bug problemi con i vertici, le adiacenze sembrano perfette */
     
-    cout << universe.list2.size() << endl;
-    cout << universe.list2[14]->position() << endl;
-//     cout << "triangolo adiacente al vertice[0]:" << ((dynamic_cast<Vertex*>(universe.list0[0]))->adjacent_triangle()).position();
-    
-    cout << universe.list0[0].dync_vertex()->adjacent_triangle().dync_triangle()->position();
+    cout << "(adjacent triangles) 0:" << tri_lab->adjacent_triangles()[0].dync_triangle()->position() << ", 1:" << tri_lab->adjacent_triangles()[1].dync_triangle()->position() << ", 2:" << tri_lab->adjacent_triangles()[2].dync_triangle()->position() << endl;
+    cout << "(vertices) 0:" << tri_lab ->vertices()[0].dync_vertex()->position() << ", 1:" << tri_lab ->vertices()[1].dync_vertex()->position() << ", 2:" << tri_lab ->vertices()[2].dync_vertex()->position() << endl;
+    cout << universe.list2.size();
 }

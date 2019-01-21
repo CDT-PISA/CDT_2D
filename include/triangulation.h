@@ -52,6 +52,11 @@ public:
     int volume;
     
     /**
+     * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n
+     * uno più perché nel caso di un vector con più segmenti per portarlo in fondo e mantenerlo ordinato devo fare swap e portarlo in fondo al primo segmento, poi al secondo e così via\n
+     * (inoltre è bene che sia un metodo così ogni volta che scambio qualche elemento gli aggiusto Simplex::id in modo che rimanga coerente)
+     */ 
+    /**
     * @brief the list of vertices in the triangulation
     * 
     * It has three segments:
@@ -137,6 +142,16 @@ public:
     * @return int
     */
     int create_triangle(Label vertices[3], Label adjacents_t[3]);
+    
+    /**
+    * @todo stampa il profilo spaziale (o stampando la sequenza di numeri oppure stampando tanti # su ogni riga)\n
+    * dovrò farne due versioni:\n
+    * - la versione senza input che stampa # su stdout\n
+    * - la versione che prende in input un file e stampa su file\n
+    *     (magari questa seconda versione può anche prendere un valore di un file una volta sola e stampare sempre su quello finché non gli viene detto diversamente)
+    * 
+    */
+    void print_space_profile();
     
     /**
      * TODO initialization from file
