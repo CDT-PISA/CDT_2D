@@ -6,6 +6,8 @@
 #include "label.h"
 using namespace std;
 
+enum class TriangleType {_12, _21 };
+
 /**
  * @todo check docs
  */
@@ -29,7 +31,7 @@ private:
      * @param vertices the three vertices of the Triangle
      * @param adjacents_t the three Triangles adjacent to this one
      */
-    Triangle(int list_position, Label vertices[3], Label adjacents_t[3]);
+    Triangle(int list_position, Label vertices[3], Label adjacents_t[3], TriangleType t_type);
 
     /**
      * Destructor
@@ -51,6 +53,10 @@ private:
     */
     Label t[3]={};
     
+    int transition_id = -1;
+    
+    TriangleType type;
+    
     friend class Triangulation;
     
 public:
@@ -68,6 +74,12 @@ public:
     * @return t[3]
     */
     Label* adjacent_triangles();
+    
+    bool is12();
+    
+    bool is21();
+    
+    bool is_transition();
 };
 
 #endif // TRIANGLE_H

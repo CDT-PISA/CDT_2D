@@ -3,6 +3,7 @@
 
 CMakeFiles/cdt_2d.dir/main.cpp.o: ../include/label.h
 CMakeFiles/cdt_2d.dir/main.cpp.o: ../include/simplex.h
+CMakeFiles/cdt_2d.dir/main.cpp.o: ../include/triangle.h
 CMakeFiles/cdt_2d.dir/main.cpp.o: ../include/triangulation.h
 CMakeFiles/cdt_2d.dir/main.cpp.o: ../main.cpp
 

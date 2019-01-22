@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include "label.h"
+#include "triangle.h"
 using namespace std;
 
 /**
@@ -23,7 +24,7 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * 
     * @todo perché devo tenermi Triangulation::volume se è = list2.size() ? 
     */
-    int volume;
+    long volume;
     
     /**
      * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n
@@ -47,7 +48,7 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * the number of vertices of coordination number 4 in the triangulation
     * 
     */
-    int num40;
+    long num40;
     
     /**
     * @brief vert. coord. 4 patological
@@ -55,7 +56,7 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * the number of vertices of coordination number 4 "patological", i.e. that belongs to patological time-slices (slices with only 3 vertices)
     * 
     */
-    int num40p;
+    long num40p;
     
     /**
     * @brief the list of triangles in the triangulation
@@ -105,9 +106,10 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * the list of spatial volumes of each slice in the triangulation
     * 
     */
-    vector<int> spatial_profile;  
+    vector<long> spatial_profile;  
     
 public:
+    // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 
     
@@ -121,7 +123,7 @@ public:
      */
     ~Triangulation(){}
     
-    // SIMPLEX MANAGEMENT
+    // ##### SIMPLEX MANAGEMENT #####
     
     /**
     * @brief
@@ -147,13 +149,13 @@ public:
     * @param adjacents_t 
     * @return int
     */
-    int create_triangle(Label vertices[3], Label adjacents_t[3]);
+    int create_triangle(Label vertices[3], Label adjacents_t[3], TriangleType type);
     
     void remove_vertex(Label v_lab);
     
     void remove_triangle(Label tri_lab);
     
-    // --> MOVES
+    // ##### MOVES #####
     
     /** @todo pensare magari a nomi migliori per le mosse */
     
@@ -168,7 +170,7 @@ public:
     
     void move_42();
     
-    // USER INTERACTION METHODS
+    // ##### USER INTERACTION METHODS #####
     
     /**
     * @todo stampa il profilo spaziale (o stampando la sequenza di numeri oppure stampando tanti # su ogni riga)\n
@@ -193,7 +195,7 @@ public:
     */
     void print_space_profile(char orientation);
     
-    // SIMULATION RESULTS - SAVE METHODS
+    // ##### SIMULATION RESULTS - SAVE METHODS #####
     
     /**
      * @todo dovrebbe poter scegliere il file anche una volta sola e poi usare sempre quello

@@ -16,24 +16,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
 #include "triangle.h"
+
+using namespace std;
 
 Triangle::Triangle(int list_position)
 {
     id = list_position;
 }
 
-Triangle::Triangle(int list_position, Label vertices[3], Label adjacents_t[3])
+Triangle::Triangle(int list_position, Label vertices[3], Label adjacents_t[3], TriangleType t_type)
 {
     id = list_position;
+    type = t_type;
     
     for(int i=0;i<3;i++){
         v[i] = vertices[i];
         t[i] = adjacents_t[i];
-    }
-    
+    }    
 }
 
+/**
+ * @todo gestione errori
+ */ 
+bool Triangle::is12()
+{
+    if(type == TriangleType::_12)
+        return true;
+    else if(type == TriangleType::_21)
+        return false;
+    else
+        throw domain_error("TriangleType not recognized");
+}
+
+bool Triangle::is21()
+{
+    return not is12();
+}
+
+bool Triangle::is_transition()
+{
+    if(transition_id == -1)
+        return false;
+    else
+        return true;
+}
 
 /**
 * @todo in questi metodi (Triangle::vertices Triangle::adjacent_triangles) devo inserire un controllo degli errori più stringente:\n

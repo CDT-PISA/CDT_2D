@@ -1,5 +1,6 @@
 /** @file */
 #include <iostream>
+#include <iomanip>
 #include "triangulation.h"
 #include <random>
 
@@ -9,9 +10,7 @@
 using namespace std;
 
 int main() {
-    Triangulation universe(10);
-    
-    cout << universe.transition1221[3]->position();
+    Triangulation universe(10);    
     
     // MOVE
     
@@ -20,10 +19,13 @@ int main() {
     uniform_int_distribution<int>  dice(1, 4);
     
     int i=0;
-    while(i<1000){
-        switch(dice(mt)){
+    while(i<5){
+//         switch(dice(mt)){
+        switch(1){
             case 1:
             {
+                cout << "Hello";
+                universe.move_22_1();
                 break;
             }
             case 2:

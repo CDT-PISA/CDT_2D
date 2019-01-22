@@ -30,7 +30,7 @@
 
 using namespace std;
 
-// STARTING TRIANGULATION INITIALIZATION
+// ##### STARTING TRIANGULATION INITIALIZATION #####
 
 /**
  * @todo comment: describe the structure at which is initialized and the way chosen to construct it (sotto @usage)
@@ -51,7 +51,7 @@ Triangulation::Triangulation(int TimeLength)
     transition1221.clear();
     transition2112.clear();
     
-    // FIRST STRIP
+    // ----- FIRST STRIP -----
     
     spatial_profile.push_back(3);
         
@@ -59,10 +59,14 @@ Triangulation::Triangulation(int TimeLength)
         Label lab(new Triangle(list2.size())); // list2.size() has to be equal to j
         list2.push_back(lab);
         
-        if(j<3)     // set transitions vectors
+        if(j<3){     // set transitions vectors
+            lab.dync_triangle()->transition_id = transition1221.size();
             transition1221.push_back(lab);
-        else
+        }
+        else{
+            lab.dync_triangle()->transition_id = transition2112.size();
             transition2112.push_back(lab);
+        }
     }
     
     for(int j=0;j<3;j++){   // initialize the 3 vertices at time 1
@@ -81,7 +85,7 @@ Triangulation::Triangulation(int TimeLength)
      * - or the adjacency relations among triangles, that will be fixed in the final section (Triangle::adjacents_t)
      */ 
     
-    // INTERMEDIATE STRIPS
+    // ----- INTERMEDIATE STRIPS -----
     
     for(int i=1;i<TimeLength;i++){
         spatial_profile.push_back(3);
@@ -92,10 +96,14 @@ Triangulation::Triangulation(int TimeLength)
             Label lab(new Triangle(list2.size())); // list2.size() has to be equal to (6*i + j)
             list2.push_back(lab);
             
-            if(j<3)     // set transitions vectors
+            if(j<3){     // set transitions vectors
+                lab.dync_triangle()->transition_id = transition1221.size();
                 transition1221.push_back(lab);
-            else
+            }
+            else{
+                lab.dync_triangle()->transition_id = transition2112.size();
                 transition2112.push_back(lab);
+            }
         }
         
         // VERTICES
@@ -107,9 +115,11 @@ Triangulation::Triangulation(int TimeLength)
             Label lab(new Vertex(list0.size(),time,6,list2[6*i+j]));    // list0.size() has to be equal to (3*i + j)
             list0.push_back(lab);
             
-            // Now complete the vertices of the corresponding (2,1)-triangle
+            // Now complete the vertices of the corresponding (2,1)-triangle (and fix his type)
             
             Triangle* tri_lab0 = list2[j + 6*i].dync_triangle();
+            tri_lab0->type = TriangleType::_21;
+            
             tri_lab0->vertices()[2] = lab;    // attach the current vertex to the triangle below it
             /* the vertices at time i (ones below the strip) are [3*(i-1),3*i) so for the triangle = 0 (mod 6) in the strip above:
              * - the down-left corner is the vertex = 2 (mod 3);
@@ -129,6 +139,8 @@ Triangulation::Triangulation(int TimeLength)
             tri_lab4->vertices()[0] = lab;
             
             // Finally attach to the (1,2)-triangles vertices at the time i (the lower boundary of the strip")
+            // and fix the type
+            tri_lab3->type = TriangleType::_12;
             tri_lab4->vertices()[2] = list0[3*(i - 1) + j];
         }
         
@@ -149,7 +161,7 @@ Triangulation::Triangulation(int TimeLength)
         }
     }
     
-    // FINAL STEPS
+    // ----- FINAL STEPS -----
     
     // Still have to fix the adjacencies in the first(zeroth) strip...
     for(int j=0;j<3;j++){ /** @todo allegare disegni */
@@ -165,6 +177,10 @@ Triangulation::Triangulation(int TimeLength)
         tri_lab3->adjacent_triangles()[1] = list2[(j + 2)%3];
         
         tri_labp->adjacent_triangles()[2] = list2[j];
+        
+    // ... and the types...
+        tri_lab0->type = TriangleType::_21;
+        tri_lab3->type = TriangleType::_12;
     }
     
     // ... and vertices of (2,1)-triangles (ones at time 0)
@@ -179,7 +195,7 @@ Triangulation::Triangulation(int TimeLength)
     }
 }
  
-// SIMPLEX MANAGEMENT
+// ##### SIMPLEX MANAGEMENT #####
  
 int Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
 {
@@ -201,10 +217,10 @@ int Triangulation::create_triangle()
     return list_position;
 }
 
-int Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3])
+int Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],TriangleType type)
 {
     int list_position=list2.size();
-    Label lab(new Triangle(list_position,vertices,adjacents_t));
+    Label lab(new Triangle(list_position,vertices,adjacents_t,type));
     
     list2.push_back(lab);
     
@@ -278,10 +294,10 @@ void Triangulation::remove_triangle(Label tri_lab)
     }
 }
 
-// MOVES
+// ##### MOVES #####
 
 /**
- * @usage Questa sarà la mossa
+ * Questa sarà la mossa
  * \code
  *     v3         v2         v3         v2
  *      * * * * * *           * * * * * *
@@ -293,28 +309,175 @@ void Triangulation::remove_triangle(Label tri_lab)
  *      * * * * * *           * * * * * *
  *     v0         v1         v0         v1
  * \endcode
+ * 
+ * @todo allegare anche qualche altro disegno
  */ 
 void Triangulation::move_22_1()
-{
+{   
+    long num_t = transition1221.size(); 
+    
     random_device rd;
     mt19937_64 mt(rd());
-    uniform_int_distribution<int>  transition(0, transition1221.size());
+    uniform_int_distribution<int> transition(0, num_t);
+    uniform_real_distribution<double> reject_trial(0.0,1.0);
     
-    // find triangles
+    // find triangles (they are needed to compute the reject ratio)
     Triangle* tri_lab0 = transition1221[transition(mt)].dync_triangle();
     Triangle* tri_lab1 = tri_lab0->adjacent_triangles()[1].dync_triangle();
     Triangle* tri_lab2 = tri_lab1->adjacent_triangles()[1].dync_triangle();
     Triangle* tri_lab3 = tri_lab0->adjacent_triangles()[0].dync_triangle();
     
+    // ----- REJECT RATIO -----
+    int x = 1;
+    if(tri_lab2->is21())
+        x--;
+    if(tri_lab3->is12())
+        x--;
+    
+    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
+    
+    if(reject_trial(mt) > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    
     // find vertices
+    /* it's sane to do it immediately, because first cell elements are recognized, and then modified
+     * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
+     */ 
     Vertex* v_lab0 = tri_lab0->vertices()[0].dync_vertex();
     Vertex* v_lab1 = tri_lab0->vertices()[1].dync_vertex();
     Vertex* v_lab2 = tri_lab0->vertices()[2].dync_vertex();
     Vertex* v_lab3 = tri_lab1->vertices()[0].dync_vertex();
+    
+    // modify triangles' adjacencies
+    tri_lab0->adjacent_triangles()[0] = tri_lab1;
+    tri_lab0->adjacent_triangles()[1] = tri_lab2;
+    tri_lab1->adjacent_triangles()[0] = tri_lab3;
+    tri_lab1->adjacent_triangles()[1] = tri_lab0;
+    tri_lab2->adjacent_triangles()[0] = tri_lab0;
+    tri_lab3->adjacent_triangles()[1] = tri_lab1;
+    
+    // modify triangles' vertices
+    tri_lab0->vertices()[2] = v_lab3;
+    tri_lab1->vertices()[2] = v_lab1;
+    
+    // modify vertices' near_t
+    /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
+    if(v_lab0->adjacent_triangle().dync_triangle() == tri_lab1)
+        v_lab0->near_t = tri_lab0;
+    if(v_lab2->adjacent_triangle().dync_triangle() == tri_lab0)
+        v_lab2->near_t = tri_lab1;
+    
+    // modify vertices' coord_num
+    v_lab0->coord_num--;
+    v_lab2->coord_num--;
+    v_lab1->coord_num++;
+    v_lab3->coord_num++;
+    
+    // ----- AUXILIARY STRUCTURES -----
+    
+    // modify transitions list
+    
+    if(tri_lab2->is21()){
+        /** @todo uno potrrebbe anche pensare di impacchettare queste modifiche delle transition list in dei metodi separati in modo da avere più garanzie sul fatto che gli invarianti siano rispettati */
+        if(tri_lab0->transition_id != transition1221.size() - 1){
+            Label lab_end = transition1221[transition1221.size() - 1];
+            
+            lab_end.dync_triangle()->transition_id = tri_lab0->transition_id;
+            transition1221[tri_lab0->transition_id] = lab_end;
+        }
+        transition1221.pop_back();
+        tri_lab0->transition_id = -1;
+    }
+    else{
+        tri_lab1->transition_id = transition2112.size();
+        transition2112.push_back(tri_lab1);
+    }
+    if(tri_lab3->is12()){
+        if(tri_lab3->transition_id != transition2112.size() - 1){
+            Label lab_end = transition2112[transition2112.size() - 1];
+            
+            lab_end.dync_triangle()->transition_id = tri_lab3->transition_id;
+            transition2112[tri_lab3->transition_id] = lab_end;
+        }
+        transition2112.pop_back();
+        tri_lab3->transition_id = -1;
+    }
+    else{
+        tri_lab3->transition_id = transition1221.size();
+        transition1221.push_back(tri_lab3);
+    }
+    
+    /** @todo ripensare a questo errore */
+    if(transition1221.size() != transition2112.size()){
+        cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
+        cout.flush();
+        throw runtime_error("Not the same number of transitions of the two types");
+    }
+    
+    // find vert. coord. 4 and patologies
+    
+    /* vertex 0,2 were not of coord. 4, and they could have become
+     * vertex 1,3 could be of coord. 4, and now they are not
+     */ 
+    
+    vector<Vertex*> vec;
+    vec.push_back(v_lab0);
+    vec.push_back(v_lab2);
+    
+    for(auto x : vec){
+        if(x->coordination() == 4){
+            Label lab = list0[x->position()];
+            
+            list0[x->position()] = list0[num40 + num40p];
+            list0[x->position()].dync_vertex()->id = x->position();
+            list0[num40 + num40p] = lab;
+            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            
+            if(spatial_profile[x->time()] == 3){
+                num40p++;
+            }
+            else{                
+                list0[x->position()] = list0[num40];
+                list0[x->position()].dync_vertex()->id = x->position();
+                list0[num40] = lab;
+                list0[num40].dync_vertex()->id = num40;
+                
+                num40++;
+            }
+        }        
+    }
+    
+    vec.clear();
+    vec.push_back(v_lab1);
+    vec.push_back(v_lab3);
+    
+    for(auto x : vec){
+        if(x->coordination() == 5){
+            Label lab = list0[x->position()];
+
+            if(spatial_profile[x->time()] == 3){
+                num40p--;
+            }
+            else{
+                num40--;
+                
+                list0[x->position()] = list0[num40];
+                list0[x->position()].dync_vertex()->id = x->position();
+                list0[num40] = lab;
+                list0[num40].dync_vertex()->id = num40;
+            }
+            list0[x->position()] = list0[num40 + num40p];
+            list0[x->position()].dync_vertex()->id = x->position();
+            list0[num40 + num40p] = lab;
+            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+        }        
+    }
 }
 
 /**
- * @usage Questa sarà la mossa
+ * Questa sarà la mossa
  * \code
  *     v3         v2         v3         v2
  *      * * * * * *           * * * * * *
@@ -331,7 +494,7 @@ void Triangulation::move_22_2()
 {
 }
 
-// USER INTERACTION METHODS
+// ##### USER INTERACTION METHODS #####
 
 /** @todo implementare quella carina orizzontale*/
 void Triangulation::print_space_profile()
@@ -368,6 +531,8 @@ void Triangulation::print_space_profile(char orientation)
         }
     }
 }
+
+// ##### SIMULATION RESULTS - SAVE METHODS #####
 
 /** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
 void Triangulation::print_space_profile(std::ofstream save_file, std::__cxx11::string filename)
