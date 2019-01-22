@@ -1,26 +1,10 @@
-/*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2019  Alessandro Candido <email>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
+/** @file */
 #ifndef TRIANGULATION_H
 #define TRIANGULATION_H
 
 #include <vector>
 #include <string>
+#include <fstream>
 #include "label.h"
 using namespace std;
 
@@ -31,23 +15,13 @@ using namespace std;
  */
 class Triangulation
 {
-public:
-    /**
-     * @param TimeLength the number of time slices
-     */
-    Triangulation(int TimeLength);
-
-    /**
-     * Destructor
-     */
-    ~Triangulation(){}
-
-    
+public: /// @todo magari la metterò ogni tanto a public per fare dei test ma alla fine deve essere private
     // DATA
     
     /**
     * @brief the space-time volume of the triangulation
     * 
+    * @todo perché devo tenermi Triangulation::volume se è = list2.size() ? 
     */
     int volume;
     
@@ -92,19 +66,38 @@ public:
     /**
     * @brief list of 1st type transition
     * 
-    * list of (1,2)-triangles that are right-members of cells for the move (2,2)
-    * 
-    * the advantage of using a vector of Label instead of a vector of positions in list2 (int) is that I don't have to update it when I do the moves (2,4)-(4,2) if I do these correctly
+    * list of (2,1)-triangles that are right-members of cells for the move (2,2)
+    * \code
+    *         * * * * * *
+    * (1,2)-> *        **
+    *         *      ****
+    *         *    ******
+    *         *  ********
+    *         *********** <-(2,1)
+    *         ***********
+    * \endcode
+    * the colored triangle is the one of which the label is saved in Triangulation::transition2112
     */
-    vector<Label> transition2112;
+    vector<Label> transition1221;
     
     /**
     * @brief list of 2nd type transition
     * 
-    * list of (2,1)-triangles that are right-members of cells for the move (2,2)
+    * list of (1,2)-triangles that are right-members of cells for the move (2,2)
+    * \code
+    *         ***********
+    *         *********** <-(1,2)
+    *         *  ********
+    *         *    ******
+    *         *      ****
+    * (2,1)-> *        **
+    *         * * * * * *
+    * \endcode
+    * the colored triangle is the one of which the label is saved in Triangulation::transition1221
     * 
+    * the advantage of using a vector of Label instead of a vector of positions in list2 (int) is that I don't have to update it when I do the moves (2,4)-(4,2) if I do these correctly
     */
-    vector<Label> transition1221;
+    vector<Label> transition2112;
     
     /**
     * @brief sizes of time slices
@@ -114,8 +107,21 @@ public:
     */
     vector<int> spatial_profile;  
     
+public:
     
-    // METHODS
+    /** @todo initialization from file */ 
+    
+    /**
+     * @param TimeLength the number of time slices
+     */
+    Triangulation(int TimeLength);
+    
+    /**
+     * Destructor
+     */
+    ~Triangulation(){}
+    
+    // SIMPLEX MANAGEMENT
     
     /**
     * @brief
@@ -143,6 +149,27 @@ public:
     */
     int create_triangle(Label vertices[3], Label adjacents_t[3]);
     
+    void remove_vertex(Label v_lab);
+    
+    void remove_triangle(Label tri_lab);
+    
+    // --> MOVES
+    
+    /** @todo pensare magari a nomi migliori per le mosse */
+    
+    /**
+    * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
+    */
+    void move_22_1();
+    
+    void move_22_2();
+    
+    void move_24();
+    
+    void move_42();
+    
+    // USER INTERACTION METHODS
+    
     /**
     * @todo stampa il profilo spaziale (o stampando la sequenza di numeri oppure stampando tanti # su ogni riga)\n
     * dovrò farne due versioni:\n
@@ -151,12 +178,30 @@ public:
     *     (magari questa seconda versione può anche prendere un valore di un file una volta sola e stampare sempre su quello finché non gli viene detto diversamente)
     * 
     */
+    /**
+    * @brief print space profile graphically
+    * 
+    * @usage this function is the default one, and print the space horizzontally, that is more understable
+    */
     void print_space_profile();
     
     /**
-     * TODO initialization from file
-     * 
+    * @brief print space profile graphically
+    * 
+    * @usage this function let the user specify the orientation, so that is possible to choose the vertical orientation (useful for big TimeLenght)
+    * @param orientation could be either 'h' or 'v'
+    */
+    void print_space_profile(char orientation);
+    
+    // SIMULATION RESULTS - SAVE METHODS
+    
+    /**
+     * @todo dovrebbe poter scegliere il file anche una volta sola e poi usare sempre quello
+     * - usare qualcosa static (o qualche cosa del genere per tenere il file aperto)
+     * - aprire in append e stampare una riga intera alla volta
      */ 
+    void print_space_profile(ofstream save_file, string filename);
+    
 };
 
 #endif // TRIANGULATION_H

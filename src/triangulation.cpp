@@ -16,9 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "triangulation.h"
+#include <iostream>
+#include <iomanip>
 #include <memory>
 #include <stdexcept>
+#include <random>
+#include "triangulation.h"
 /**
  * @todo Is a good practice to reinclude in the .cpp the header already included in the corresponding .h?
  */
@@ -27,6 +30,14 @@
 
 using namespace std;
 
+// STARTING TRIANGULATION INITIALIZATION
+
+/**
+ * @todo comment: describe the structure at which is initialized and the way chosen to construct it (sotto @usage)
+ * 
+ * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
+ * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
+ */ 
 Triangulation::Triangulation(int TimeLength)
 {
     if(TimeLength < 1)
@@ -41,10 +52,17 @@ Triangulation::Triangulation(int TimeLength)
     transition2112.clear();
     
     // FIRST STRIP
+    
+    spatial_profile.push_back(3);
         
     for(int j=0;j<6;j++){   // initialize the 6 triangles in the first(zeroth) strip
         Label lab(new Triangle(list2.size())); // list2.size() has to be equal to j
         list2.push_back(lab);
+        
+        if(j<3)     // set transitions vectors
+            transition1221.push_back(lab);
+        else
+            transition2112.push_back(lab);
     }
     
     for(int j=0;j<3;j++){   // initialize the 3 vertices at time 1
@@ -73,6 +91,11 @@ Triangulation::Triangulation(int TimeLength)
         for(int j=0;j<6;j++){ // initialize the 6 triangles in the ith strip
             Label lab(new Triangle(list2.size())); // list2.size() has to be equal to (6*i + j)
             list2.push_back(lab);
+            
+            if(j<3)     // set transitions vectors
+                transition1221.push_back(lab);
+            else
+                transition2112.push_back(lab);
         }
         
         // VERTICES
@@ -94,19 +117,19 @@ Triangulation::Triangulation(int TimeLength)
              *
              * and so on for the other (2,1)-triangles in the strip
              */
-            tri_lab0->vertices()[0] = list0[3*(i - 1) + j];   // attach the remaining two vertices
-            tri_lab0->vertices()[1] = list0[3*(i - 1) + (j + 2)%3];
+            tri_lab0->vertices()[1] = list0[3*(i - 1) + j];   // attach the remaining two vertices
+            tri_lab0->vertices()[0] = list0[3*(i - 1) + (j + 2)%3];
              
             
             // And now add the current vertex to the adjacent (1,2)-triangles in the strip
             
-            Triangle* tri_lab1 = list2[j + 3 + 6*i].dync_triangle(); /** @todo allegare disegni */
-            Triangle* tri_lab2 = list2[(j + 1)%3 + 3 + 6*i].dync_triangle();
-            tri_lab1->vertices()[1] = lab;
-            tri_lab2->vertices()[0] = lab;
+            Triangle* tri_lab3 = list2[j + 3 + 6*i].dync_triangle(); /** @todo allegare disegni */
+            Triangle* tri_lab4 = list2[(j + 1)%3 + 3 + 6*i].dync_triangle();
+            tri_lab3->vertices()[1] = lab;
+            tri_lab4->vertices()[0] = lab;
             
             // Finally attach to the (1,2)-triangles vertices at the time i (the lower boundary of the strip")
-            tri_lab2->vertices()[2] = list0[3*(i - 1) + j];
+            tri_lab4->vertices()[2] = list0[3*(i - 1) + j];
         }
         
         // TRIANGLE ADJACENCIES
@@ -146,13 +169,18 @@ Triangulation::Triangulation(int TimeLength)
     
     // ... and vertices of (2,1)-triangles (ones at time 0)
     for(int j=0;j<3;j++){
-        Triangle* tri_lab = list2[j].dync_triangle();
+        Triangle* tri_lab0 = list2[j].dync_triangle();
+        Triangle* tri_lab3 = list2[j+3].dync_triangle();
         
-        tri_lab->vertices()[0] = list0[TimeLength - 3 + (j + 2)%3];
-        tri_lab->vertices()[1] = list0[TimeLength - 3 + j];
+        tri_lab0->vertices()[0] = list0[(TimeLength - 1)*3 + (j + 2)%3];
+        tri_lab0->vertices()[1] = list0[(TimeLength - 1)*3 + j];
+        
+        tri_lab3->vertices()[2] = list0[(TimeLength - 1)*3 + (j + 2)%3];
     }
 }
-    
+ 
+// SIMPLEX MANAGEMENT
+ 
 int Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
 {
     int list_position=list0.size();
@@ -182,4 +210,166 @@ int Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3])
     
     return list_position;
     
+}
+
+/** 
+ * @todo migliorare gestione degli errori 
+ * @todo devo controllare che non ci siano triangoli ancora attaccati o forse no? 
+ * @todo controllare se ci sono altre cose da fare quando viene rimosso un vertice
+ * 
+ * @test verificare che funzioni regolarmente (magari anche dopo aver individuato esattamente come la uso nelle mossee e aver quindi definito cosa deve fare lei o cosa viene fatto esplicitamente nelle mosse)
+ */
+void Triangulation::remove_vertex(Label v_lab)
+{
+    try{        
+        if(v_lab->id < (num40 - 1)){
+            list0[v_lab->id] = list0[num40 - 1];
+            list0[num40-1] = v_lab;
+            
+            v_lab->id = num40 - 1; 
+            num40--;
+        }
+        if(v_lab->id < (num40p - 1)){
+            list0[v_lab->id] = list0[num40p - 1];
+            list0[num40p-1] = v_lab;
+            
+            v_lab->id = num40p - 1; 
+            num40p--;
+        }
+        if(v_lab->id != list0.size() - 1){
+            list0[v_lab->id] = list0[list0.size() - 1];
+            list0[list0.size()-1] = v_lab;
+            
+            v_lab->id = list0.size() - 1;
+        }
+        
+        spatial_profile[v_lab.dync_vertex()->time()]--;
+        list0.pop_back();
+    }
+    catch(...){
+        throw;
+    }
+}
+
+/** 
+ * @todo migliorare gestione degli errori 
+ * @todo devo controllare che non ci siano triangoli adiacenti o vertici attaccati? 
+ * @todo controllare se ci sono altre cose da fare quando viene rimosso un vertice
+ * 
+ * Triangulation::transition1221 e Triangulation::transition2112 vanno modificati direttamente nelle mosse, lì è troppo più facile (ho molta più informazione e non devo ricavarmela)
+ * 
+ * @test verificare che funzioni regolarmente (magari anche dopo aver individuato esattamente come la uso nelle mossee e aver quindi definito cosa deve fare lei o cosa viene fatto esplicitamente nelle mosse)
+ */
+void Triangulation::remove_triangle(Label tri_lab)
+{
+    try{
+        if(tri_lab->id != list2.size() - 1){
+            list2[tri_lab->id] = list2[list2.size() - 1];
+            list2[list2.size()-1] = tri_lab;
+            
+            tri_lab->id = list2.size() - 1;
+        }
+        
+        list2.pop_back();
+        volume--;
+    }
+    catch(...){
+        throw;
+    }
+}
+
+// MOVES
+
+/**
+ * @usage Questa sarà la mossa
+ * \code
+ *     v3         v2         v3         v2
+ *      * * * * * *           * * * * * *
+ *      *        **           **        *
+ *      *  1   *  *           *  *   1  *
+ *    2 *    *    * 3  -->  2 *    *    * 3
+ *      *  *   0  *           *  0   *  *
+ *      **        *           *        **
+ *      * * * * * *           * * * * * *
+ *     v0         v1         v0         v1
+ * \endcode
+ */ 
+void Triangulation::move_22_1()
+{
+    random_device rd;
+    mt19937_64 mt(rd());
+    uniform_int_distribution<int>  transition(0, transition1221.size());
+    
+    // find triangles
+    Triangle* tri_lab0 = transition1221[transition(mt)].dync_triangle();
+    Triangle* tri_lab1 = tri_lab0->adjacent_triangles()[1].dync_triangle();
+    Triangle* tri_lab2 = tri_lab1->adjacent_triangles()[1].dync_triangle();
+    Triangle* tri_lab3 = tri_lab0->adjacent_triangles()[0].dync_triangle();
+    
+    // find vertices
+    Vertex* v_lab0 = tri_lab0->vertices()[0].dync_vertex();
+    Vertex* v_lab1 = tri_lab0->vertices()[1].dync_vertex();
+    Vertex* v_lab2 = tri_lab0->vertices()[2].dync_vertex();
+    Vertex* v_lab3 = tri_lab1->vertices()[0].dync_vertex();
+}
+
+/**
+ * @usage Questa sarà la mossa
+ * \code
+ *     v3         v2         v3         v2
+ *      * * * * * *           * * * * * *
+ *      *        **           **        *
+ *      *  1   *  *           *  *   1  *
+ *    2 *    *    * 3  -->  2 *    *    * 3
+ *      *  *   0  *           *  0   *  *
+ *      **        *           *        **
+ *      * * * * * *           * * * * * *
+ *     v0         v1         v0         v1
+ * \endcode
+ */ 
+void Triangulation::move_22_2()
+{
+}
+
+// USER INTERACTION METHODS
+
+/** @todo implementare quella carina orizzontale*/
+void Triangulation::print_space_profile()
+{
+    
+}
+
+void Triangulation::print_space_profile(char orientation)
+{
+    switch(orientation){
+        case 'h':
+        {
+            print_space_profile();
+            break;
+        }   
+        case 'v':
+        {
+            int max=3;
+            for(auto x : spatial_profile){
+                if(x > max)
+                    max = x;
+            }
+                
+            for(int i=0;i<spatial_profile.size();i++){
+                cout << i << ": ";
+                
+                int length = (spatial_profile[i] * 100) / max;
+                for(int j=0;j<length;j++)
+                    cout << "#";
+                
+                cout << " " << setprecision(3) << length/100.0 << endl;
+            }
+            break;
+        }
+    }
+}
+
+/** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
+void Triangulation::print_space_profile(std::ofstream save_file, std::__cxx11::string filename)
+{
 }

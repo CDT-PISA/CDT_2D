@@ -23,7 +23,7 @@
 Label::Label(Simplex* s) : shared_ptr<Simplex>(s){}
 
 /**
-* @todo migliorare il cast e completare con errore (ramo else)
+* @todo migliorare il cast e completare con errore (throw nel ramo else)
 */
 Vertex* Label::dync_vertex()
 {
@@ -36,7 +36,7 @@ Vertex* Label::dync_vertex()
 }
 
 /**
-* @todo migliorare il cast e completare con errore (ramo else)
+* @todo migliorare il cast e completare con errore (throw nel ramo else)
 */
 Triangle* Label::dync_triangle()
 {
