@@ -22,9 +22,9 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     /**
     * @brief the space-time volume of the triangulation
     * 
-    * @todo perché devo tenermi Triangulation::volume se è = list2.size() ? 
+    * @todo perché devo tenermi Triangulation::volume se è = list2.size() ? per ora non lo uso... così non devo tenerlo aggiornato
     */
-    long volume;
+//     long volume;
     
     /**
      * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n

@@ -21,6 +21,7 @@
 #include <memory>
 #include <stdexcept>
 #include <random>
+#include <cmath>
 #include "triangulation.h"
 /**
  * @todo Is a good practice to reinclude in the .cpp the header already included in the corresponding .h?
@@ -287,7 +288,6 @@ void Triangulation::remove_triangle(Label tri_lab)
         }
         
         list2.pop_back();
-        volume--;
     }
     catch(...){
         throw;
@@ -311,6 +311,8 @@ void Triangulation::remove_triangle(Label tri_lab)
  * \endcode
  * 
  * @todo allegare anche qualche altro disegno
+ * 
+ * @test devo fare i test per questa mossa (forse devo trovare un modo semplice di stampare tutta la triangolazione)
  */ 
 void Triangulation::move_22_1()
 {   
@@ -318,14 +320,33 @@ void Triangulation::move_22_1()
     
     random_device rd;
     mt19937_64 mt(rd());
-    uniform_int_distribution<int> transition(0, num_t);
+    uniform_int_distribution<int> transition(0, num_t - 1);
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
+    int tr = transition(mt);
+//     static int tr = 3;
+//     tr++;
+    cout << "move_22_1 :" << tr << endl;
+    
+    /**
+     * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
+     * l'errore si presentava con universe(10) tr scritto nel commento sopra
+     * e soprattutto senza i lab_t e i lab_v, e al loro posto c'erano i tri_lab e v_lab
+     * 
+     * @todo lab_t e lab_v sono un po' ridondanti, quindi per ora credo siano solo temporanei
+     * - o sostituisco i tri_lab e uso sempre dync_triangle (stessa cosa per i vertex)
+     * - o non uso i lab_t e al loro posto metto sempre list2[tri_lab->position()]
+     */ 
     // find triangles (they are needed to compute the reject ratio)
-    Triangle* tri_lab0 = transition1221[transition(mt)].dync_triangle();
+    Triangle* tri_lab0 = transition1221[tr].dync_triangle();
     Triangle* tri_lab1 = tri_lab0->adjacent_triangles()[1].dync_triangle();
     Triangle* tri_lab2 = tri_lab1->adjacent_triangles()[1].dync_triangle();
     Triangle* tri_lab3 = tri_lab0->adjacent_triangles()[0].dync_triangle();
+    Label lab_t0 = transition1221[tr];
+    Label lab_t1 = tri_lab0->adjacent_triangles()[1];
+    Label lab_t2 = tri_lab1->adjacent_triangles()[1];
+    Label lab_t3 = tri_lab0->adjacent_triangles()[0];
+    
     
     // ----- REJECT RATIO -----
     int x = 1;
@@ -349,25 +370,29 @@ void Triangulation::move_22_1()
     Vertex* v_lab1 = tri_lab0->vertices()[1].dync_vertex();
     Vertex* v_lab2 = tri_lab0->vertices()[2].dync_vertex();
     Vertex* v_lab3 = tri_lab1->vertices()[0].dync_vertex();
+    Label lab_v0 = tri_lab0->vertices()[0];
+    Label lab_v1 = tri_lab0->vertices()[1];
+    Label lab_v2 = tri_lab0->vertices()[2];
+    Label lab_v3 = tri_lab1->vertices()[0];
     
     // modify triangles' adjacencies
-    tri_lab0->adjacent_triangles()[0] = tri_lab1;
-    tri_lab0->adjacent_triangles()[1] = tri_lab2;
-    tri_lab1->adjacent_triangles()[0] = tri_lab3;
-    tri_lab1->adjacent_triangles()[1] = tri_lab0;
-    tri_lab2->adjacent_triangles()[0] = tri_lab0;
-    tri_lab3->adjacent_triangles()[1] = tri_lab1;
+    tri_lab0->adjacent_triangles()[0] = lab_t1;
+    tri_lab0->adjacent_triangles()[1] = lab_t2;
+    tri_lab1->adjacent_triangles()[0] = lab_t3;
+    tri_lab1->adjacent_triangles()[1] = lab_t0;
+    tri_lab2->adjacent_triangles()[0] = lab_t0;
+    tri_lab3->adjacent_triangles()[1] = lab_t1;
     
     // modify triangles' vertices
-    tri_lab0->vertices()[2] = v_lab3;
-    tri_lab1->vertices()[2] = v_lab1;
+    tri_lab0->vertices()[2] = lab_v3;
+    tri_lab1->vertices()[2] = lab_v1;
     
     // modify vertices' near_t
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
     if(v_lab0->adjacent_triangle().dync_triangle() == tri_lab1)
-        v_lab0->near_t = tri_lab0;
+        v_lab0->near_t = lab_t0;
     if(v_lab2->adjacent_triangle().dync_triangle() == tri_lab0)
-        v_lab2->near_t = tri_lab1;
+        v_lab2->near_t = lab_t1;
     
     // modify vertices' coord_num
     v_lab0->coord_num--;
@@ -392,7 +417,7 @@ void Triangulation::move_22_1()
     }
     else{
         tri_lab1->transition_id = transition2112.size();
-        transition2112.push_back(tri_lab1);
+        transition2112.push_back(lab_t1);
     }
     if(tri_lab3->is12()){
         if(tri_lab3->transition_id != transition2112.size() - 1){
@@ -406,7 +431,7 @@ void Triangulation::move_22_1()
     }
     else{
         tri_lab3->transition_id = transition1221.size();
-        transition1221.push_back(tri_lab3);
+        transition1221.push_back(lab_t3);
     }
     
     /** @todo ripensare a questo errore */
@@ -493,6 +518,73 @@ void Triangulation::move_22_1()
 void Triangulation::move_22_2()
 {
 }
+
+/**
+ * Questa sarà la mossa
+ * \code
+ *            v2                            v2
+ *             *                             *       
+ *            * *                          * * *      
+ *        5  *   *  4                5   *   *   *   4
+ *          *  0  *                    *  0  *  3  *  
+ *         *       *                 *       *       *
+ *     v0 * * * * * * v1   -->   v0 * * * * * * * * * * * v1
+ *         *       *                 *       *       *
+ *          *  1  *                    *  1  *  2  *    
+ *        6  *   *  7                6   *   *   *   7   
+ *            * *                          * * *      
+ *             *                             *       
+ *            v3                            v3
+ * \endcode
+ */
+void Triangulation::move_24()
+{
+    // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
+    long volume = list2.size(); 
+    
+    random_device rd;
+    mt19937_64 mt(rd());
+    uniform_int_distribution<int> extracted_triangle(0, volume - 1);
+    uniform_real_distribution<double> reject_trial(0.0,1.0);
+    
+    // ----- REJECT RATIO -----
+    double reject_ratio = min(1.0,static_cast<double>(volume)/(num40+1));
+    
+    if(reject_trial(mt) > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    int extr = extracted_triangle(mt);
+//     static int tr = 3;
+//     tr++;
+    cout << "move_24 :" << extr << endl;
+    
+    if(list2[extr].dync_triangle()->is21())
+    
+}
+
+/**
+ * Questa sarà la mossa
+ * \code
+ *              v2                              v2        
+ *               *                               *        
+ *             * * *                            * *       
+ *       5   *   *   *   4                  5  *   *  4   
+ *         *  0  *  3  *                      *  0  *     
+ *       *       *       *                   *       *    
+ *   v0 * * * * * * * * * * * v1   -->   v0 * * * * * * v1
+ *       *       *       *                   *       *    
+ *         *  1  *  2  *                      *  1  *     
+ *       6   *   *   *   7                  6  *   *  7   
+ *             * * *                            * *       
+ *               *                               *        
+ *              v3                              v3        
+ * \endcode
+ */
+void Triangulation::move_42()
+{
+}
+
 
 // ##### USER INTERACTION METHODS #####
 
