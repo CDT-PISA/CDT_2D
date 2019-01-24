@@ -198,34 +198,34 @@ Triangulation::Triangulation(int TimeLength)
  
 // ##### SIMPLEX MANAGEMENT #####
  
-int Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
+Label Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
 {
     int list_position=list0.size();
     Label lab(new Vertex(list_position, Time, coordination_number, triangle));
     
     list0.push_back(lab);
     
-    return list_position;
+    return lab;
 }
 
-int Triangulation::create_triangle()
+Label Triangulation::create_triangle()
 {
     int list_position=list2.size();
     Label lab(new Triangle(list_position));
     
     list2.push_back(lab);
     
-    return list_position;
+    return lab;
 }
 
-int Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],TriangleType type)
+Label Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],TriangleType type)
 {
     int list_position=list2.size();
     Label lab(new Triangle(list_position,vertices,adjacents_t,type));
     
     list2.push_back(lab);
     
-    return list_position;
+    return lab;
     
 }
 
@@ -332,20 +332,27 @@ void Triangulation::move_22_1()
      * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
      * l'errore si presentava con universe(10) tr scritto nel commento sopra
      * e soprattutto senza i lab_t e i lab_v, e al loro posto c'erano i tri_lab e v_lab
+     * POSSIBILE SOLUZIONE: tutto questo succede per colpa del triangolo x (da scoprire, nell'esempio credo sia l'11):
+     * - la prima volta viene assegnato come adiacenza ... = tri_labx (in questo modo il label diventa uno shared_ptr che non conosce gli altri shared_ptr, quindi anomalo e convinto di essere l'unico shared_ptr che punta quell'oggetto)
+     * - la seconda volta viene sovrascritto e quindi deleta l'oggetto (labx = tri_laby, con labx derivante da qualche array di label, tipo tri_labz->adjacent_triangles()[n])
+     * - la terza volta (intercambiabile con la seconda) un altro lato diventa uno shared_ptr solitario con ... = tri_lab_x
+     * - alla quarta succede quello che è successo alla seconda, solo che l'oggetto puntato già non esiste più e quindi quando prova a deletarlo non ci riesce e torna l'errore
+     * tutto questo è possibile che accada IN SOLE DUE MOSSE
+     * 
      * 
      * @todo lab_t e lab_v sono un po' ridondanti, quindi per ora credo siano solo temporanei
      * - o sostituisco i tri_lab e uso sempre dync_triangle (stessa cosa per i vertex)
      * - o non uso i lab_t e al loro posto metto sempre list2[tri_lab->position()]
      */ 
     // find triangles (they are needed to compute the reject ratio)
-    Triangle* tri_lab0 = transition1221[tr].dync_triangle();
-    Triangle* tri_lab1 = tri_lab0->adjacent_triangles()[1].dync_triangle();
-    Triangle* tri_lab2 = tri_lab1->adjacent_triangles()[1].dync_triangle();
-    Triangle* tri_lab3 = tri_lab0->adjacent_triangles()[0].dync_triangle();
     Label lab_t0 = transition1221[tr];
-    Label lab_t1 = tri_lab0->adjacent_triangles()[1];
-    Label lab_t2 = tri_lab1->adjacent_triangles()[1];
-    Label lab_t3 = tri_lab0->adjacent_triangles()[0];
+    Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
+    Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[1];
+    Label lab_t3 = lab_t0.dync_triangle()->adjacent_triangles()[0];
+    Triangle* tri_lab0 = lab_t0.dync_triangle();
+    Triangle* tri_lab1 = lab_t1.dync_triangle();
+    Triangle* tri_lab2 = lab_t2.dync_triangle();
+    Triangle* tri_lab3 = lab_t3.dync_triangle();
     
     
     // ----- REJECT RATIO -----
@@ -366,14 +373,14 @@ void Triangulation::move_22_1()
     /* it's sane to do it immediately, because first cell elements are recognized, and then modified
      * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
      */ 
-    Vertex* v_lab0 = tri_lab0->vertices()[0].dync_vertex();
-    Vertex* v_lab1 = tri_lab0->vertices()[1].dync_vertex();
-    Vertex* v_lab2 = tri_lab0->vertices()[2].dync_vertex();
-    Vertex* v_lab3 = tri_lab1->vertices()[0].dync_vertex();
     Label lab_v0 = tri_lab0->vertices()[0];
     Label lab_v1 = tri_lab0->vertices()[1];
     Label lab_v2 = tri_lab0->vertices()[2];
     Label lab_v3 = tri_lab1->vertices()[0];
+    Vertex* v_lab0 = lab_v0.dync_vertex();
+    Vertex* v_lab1 = lab_v1.dync_vertex();
+    Vertex* v_lab2 = lab_v2.dync_vertex();
+    Vertex* v_lab3 = lab_v3.dync_vertex();
     
     // modify triangles' adjacencies
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -528,7 +535,7 @@ void Triangulation::move_22_2()
  *        5  *   *  4                5   *   *   *   4
  *          *  0  *                    *  0  *  3  *  
  *         *       *                 *       *       *
- *     v0 * * * * * * v1   -->   v0 * * * * * * * * * * * v1
+ *     v0 * * * * * * v1   -->   v0 * * * * v4* * * * * * v1
  *         *       *                 *       *       *
  *          *  1  *                    *  1  *  2  *    
  *        6  *   *  7                6   *   *   *   7   
@@ -536,6 +543,9 @@ void Triangulation::move_22_2()
  *             *                             *       
  *            v3                            v3
  * \endcode
+ * 
+ * @todo check if there is something more to be done by the move_24
+ * @test check if it works
  */
 void Triangulation::move_24()
 {
@@ -559,8 +569,105 @@ void Triangulation::move_24()
 //     tr++;
     cout << "move_24 :" << extr << endl;
     
-    if(list2[extr].dync_triangle()->is21())
+    Label lab_t0 = move_24_find_t0(list2[extr]);
+    Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[2];
+    Triangle* tri_lab0 = lab_t0.dync_triangle();
+    Triangle* tri_lab1 = lab_t1.dync_triangle();
     
+    Label lab_v0 = tri_lab0->vertices()[0];
+    Label lab_v1 = tri_lab0->vertices()[1];
+    Label lab_v2 = tri_lab0->vertices()[2];
+    Label lab_v3 = tri_lab1->vertices()[2];
+    Vertex* v_lab0 = lab_v0.dync_vertex();
+    Vertex* v_lab1 = lab_v1.dync_vertex();
+    Vertex* v_lab2 = lab_v2.dync_vertex();
+    Vertex* v_lab3 = lab_v3.dync_vertex();
+    
+    // create new Triangles and vertex, and put already in them the right values
+    Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
+    Vertex* v_lab4 = lab_v4.dync_vertex();
+    
+    Label t2_adjancencies[3];
+    Label t3_adjancencies[3];
+    Label t2_vertices[3];
+    Label t3_vertices[3];
+    t2_adjancencies[0] = tri_lab1->adjacent_triangles()[0];
+    t2_adjancencies[1] = lab_t1;
+    t2_adjancencies[2] = lab_t0;    // false, is lab_t3, but is still to be created
+    t2_vertices[0] = lab_v4;
+    t2_vertices[1] = lab_v1;
+    t2_vertices[2] = lab_v3;
+    t3_adjancencies[0] = tri_lab0->adjacent_triangles()[0];
+    t3_adjancencies[1] = lab_t0;
+    t3_adjancencies[2] = lab_t1;    // false, is lab_t3, but is still to be created
+    t3_vertices[0] = lab_v4;
+    t3_vertices[1] = lab_v1;
+    t3_vertices[2] = lab_v2;
+    
+    Label lab_t2 = create_triangle(t2_adjancencies,t2_vertices,TriangleType::_12);
+    Label lab_t3 = create_triangle(t3_adjancencies,t3_vertices,TriangleType::_21);
+    Triangle* tri_lab2 = lab_t2.dync_triangle();
+    Triangle* tri_lab3 = lab_t3.dync_triangle();
+    tri_lab2->adjacent_triangles()[2] = lab_t3;
+    tri_lab3->adjacent_triangles()[2] = lab_t2;
+    
+    // fix adjancencies and vertices of the initial triangles
+    tri_lab0->adjacent_triangles()[0] = lab_t3;
+    tri_lab1->adjacent_triangles()[0] = lab_t2;
+    tri_lab3->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t3;
+    tri_lab2->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t2;
+    
+    // fix already existing vertex properties
+    // coordination number
+    v_lab2->coord_num++;
+    v_lab3->coord_num++;
+    
+    // the adjacency of vertex 3
+    /* (the other ones have still the same adjacencies of before, plus the new triangles, but not less) */
+    v_lab3->adjacent_triangle() = lab_t3;
+    
+    // fix list0
+    list0[v_lab4->position()] = list0[num40+num40p];
+    list0[num40+num40p] = list0[num40];
+    list0[num40] = lab_v4;
+    num40++;
+    
+    if(spatial_profile[v_lab4->time()] == 4){
+        /* vert. coord. 4 in the time slice of v4 previously pathological no longer are */
+        if(v_lab0->coordination() == 4){
+            list0[v_lab0->position()] = list0[num40];
+            list0[num40] = lab_v0;
+            num40++;
+            num40p--;
+        }
+        if(v_lab1->coordination() == 4){
+            list0[v_lab1->position()] = list0[num40];
+            list0[num40] = lab_v1;
+            num40++;
+            num40p--;
+        }
+        
+        // then find the third vertex
+        /* the third, respect to vertex 1 and  0, already in the time slice of vertex 4 */
+        Label actual_triangle = tri_lab3->adjacent_triangles()[0];
+        while(actual_triangle.dync_triangle()->is12()){
+            actual_triangle = actual_triangle.dync_triangle()->adjacent_triangles()[0];
+        }
+        Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
+        if(third_vertex.dync_vertex()->coordination() == 4){
+            list0[third_vertex->position()] = list0[num40];
+            list0[num40] = third_vertex;
+            num40++;
+            num40p--;
+        }
+    }
+    /* vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice */ 
+    
+    // fix spatial_profile
+    
+    spatial_profile[v_lab4->time()]++;
+    
+    // notice that transition list has not to be updated    
 }
 
 /**
@@ -572,7 +679,7 @@ void Triangulation::move_24()
  *       5   *   *   *   4                  5  *   *  4   
  *         *  0  *  3  *                      *  0  *     
  *       *       *       *                   *       *    
- *   v0 * * * * * * * * * * * v1   -->   v0 * * * * * * v1
+ *   v0 * * * * v4* * * * * * v1   -->   v0 * * * * * * v1
  *       *       *       *                   *       *    
  *         *  1  *  2  *                      *  1  *     
  *       6   *   *   *   7                  6  *   *  7   
@@ -585,6 +692,40 @@ void Triangulation::move_42()
 {
 }
 
+// auxiliary functions (for moves)
+
+Label Triangulation::move_24_find_t0(Label extr_lab)
+{
+    Triangle* tri_lab = extr_lab.dync_triangle();
+    
+    if(tri_lab->is21())
+        return extr_lab;
+    else
+        return tri_lab->adjacent_triangles()[2];
+}
+
+/**
+* @test da verificare
+*/
+Label Triangulation::move_42_find_t0(Label extr_lab)
+{
+    Vertex* v_lab = extr_lab.dync_vertex();
+    Label  lab_t = v_lab->adjacent_triangle();
+    Triangle* tri_lab = lab_t.dync_triangle();
+    
+    if(tri_lab->is21()){
+        if(tri_lab->vertices()[1] == extr_lab)
+            return extr_lab;
+        else
+            return tri_lab->adjacent_triangles()[1];
+    }
+    else{
+        if(tri_lab->vertices()[1] == extr_lab)
+            return tri_lab->adjacent_triangles()[2];
+        else
+            return tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[1];
+    }
+}
 
 // ##### USER INTERACTION METHODS #####
 

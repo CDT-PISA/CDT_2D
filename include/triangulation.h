@@ -133,23 +133,23 @@ public:
     * @param triangle
     * @return
     */
-    int create_vertex(int Time, int coordination_number, Label triangle);
+    Label create_vertex(int Time, int coordination_number, Label triangle);
     
     /**
     * @brief
     * 
     * @return
     */
-    int create_triangle();
+    Label create_triangle();
     
     /**
     * @brief 
     * 
     * @param vertices 
     * @param adjacents_t 
-    * @return int
+    * @return Label
     */
-    int create_triangle(Label vertices[3], Label adjacents_t[3], TriangleType type);
+    Label create_triangle(Label vertices[3], Label adjacents_t[3], TriangleType type);
     
     void remove_vertex(Label v_lab);
     
@@ -169,6 +169,24 @@ public:
     void move_24();
     
     void move_42();
+    
+    // auxiliary functions (for moves)
+    
+    /**
+    * @brief find the Triangle 0 in the cell of the move 2 -> 4
+    * 
+    * @param extr_lab the label of the extracted triangle
+    * @return Label of the Triangle 0 of the cell
+    */
+    Label move_24_find_t0(Label extr_lab);
+    
+    /**
+    * @brief find the Triangle 0 in the cell of the move 4 -> 2
+    * 
+    * @param extr_lab the label of the extracted triangle
+    * @return Label of the Triangle 0 of the cell
+    */
+    Label move_42_find_t0(Label extr_lab);
     
     // ##### USER INTERACTION METHODS #####
     
