@@ -220,13 +220,16 @@ Label Triangulation::create_triangle()
 
 Label Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],TriangleType type)
 {
+    /** @todo gestire errore, almeno con un messaggio, se vertices e adjacents_t vengono scambiati
+     * poiché sono dello stesso tipo il compilatore non da errore se li inverto, ma l'errore me lo becco a runtime
+     */ 
+    
     int list_position=list2.size();
     Label lab(new Triangle(list_position,vertices,adjacents_t,type));
     
     list2.push_back(lab);
     
     return lab;
-    
 }
 
 /** 
@@ -236,31 +239,31 @@ Label Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],Tri
  * 
  * @test verificare che funzioni regolarmente (magari anche dopo aver individuato esattamente come la uso nelle mossee e aver quindi definito cosa deve fare lei o cosa viene fatto esplicitamente nelle mosse)
  */
-void Triangulation::remove_vertex(Label v_lab)
+void Triangulation::remove_vertex(Label lab_v)
 {
     try{        
-        if(v_lab->id < (num40 - 1)){
-            list0[v_lab->id] = list0[num40 - 1];
-            list0[num40-1] = v_lab;
+        if(lab_v->id < (num40 - 1)){
+            list0[lab_v->id] = list0[num40 - 1];
+            list0[num40-1] = lab_v;
             
-            v_lab->id = num40 - 1; 
+            lab_v->id = num40 - 1; 
             num40--;
         }
-        if(v_lab->id < (num40p - 1)){
-            list0[v_lab->id] = list0[num40p - 1];
-            list0[num40p-1] = v_lab;
+        if(lab_v->id < (num40p - 1)){
+            list0[lab_v->id] = list0[num40p - 1];
+            list0[num40p-1] = lab_v;
             
-            v_lab->id = num40p - 1; 
+            lab_v->id = num40p - 1; 
             num40p--;
         }
-        if(v_lab->id != list0.size() - 1){
-            list0[v_lab->id] = list0[list0.size() - 1];
-            list0[list0.size()-1] = v_lab;
+        if(lab_v->id != list0.size() - 1){
+            list0[lab_v->id] = list0[list0.size() - 1];
+            list0[list0.size()-1] = lab_v;
             
-            v_lab->id = list0.size() - 1;
+            lab_v->id = list0.size() - 1;
         }
         
-        spatial_profile[v_lab.dync_vertex()->time()]--;
+        spatial_profile[lab_v.dync_vertex()->time()]--;
         list0.pop_back();
     }
     catch(...){
@@ -565,9 +568,8 @@ void Triangulation::move_24()
     
     // ----- CELL "EVOLUTION" -----
     int extr = extracted_triangle(mt);
-//     static int tr = 3;
-//     tr++;
-    cout << "move_24 :" << extr << endl;
+    
+//     cout << "move_24: " << extr; 
     
     Label lab_t0 = move_24_find_t0(list2[extr]);
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[2];
@@ -582,6 +584,8 @@ void Triangulation::move_24()
     Vertex* v_lab1 = lab_v1.dync_vertex();
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
+    
+//     cout << " (time " << v_lab0->time() << ")" << endl;
     
     // create new Triangles and vertex, and put already in them the right values
     Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
@@ -604,8 +608,8 @@ void Triangulation::move_24()
     t3_vertices[1] = lab_v1;
     t3_vertices[2] = lab_v2;
     
-    Label lab_t2 = create_triangle(t2_adjancencies,t2_vertices,TriangleType::_12);
-    Label lab_t3 = create_triangle(t3_adjancencies,t3_vertices,TriangleType::_21);
+    Label lab_t2 = create_triangle(t2_vertices,t2_adjancencies,TriangleType::_12);
+    Label lab_t3 = create_triangle(t3_vertices,t3_adjancencies,TriangleType::_21);
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     tri_lab2->adjacent_triangles()[2] = lab_t3;

@@ -19,15 +19,35 @@
 #include "label.h"
 #include "vertex.h"
 #include "triangle.h"
+#include <memory>
 
-Label::Label(Simplex* s) : shared_ptr<Simplex>(s){}
+Label::Label(Simplex* s_ptr)
+{
+    sh_ptr_simplex.reset(s_ptr);
+}
+
+
+Simplex Label::operator*()
+{
+    return *sh_ptr_simplex;
+}
+
+Simplex* Label::operator->()
+{
+    return &*sh_ptr_simplex;
+}
+
+bool Label::operator==(Label lab)
+{
+    return this->sh_ptr_simplex->position() == lab.sh_ptr_simplex->position();
+}
 
 /**
 * @todo migliorare il cast e completare con errore (throw nel ramo else)
 */
 Vertex* Label::dync_vertex()
 {
-    if(Vertex* v_ptr = dynamic_cast<Vertex*>(&**this)){
+    if(Vertex* v_ptr = dynamic_cast<Vertex*>(&*sh_ptr_simplex)){
         return v_ptr;
     }
     else{
@@ -40,7 +60,7 @@ Vertex* Label::dync_vertex()
 */
 Triangle* Label::dync_triangle()
 {
-    if(Triangle* t_ptr = dynamic_cast<Triangle*>(&**this)){
+    if(Triangle* t_ptr = dynamic_cast<Triangle*>(&*sh_ptr_simplex)){
         return t_ptr;
     }
     else{
