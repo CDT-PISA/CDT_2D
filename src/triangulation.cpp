@@ -39,10 +39,12 @@ using namespace std;
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
  */ 
-Triangulation::Triangulation(int TimeLength)
+Triangulation::Triangulation(int TimeLength, double Lambda)
 {
     if(TimeLength < 1)
         throw out_of_range("only positive time length are excepted for a triangulation");
+ 
+    lambda = Lambda;
     
     num40 = 0;
     num40p = 0;
@@ -202,8 +204,20 @@ Label Triangulation::create_vertex(int Time, int coordination_number, Label tria
 {
     int list_position=list0.size();
     Label lab(new Vertex(list_position, Time, coordination_number, triangle));
+    Vertex* v_lab = lab.dync_vertex();
     
     list0.push_back(lab);
+    
+    // ___ update list0 ___
+    if(v_lab->coordination() == 4){
+        list0[v_lab->position()] = list0[num40+num40p];
+        list0[num40+num40p] = list0[num40];
+        list0[num40] = lab;
+        num40++;
+    }
+    
+    // ___ update spatial_profile ___
+    spatial_profile[v_lab->time()]++;
     
     return lab;
 }
@@ -263,7 +277,9 @@ void Triangulation::remove_vertex(Label lab_v)
             lab_v->id = list0.size() - 1;
         }
         
+        // ___ update spatial_profile ___
         spatial_profile[lab_v.dync_vertex()->time()]--;
+        
         list0.pop_back();
     }
     catch(...){
@@ -347,7 +363,7 @@ void Triangulation::move_22_1()
      * - o sostituisco i tri_lab e uso sempre dync_triangle (stessa cosa per i vertex)
      * - o non uso i lab_t e al loro posto metto sempre list2[tri_lab->position()]
      */ 
-    // find triangles (they are needed to compute the reject ratio)
+    // ___ find triangles (they are needed to compute the reject ratio) ___
     Label lab_t0 = transition1221[tr];
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
     Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[1];
@@ -372,7 +388,7 @@ void Triangulation::move_22_1()
     
     // ----- CELL "EVOLUTION" -----
     
-    // find vertices
+    // ___ find vertices ___
     /* it's sane to do it immediately, because first cell elements are recognized, and then modified
      * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
      */ 
@@ -385,7 +401,7 @@ void Triangulation::move_22_1()
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
-    // modify triangles' adjacencies
+    // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
     tri_lab0->adjacent_triangles()[1] = lab_t2;
     tri_lab1->adjacent_triangles()[0] = lab_t3;
@@ -393,18 +409,16 @@ void Triangulation::move_22_1()
     tri_lab2->adjacent_triangles()[0] = lab_t0;
     tri_lab3->adjacent_triangles()[1] = lab_t1;
     
-    // modify triangles' vertices
+    // ___ modify triangles' vertices ___
     tri_lab0->vertices()[2] = lab_v3;
     tri_lab1->vertices()[2] = lab_v1;
     
-    // modify vertices' near_t
+    // ___ modify vertices' near_t ___
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
-    if(v_lab0->adjacent_triangle().dync_triangle() == tri_lab1)
-        v_lab0->near_t = lab_t0;
-    if(v_lab2->adjacent_triangle().dync_triangle() == tri_lab0)
-        v_lab2->near_t = lab_t1;
+    v_lab0->near_t = lab_t0;
+    v_lab2->near_t = lab_t1;
     
-    // modify vertices' coord_num
+    // ___ modify vertices' coord_num ___
     v_lab0->coord_num--;
     v_lab2->coord_num--;
     v_lab1->coord_num++;
@@ -412,7 +426,7 @@ void Triangulation::move_22_1()
     
     // ----- AUXILIARY STRUCTURES -----
     
-    // modify transitions list
+    // ___ modify transitions list ___
     
     if(tri_lab2->is21()){
         /** @todo uno potrrebbe anche pensare di impacchettare queste modifiche delle transition list in dei metodi separati in modo da avere più garanzie sul fatto che gli invarianti siano rispettati */
@@ -426,6 +440,7 @@ void Triangulation::move_22_1()
         tri_lab0->transition_id = -1;
     }
     else{
+        /* we have to do this only in the case in which t2 is of the type such that a transition between t2 and t1 was not allowed before, indeed otherwise t1 was already a transition-cell right-member, but the transition  doesn't store the value of the left-member, so is not relevant that is changed: t1 was a transition right-member and still is */
         tri_lab1->transition_id = transition2112.size();
         transition2112.push_back(lab_t1);
     }
@@ -451,7 +466,7 @@ void Triangulation::move_22_1()
         throw runtime_error("Not the same number of transitions of the two types");
     }
     
-    // find vert. coord. 4 and patologies
+    // ___ find vert. coord. 4 and patologies ___
     
     /* vertex 0,2 were not of coord. 4, and they could have become
      * vertex 1,3 could be of coord. 4, and now they are not
@@ -509,6 +524,8 @@ void Triangulation::move_22_1()
             list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
         }        
     }
+    
+    // ----- END MOVE -----
 }
 
 /**
@@ -527,6 +544,180 @@ void Triangulation::move_22_1()
  */ 
 void Triangulation::move_22_2()
 {
+       
+    long num_t = transition2112.size(); 
+    
+    random_device rd;
+    mt19937_64 mt(rd());
+    uniform_int_distribution<int> transition(0, num_t - 1);
+    uniform_real_distribution<double> reject_trial(0.0,1.0);
+    
+    int tr = transition(mt);
+    cout << "move_22_2 :" << tr << endl;
+    
+    // ___ find triangles (they are needed to compute the reject ratio) ___
+    Label lab_t0 = transition2112[tr];
+    Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
+    Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[1];
+    Label lab_t3 = lab_t0.dync_triangle()->adjacent_triangles()[0];
+    Triangle* tri_lab0 = lab_t0.dync_triangle();
+    Triangle* tri_lab1 = lab_t1.dync_triangle();
+    Triangle* tri_lab2 = lab_t2.dync_triangle();
+    Triangle* tri_lab3 = lab_t3.dync_triangle();
+    
+    
+    // ----- REJECT RATIO -----
+    int x = 1;
+    if(tri_lab2->is12())
+        x--;
+    if(tri_lab3->is21())
+        x--;
+    
+    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
+    
+    if(reject_trial(mt) > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    
+    // ___ find vertices ___
+    /* it's sane to do it immediately, because first cell elements are recognized, and then modified
+     * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
+     */ 
+    Label lab_v0 = tri_lab1->vertices()[0];
+    Label lab_v1 = tri_lab1->vertices()[1];
+    Label lab_v2 = tri_lab0->vertices()[1];
+    Label lab_v3 = tri_lab1->vertices()[2];
+    Vertex* v_lab0 = lab_v0.dync_vertex();
+    Vertex* v_lab1 = lab_v1.dync_vertex();
+    Vertex* v_lab2 = lab_v2.dync_vertex();
+    Vertex* v_lab3 = lab_v3.dync_vertex();
+    
+    // ___ modify triangles' adjacencies ___
+    tri_lab0->adjacent_triangles()[0] = lab_t1;
+    tri_lab0->adjacent_triangles()[1] = lab_t2;
+    tri_lab1->adjacent_triangles()[0] = lab_t3;
+    tri_lab1->adjacent_triangles()[1] = lab_t0;
+    tri_lab2->adjacent_triangles()[0] = lab_t0;
+    tri_lab3->adjacent_triangles()[1] = lab_t1;
+    
+    // ___ modify triangles' vertices ___
+    tri_lab0->vertices()[2] = lab_v0;
+    tri_lab1->vertices()[2] = lab_v2;
+    
+    // ___ modify vertices' near_t ___
+    /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
+    v_lab1->near_t = lab_t1;
+    v_lab3->near_t = lab_t0;
+    
+    // ___ modify vertices' coord_num ___
+    v_lab1->coord_num--;
+    v_lab3->coord_num--;
+    v_lab0->coord_num++;
+    v_lab2->coord_num++;
+    
+    // ----- AUXILIARY STRUCTURES -----
+    
+    // ___ modify transitions list ___
+    
+    if(tri_lab2->is12()){
+        /** @todo uno potrrebbe anche pensare di impacchettare queste modifiche delle transition list in dei metodi separati in modo da avere più garanzie sul fatto che gli invarianti siano rispettati */
+        if(tri_lab0->transition_id != transition2112.size() - 1){
+            Label lab_end = transition2112[transition2112.size() - 1];
+            
+            lab_end.dync_triangle()->transition_id = tri_lab0->transition_id;
+            transition2112[tri_lab0->transition_id] = lab_end;
+        }
+        transition2112.pop_back();
+        tri_lab0->transition_id = -1;
+    }
+    else{
+        /* see the corresponding comment in move_22_1 */
+        tri_lab1->transition_id = transition1221.size();
+        transition1221.push_back(lab_t1);
+    }
+    if(tri_lab3->is21()){
+        if(tri_lab3->transition_id != transition1221.size() - 1){
+            Label lab_end = transition1221[transition1221.size() - 1];
+            
+            lab_end.dync_triangle()->transition_id = tri_lab3->transition_id;
+            transition1221[tri_lab3->transition_id] = lab_end;
+        }
+        transition1221.pop_back();
+        tri_lab3->transition_id = -1;
+    }
+    else{
+        tri_lab3->transition_id = transition2112.size();
+        transition2112.push_back(lab_t3);
+    }
+    
+    /** @todo ripensare a questo errore */
+    if(transition1221.size() != transition2112.size()){
+        cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
+        cout.flush();
+        throw runtime_error("Not the same number of transitions of the two types");
+    }
+    
+    // ___ find vert. coord. 4 and patologies ___
+    
+    /* vertex 1,3 were not of coord. 4, and they could have become
+     * vertex 0,2 could be of coord. 4, and now they are not
+     */ 
+    
+    vector<Vertex*> vec;
+    vec.push_back(v_lab1);
+    vec.push_back(v_lab3);
+    
+    for(auto x : vec){
+        if(x->coordination() == 4){
+            Label lab = list0[x->position()];
+            
+            list0[x->position()] = list0[num40 + num40p];
+            list0[x->position()].dync_vertex()->id = x->position();
+            list0[num40 + num40p] = lab;
+            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            
+            if(spatial_profile[x->time()] == 3){
+                num40p++;
+            }
+            else{                
+                list0[x->position()] = list0[num40];
+                list0[x->position()].dync_vertex()->id = x->position();
+                list0[num40] = lab;
+                list0[num40].dync_vertex()->id = num40;
+                
+                num40++;
+            }
+        }        
+    }
+    
+    vec.clear();
+    vec.push_back(v_lab0);
+    vec.push_back(v_lab2);
+    
+    for(auto x : vec){
+        if(x->coordination() == 5){
+            Label lab = list0[x->position()];
+
+            if(spatial_profile[x->time()] == 3){
+                num40p--;
+            }
+            else{
+                num40--;
+                
+                list0[x->position()] = list0[num40];
+                list0[x->position()].dync_vertex()->id = x->position();
+                list0[num40] = lab;
+                list0[num40].dync_vertex()->id = num40;
+            }
+            list0[x->position()] = list0[num40 + num40p];
+            list0[x->position()].dync_vertex()->id = x->position();
+            list0[num40 + num40p] = lab;
+            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+        }        
+    }
+    
+    // ----- END MOVE -----
 }
 
 /**
@@ -561,12 +752,15 @@ void Triangulation::move_24()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     // ----- REJECT RATIO -----
-    double reject_ratio = min(1.0,static_cast<double>(volume)/(num40+1));
+    double reject_ratio = min(1.0,static_cast<double>(volume)/(num40+1)*exp(-lambda));
     
     if(reject_trial(mt) > reject_ratio)
         return; // if not rejected goes on, otherwise it returns with nothing done
     
     // ----- CELL "EVOLUTION" -----
+    
+    // ___ cell recognition ___
+    
     int extr = extracted_triangle(mt);
     
 //     cout << "move_24: " << extr; 
@@ -587,7 +781,7 @@ void Triangulation::move_24()
     
 //     cout << " (time " << v_lab0->time() << ")" << endl;
     
-    // create new Triangles and vertex, and put already in them the right values
+    // ___ create new Triangles and vertex, and put already in them the right values ___
     Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
     Vertex* v_lab4 = lab_v4.dync_vertex();
     
@@ -615,13 +809,13 @@ void Triangulation::move_24()
     tri_lab2->adjacent_triangles()[2] = lab_t3;
     tri_lab3->adjacent_triangles()[2] = lab_t2;
     
-    // fix adjancencies and vertices of the initial triangles
+    // ___ update adjancencies and vertices of the initial triangles ___
     tri_lab0->adjacent_triangles()[0] = lab_t3;
     tri_lab1->adjacent_triangles()[0] = lab_t2;
     tri_lab3->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t3;
     tri_lab2->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t2;
     
-    // fix already existing vertex properties
+    // ___ update already existing vertex properties ___
     // coordination number
     v_lab2->coord_num++;
     v_lab3->coord_num++;
@@ -630,13 +824,9 @@ void Triangulation::move_24()
     /* (the other ones have still the same adjacencies of before, plus the new triangles, but not less) */
     v_lab3->adjacent_triangle() = lab_t3;
     
-    // fix list0
-    list0[v_lab4->position()] = list0[num40+num40p];
-    list0[num40+num40p] = list0[num40];
-    list0[num40] = lab_v4;
-    num40++;
+    // ___ update list0 (pathologies) ___
     
-    if(spatial_profile[v_lab4->time()] == 4){
+    if(spatial_profile[v_lab4->time()] == 4){ // 4 because the update of spatial_profile is directly in create_vertex
         /* vert. coord. 4 in the time slice of v4 previously pathological no longer are */
         if(v_lab0->coordination() == 4){
             list0[v_lab0->position()] = list0[num40];
@@ -667,11 +857,9 @@ void Triangulation::move_24()
     }
     /* vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice */ 
     
-    // fix spatial_profile
+    // ----- END MOVE -----
     
-    spatial_profile[v_lab4->time()]++;
-    
-    // notice that transition list has not to be updated    
+    /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are inserted on the right, and transitions are represented by right members of the cell) */
 }
 
 /**
@@ -694,9 +882,111 @@ void Triangulation::move_24()
  */
 void Triangulation::move_42()
 {
+    // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
+    
+    random_device rd;
+    mt19937_64 mt(rd());
+    uniform_int_distribution<int> extracted_vertex(0, num40 - 1);
+    uniform_real_distribution<double> reject_trial(0.0,1.0);
+    
+    // ----- REJECT RATIO -----
+    /** @todo devo scrivere il reject ratio vero */
+    int volume = list2.size();
+    double reject_ratio = min(1.0,static_cast<double>(num40)/(volume-1));
+    
+    if(reject_trial(mt) > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    int extr = extracted_vertex(mt);
+    
+//     cout << "move_24: " << extr;
+    
+    Label lab_t0 = move_42_find_t0(list0[extr]);
+    Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[2];
+    Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[0];
+    Label lab_t3 = lab_t0.dync_triangle()->adjacent_triangles()[0];
+    Triangle* tri_lab0 = lab_t0.dync_triangle();
+    Triangle* tri_lab1 = lab_t1.dync_triangle();
+    Triangle* tri_lab2 = lab_t2.dync_triangle();
+    Triangle* tri_lab3 = lab_t3.dync_triangle();
+    
+    Label lab_v0 = tri_lab0->vertices()[0];
+    Label lab_v1 = tri_lab2->vertices()[1];
+    Label lab_v2 = tri_lab0->vertices()[2];
+    Label lab_v3 = tri_lab1->vertices()[2];
+    Label lab_v4 = list0[extr];
+    Vertex* v_lab0 = lab_v0.dync_vertex();
+    Vertex* v_lab1 = lab_v1.dync_vertex();
+    Vertex* v_lab2 = lab_v2.dync_vertex();
+    Vertex* v_lab3 = lab_v3.dync_vertex();
+    Vertex* v_lab4 = lab_v4.dync_vertex();
+    
+//     cout << " (time " << v_lab0->time() << ")" << endl;
+    
+    // ___ update adjacencies of persisting simplexes ___
+    //triangles
+    tri_lab0->adjacent_triangles()[0] = tri_lab3->adjacent_triangles()[0];
+    tri_lab1->adjacent_triangles()[0] = tri_lab2->adjacent_triangles()[0];
+    tri_lab0->vertices()[1] = tri_lab3->vertices()[1];
+    tri_lab1->vertices()[1] = tri_lab2->vertices()[1];
+    
+    tri_lab3->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = tri_lab3->adjacent_triangles()[1];
+    tri_lab2->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = tri_lab2->adjacent_triangles()[1];
+    /* there is no need to update also the vertices for these two because they are already connected to the right one, because it will be vertex 4 that will be removed, and vertex 1 (the one they are already connected to) will remain */
+    
+    //vertices
+    v_lab1->adjacent_triangle() = lab_t0;
+    v_lab2->adjacent_triangle() = lab_t0;
+    v_lab3->adjacent_triangle() = lab_t1;
+    v_lab2->coord_num--;
+    v_lab3->coord_num--;
+    
+    // ___ remove triangles 2 and 3, and vertex 4 ___
+    remove_triangle(lab_t2);
+    remove_triangle(lab_t3);
+    remove_vertex(lab_v4);
+    
+    // ___ update list0 (pathologies) ___
+    
+    if(spatial_profile[v_lab4->time()] == 3){// 3 because the update of spatial_profile is directly in remove_vertex
+        /* vert. coord. 4 in the time slice of v4 previously were not pathological, now they are */
+        if(v_lab0->coordination() == 4){
+            list0[v_lab0->position()] = list0[num40-1];
+            list0[num40-1] = lab_v0;
+            num40--;
+            num40p++;
+        }
+        if(v_lab1->coordination() == 4){
+            list0[v_lab1->position()] = list0[num40-1];
+            list0[num40-1] = lab_v1;
+            num40--;
+            num40p++;
+        }
+        
+        // then find the third vertex
+        /* the third, respect to vertex 1 and  0, already in the time slice of vertex 4 */
+        Label actual_triangle = tri_lab0->adjacent_triangles()[0];
+        while(actual_triangle.dync_triangle()->is12()){
+            actual_triangle = actual_triangle.dync_triangle()->adjacent_triangles()[0];
+        }
+        Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
+        if(third_vertex.dync_vertex()->coordination() == 4){
+            list0[third_vertex->position()] = list0[num40-1];
+            list0[num40-1] = third_vertex;
+            num40--;
+            num40p++;
+        }
+    }
+    
+    /* vertex 2 and 3 cannot become of coord. 4, because they have more than one time link toward the same time slice */ 
+
+    // ----- END MOVE -----
+    
+    /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
-// auxiliary functions (for moves)
+// +++++ auxiliary functions (for moves) +++++
 
 Label Triangulation::move_24_find_t0(Label extr_lab)
 {
@@ -764,6 +1054,7 @@ void Triangulation::print_space_profile(char orientation)
                 
                 cout << " " << setprecision(3) << length/100.0 << endl;
             }
+            cout << "normalization: " << max << endl;
             break;
         }
     }
@@ -772,6 +1063,9 @@ void Triangulation::print_space_profile(char orientation)
 // ##### SIMULATION RESULTS - SAVE METHODS #####
 
 /** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
-void Triangulation::print_space_profile(std::ofstream save_file, std::__cxx11::string filename)
+void Triangulation::print_space_profile(ofstream& output)
 {
+    for(auto x : spatial_profile)
+        output << x << " ";
+    output << endl;
 }

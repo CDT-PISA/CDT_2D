@@ -2,6 +2,7 @@
 #ifndef TRIANGULATION_H
 #define TRIANGULATION_H
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -106,7 +107,9 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * the list of spatial volumes of each slice in the triangulation
     * 
     */
-    vector<long> spatial_profile;  
+    vector<long> spatial_profile;
+    
+    double lambda;
     
 public:
     // ##### STARTING TRIANGULATION INITIALIZATION #####
@@ -116,7 +119,7 @@ public:
     /**
      * @param TimeLength the number of time slices
      */
-    Triangulation(int TimeLength);
+    Triangulation(int TimeLength, double Lambda);
     
     /**
      * Destructor
@@ -220,7 +223,7 @@ public:
      * - usare qualcosa static (o qualche cosa del genere per tenere il file aperto)
      * - aprire in append e stampare una riga intera alla volta
      */ 
-    void print_space_profile(ofstream save_file, string filename);
+    void print_space_profile(ofstream& output);
     
 };
 

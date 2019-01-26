@@ -13,23 +13,28 @@
 using namespace std;
 
 int main() {
-    Triangulation universe(10);
-    
+    double lambda = 0;
+    Triangulation universe(30,lambda);
+    ofstream output("output/target");
+    if (!output)
+        throw runtime_error("couldn't open 'target' for writing");
     
     // MOVE
     
     random_device rd;
     mt19937_64 mt(rd());
-    uniform_int_distribution<int>  dice(1, 4);
+    uniform_int_distribution<int>  dice(1,4);
     
     int i=0;
     /**
      * @todo devo poter contare in qualche modo le mosse fatte effettivamente, quindi o metto una variabile che lo fa, oppure devo poterle contare a posteriori ad esempio dalle righe di salvataggio di spatial_profile
+     * per ora infatti l'argomento del while dice quanti tentativi vengono fatti, non quante mosse davvero
+     * forse per questa cosa sarebbe sensato CHIEDERE A GIUSEPPE O D'ELIA
      */ 
-    while(i<10){
+    while(i<150){
 //         cout << i << ") ";
-//         switch(dice(mt)){ // <-- è questa quella giusta, l'altra è solo per i test!!!!
-        switch(3){
+        switch(dice(mt)){ // <-- è questa quella giusta, l'altra è solo per i test!!!!
+//         switch(2){
             case 1:
             {
                 universe.move_22_1();
@@ -52,6 +57,7 @@ int main() {
             }
         }
         i++;
+        universe.print_space_profile(output);
     }
     universe.print_space_profile('v');
     
