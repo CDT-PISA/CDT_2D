@@ -6,7 +6,7 @@ My own implementation of CDT in 1+1 dimension
 - ~~Write the moves~~
 - Insert save methods for simulation results (volume, spatial_profile, ...)
 - Write python script for graphical elaboration
-    - and maybe a bash script to coordinate python and simulation
+    - and maybe include in the script simulation launching and results collecting
 
 ### Python
 In the Python script would be nice if the following things were done:
