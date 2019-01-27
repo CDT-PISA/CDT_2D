@@ -4,17 +4,25 @@ My own implementation of CDT in 1+1 dimension
 ## TODO
 
 - ~~Write the moves~~
-- Insert save methods for simulation results (volume, spatial_profile, ...)
-- Write python script for graphical elaboration
-    - and maybe include in the script simulation launching and results collecting
+- ~~ Write python script for graphical elaboration ~~
+    - ~~ and maybe include in the script simulation launching and results collecting ~~
+- New observables
+    - Insert save methods for simulation results
+- Simulation stop
+
+### Simulation
+This is the real missing thing: DEBUG
+
+Idea: sometimes in the plots appear slice of spatial volume 2. It should not happen. Moreover they never appear with spatial volume 1, maybe these attempts are the cause of errors.
 
 ### Python
-In the Python script would be nice if the following things were done:
+The only things really remain to do is:
 
-- explores the directory "output/" and finds the last one in sequential (maybe they will be called "output/results1","output/results2",... or "output/out1",... or "output/run1",... or something else)
-- creates a new directory for the current simulation
-- launch the simulation with a parameter for the path (and maybe the cosmological constant lambda, so that all the interactions are through Python, and there will be no need to touch again the C++ code once it works)
-- loads the data produced by the simulation
-- creates the plots
+- find new observables for new plots
+- manage condition for simulation stop
 
-would be interesting if the last two step could be done simultaneously with the simulation (for long runs)
+the rest is:
+
+- find meaningful names for objects in the script
+- find meaningful name for THE script
+- write docs and docstrings

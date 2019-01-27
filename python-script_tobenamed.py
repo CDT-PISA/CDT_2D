@@ -22,12 +22,12 @@ runs_history = open("output/runs.txt","a")
 output_file = open(outdir+"/stdout.txt","w")
 error_file = open(outdir+"/stderr.txt","w")
     
-record = "run"+str(run_num)+": "+datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')+"\n"
+record = "run"+str(run_num)+": "+datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')+"\t\t"
 runs_history.write(record)
 
 # Simulation Arguments
 Lambda = 0
-TimeLength = 101
+TimeLength = 31
 attempts = 150
 Lambda_str = str(Lambda)
 TimeLength_str = str(TimeLength)
@@ -43,10 +43,11 @@ except CalledProcessError as err:
 else:
     error_file.write("tutto ok")
     succeed = True
+    runs_history.write("\n")
 finally:
     output_file.close()
     error_file.close()
     runs_history.close()
     
 if(succeed):
-    analyze_output(run_num)
+    analyze_output(outdir)

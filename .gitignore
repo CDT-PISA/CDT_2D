@@ -39,6 +39,7 @@ CDT_2D.kdev4
 build/*
 doc/*
 output/*
+CMakeFiles/*
 lib/__pycache__/*
 
 # Other
