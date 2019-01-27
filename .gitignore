@@ -31,7 +31,14 @@
 *.out
 *.app
 
+# IDE files
+.kdev4/*
+CDT_2D.kdev4
+
 # Folders
 build/*
 doc/*
 output/*
+
+# Other
+.directory

@@ -38,17 +38,25 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d")
+  if(EXISTS "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d"
+         FILE "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d"
          RPATH "")
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE EXECUTABLE FILES "/home/alessandro/projects/CDT_2D/build/cdt_2d")
-  if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d")
+  list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
+   "/home/alessandro/projects/CDT_2D/bin/cdt_2d")
+  if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+  if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+file(INSTALL DESTINATION "/home/alessandro/projects/CDT_2D/bin" TYPE EXECUTABLE FILES "/home/alessandro/projects/CDT_2D/build/cdt_2d")
+  if(EXISTS "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/bin/cdt_2d")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/alessandro/projects/CDT_2D/bin/cdt_2d")
     endif()
   endif()
 endif()

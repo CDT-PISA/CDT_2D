@@ -3,6 +3,7 @@
 #include <iomanip>
 #include "triangulation.h"
 #include <random>
+#include <string>
 // #include <memory>
 
 // #include "label.h"
@@ -12,12 +13,17 @@
 
 using namespace std;
 
-int main() {
-    double lambda = 0;
-    Triangulation universe(30,lambda);
-    ofstream output("output/target");
+int main(int argc, char* argv[]) {
+    if(argc < 1)
+        throw logic_error("output folder not specified");
+    string outdir = argv[1];
+    string outfile = outdir + "/" + "simulation_output";
+    ofstream output(outfile);
     if (!output)
-        throw runtime_error("couldn't open 'target' for writing");
+        throw runtime_error("couldn't open 'simulation_output' for writing");
+    
+    double lambda = stod(argv[2]);
+    Triangulation universe(stoi(argv[3]),lambda);
     
     // MOVE
     
@@ -31,7 +37,7 @@ int main() {
      * per ora infatti l'argomento del while dice quanti tentativi vengono fatti, non quante mosse davvero
      * forse per questa cosa sarebbe sensato CHIEDERE A GIUSEPPE O D'ELIA
      */ 
-    while(i<150){
+    while(i<stoi(argv[4])){
 //         cout << i << ") ";
         switch(dice(mt)){ // <-- è questa quella giusta, l'altra è solo per i test!!!!
 //         switch(2){
@@ -53,7 +59,7 @@ int main() {
             case 4:
             {
                 universe.move_42();
-                break;   
+                break;
             }
         }
         i++;

@@ -17,5 +17,5 @@ add_library(cdt_2d_lib STATIC ${SOURCES})
 add_executable(cdt_2d main.cpp)
 target_link_libraries(cdt_2d cdt_2d_lib)
 
-install(TARGETS cdt_2d RUNTIME DESTINATION bin)
+install(TARGETS cdt_2d RUNTIME DESTINATION ~/projects/CDT_2D/bin)
 

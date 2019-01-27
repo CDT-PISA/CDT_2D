@@ -345,7 +345,7 @@ void Triangulation::move_22_1()
     int tr = transition(mt);
 //     static int tr = 3;
 //     tr++;
-    cout << "move_22_1 :" << tr << endl;
+//     cout << "move_22_1 :" << tr << endl;
     
     /**
      * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
@@ -553,7 +553,7 @@ void Triangulation::move_22_2()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     int tr = transition(mt);
-    cout << "move_22_2 :" << tr << endl;
+//     cout << "move_22_2 :" << tr << endl;
     
     // ___ find triangles (they are needed to compute the reject ratio) ___
     Label lab_t0 = transition2112[tr];
@@ -1046,7 +1046,7 @@ void Triangulation::print_space_profile(char orientation)
             }
                 
             for(int i=0;i<spatial_profile.size();i++){
-                cout << i << ": ";
+                cout << right << setw(ceil(log10(spatial_profile.size()))) << i << ": ";
                 
                 int length = (spatial_profile[i] * 100) / max;
                 for(int j=0;j<length;j++)
