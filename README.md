@@ -4,8 +4,8 @@ My own implementation of CDT in 1+1 dimension
 ## TODO
 
 - ~~Write the moves~~
-- ~~ Write python script for graphical elaboration ~~
-    - ~~ and maybe include in the script simulation launching and results collecting ~~
+- ~~Write python script for graphical elaboration~~
+    - ~~and maybe include in the script simulation launching and results collecting~~
 - New observables
     - Insert save methods for simulation results
 - Simulation stop
