@@ -1,1 +1,0 @@
-/usr/bin/c++  -g  -rdynamic CMakeFiles/cdt_2d.dir/main.cpp.o  -o cdt_2d libcdt_2d_lib.a 
