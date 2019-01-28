@@ -47,7 +47,7 @@ bool Triangle::is12()
     else if(type == TriangleType::_21)
         return false;
     else
-        throw domain_error("TriangleType not recognized");
+        throw runtime_error("TriangleType not recognized");
 }
 
 bool Triangle::is21()

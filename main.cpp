@@ -4,6 +4,7 @@
 #include "triangulation.h"
 #include <random>
 #include <string>
+#include <vector>
 // #include <memory>
 
 // #include "label.h"
@@ -13,9 +14,14 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
+// int main(int argc, char* argv[]) {
+int main(){
+    int argc = 4;
+    string argv[5]={" ","output","0","31","10000"};
     if(argc < 1)
         throw logic_error("output folder not specified");
+    else if (argc < 3)
+        throw logic_error("too few arguments in function main()");
     string outdir = argv[1];
     string outfile = outdir + "/" + "simulation_output";
     ofstream output(outfile);
@@ -29,7 +35,7 @@ int main(int argc, char* argv[]) {
     
     random_device rd;
     mt19937_64 mt(rd());
-    uniform_int_distribution<int>  dice(1,4);
+    uniform_int_distribution<int> dice(3,4);
     
     int i=0;
     /**
@@ -38,9 +44,9 @@ int main(int argc, char* argv[]) {
      * forse per questa cosa sarebbe sensato CHIEDERE A GIUSEPPE O D'ELIA
      */ 
     while(i<stoi(argv[4])){
-//         cout << i << ") ";
+        cout << i << ") ";
         switch(dice(mt)){ // <-- è questa quella giusta, l'altra è solo per i test!!!!
-//         switch(2){
+//         switch(i){
             case 1:
             {
                 universe.move_22_1();
@@ -63,6 +69,9 @@ int main(int argc, char* argv[]) {
             }
         }
         i++;
+        /**
+         * @todo I'm saving and printing also the failed attempts, I think that this will be wrong at the end, and when it all works I'll have to watch only to the steps done, and not also to those failed
+         */ 
         universe.print_space_profile(output);
     }
     universe.print_space_profile('v');

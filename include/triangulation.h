@@ -136,7 +136,7 @@ public:
     * @param triangle
     * @return
     */
-    Label create_vertex(int Time, int coordination_number, Label triangle);
+    Label create_vertex(int Time, int coordination_number, Label adjacent_triangle);
     
     /**
     * @brief

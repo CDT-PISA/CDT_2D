@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from os.path import isdir
-from os import mkdir
+from os.path import isdir, getsize
+from os import mkdir, remove
 from time import time
 from datetime import datetime
 from subprocess import run, CalledProcessError
 from lib.analysis import analyze_output
+from math import log
 
 # Find output directory
 outdir = "output/run"
 run_num = 1
 
+# todo: per non fare valanghe di tentativ inutili è meglio che legga il run corrente
+# dal file runs.txt, e se non esiste lascia run_num = 1
 while(isdir(outdir+str(run_num))):
     run_num += 1
 
@@ -28,7 +31,7 @@ runs_history.write(record)
 # Simulation Arguments
 Lambda = 0
 TimeLength = 31
-attempts = 150
+attempts = 1000
 Lambda_str = str(Lambda)
 TimeLength_str = str(TimeLength)
 attempts_str = str(attempts)
@@ -41,12 +44,15 @@ except CalledProcessError as err:
     runs_history.write("Il run "+str(run_num)+" del programma \""+err.cmd[0][-6:]+"\" è fallito con errore: "+err_name+"\n")
     succeed = False
 else:
-    error_file.write("tutto ok")
     succeed = True
     runs_history.write("\n")
 finally:
     output_file.close()
+    if(getsize(output_file.name) == 0): 
+        remove(outdir+"/stdout.txt")
     error_file.close()
+    if(getsize(error_file.name) == 0):
+        remove(outdir+"/stderr.txt")
     runs_history.close()
     
 if(succeed):

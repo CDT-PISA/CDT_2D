@@ -52,7 +52,7 @@ def analyze_output(outdir):
     fig2, ((ev, ax2),(sm,aux)) = subplots(2,2,  gridspec_kw=kw)
     sm.get_shared_x_axes().join(ev, sm)
     subplots_adjust(bottom=0.05,top=0.89,left=0.07,right=0.95,hspace=0.05,wspace=0.05)
-    sm.plot(space_profiles.sum(1))
+    sm.plot(space_profiles.sum(1),color="#A10000")
     im = ev.imshow(space_profiles.transpose(), cmap="hot", interpolation='bilinear', origin="lower", aspect="auto")
     fig2.colorbar(im,cax=ax2)
     
@@ -62,7 +62,7 @@ def analyze_output(outdir):
     fig2.suptitle("Titolo", fontsize=20, y=0.95)
     
     savefig(outdir+"/space_profile_evolution.png")
-#    close(fig2)
+    close(fig2)
     
 #    si potrebbe pensare di stampare almeno un paio di profili spaziali insieme, magari non vicini (entrambi nella parte finale, così che siano ben termalizzati, ma non vicini in modo che siano il meno possibile correlati) per analizzare l'andamento dell'evoluzione
 #    ma in realtà forse no: si vede già dal secondo plot

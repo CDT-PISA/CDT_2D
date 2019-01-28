@@ -200,10 +200,10 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
  
 // ##### SIMPLEX MANAGEMENT #####
  
-Label Triangulation::create_vertex(int Time, int coordination_number, Label triangle)
+Label Triangulation::create_vertex(int Time, int coordination_number, Label adjacent_triangle)
 {
     int list_position=list0.size();
-    Label lab(new Vertex(list_position, Time, coordination_number, triangle));
+    Label lab(new Vertex(list_position, Time, coordination_number, adjacent_triangle));
     Vertex* v_lab = lab.dync_vertex();
     
     list0.push_back(lab);
@@ -211,8 +211,13 @@ Label Triangulation::create_vertex(int Time, int coordination_number, Label tria
     // ___ update list0 ___
     if(v_lab->coordination() == 4){
         list0[v_lab->position()] = list0[num40+num40p];
-        list0[num40+num40p] = list0[num40];
+        list0[v_lab->position()]->id = v_lab->position();
+        if(num40p != 0){
+            list0[num40+num40p] = list0[num40];
+            list0[num40+num40p]->id = num40+num40p;
+        }
         list0[num40] = lab;
+        list0[num40]->id = num40;
         num40++;
     }
     
@@ -258,22 +263,24 @@ void Triangulation::remove_vertex(Label lab_v)
     try{        
         if(lab_v->id < (num40 - 1)){
             list0[lab_v->id] = list0[num40 - 1];
+            list0[lab_v->id]->id = lab_v->id;
             list0[num40-1] = lab_v;
-            
             lab_v->id = num40 - 1; 
+            
             num40--;
         }
-        if(lab_v->id < (num40p - 1)){
-            list0[lab_v->id] = list0[num40p - 1];
-            list0[num40p-1] = lab_v;
+        if(lab_v->id < (num40 + num40p - 1)){
+            list0[lab_v->id] = list0[num40 + num40p - 1];
+            list0[lab_v->id]->id = lab_v->id;
+            list0[num40 + num40p-1] = lab_v;            
+            lab_v->id = num40 + num40p - 1; 
             
-            lab_v->id = num40p - 1; 
             num40p--;
         }
         if(lab_v->id != list0.size() - 1){
-            list0[lab_v->id] = list0[list0.size() - 1];
-            list0[list0.size()-1] = lab_v;
-            
+            list0[lab_v->id] = list0[list0.size() - 1];            
+            list0[lab_v->id]->id = lab_v->id;
+            list0[list0.size()-1] = lab_v;            
             lab_v->id = list0.size() - 1;
         }
         
@@ -301,8 +308,8 @@ void Triangulation::remove_triangle(Label tri_lab)
     try{
         if(tri_lab->id != list2.size() - 1){
             list2[tri_lab->id] = list2[list2.size() - 1];
+            list2[tri_lab->id]->id = tri_lab->id;
             list2[list2.size()-1] = tri_lab;
-            
             tri_lab->id = list2.size() - 1;
         }
         
@@ -345,7 +352,7 @@ void Triangulation::move_22_1()
     int tr = transition(mt);
 //     static int tr = 3;
 //     tr++;
-//     cout << "move_22_1 :" << tr << endl;
+    cout << "move_22_1 :" << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
     
     /**
      * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
@@ -372,6 +379,8 @@ void Triangulation::move_22_1()
     Triangle* tri_lab1 = lab_t1.dync_triangle();
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
+    
+    cout << tri_lab1->vertices()[0]->position() << endl;
     
     
     // ----- REJECT RATIO -----
@@ -481,18 +490,18 @@ void Triangulation::move_22_1()
             Label lab = list0[x->position()];
             
             list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()].dync_vertex()->id = x->position();
+            list0[x->position()]->id = x->position();
             list0[num40 + num40p] = lab;
-            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            list0[num40 + num40p]->id = num40 + num40p;
             
             if(spatial_profile[x->time()] == 3){
                 num40p++;
             }
             else{                
                 list0[x->position()] = list0[num40];
-                list0[x->position()].dync_vertex()->id = x->position();
+                list0[x->position()]->id = x->position();
                 list0[num40] = lab;
-                list0[num40].dync_vertex()->id = num40;
+                list0[num40]->id = num40;
                 
                 num40++;
             }
@@ -514,14 +523,14 @@ void Triangulation::move_22_1()
                 num40--;
                 
                 list0[x->position()] = list0[num40];
-                list0[x->position()].dync_vertex()->id = x->position();
+                list0[x->position()]->id = x->position();
                 list0[num40] = lab;
-                list0[num40].dync_vertex()->id = num40;
+                list0[num40]->id = num40;
             }
             list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()].dync_vertex()->id = x->position();
+            list0[x->position()]->id = x->position();
             list0[num40 + num40p] = lab;
-            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            list0[num40 + num40p]->id = num40 + num40p;
         }        
     }
     
@@ -531,15 +540,15 @@ void Triangulation::move_22_1()
 /**
  * Questa sarà la mossa
  * \code
- *     v3         v2         v3         v2
- *      * * * * * *           * * * * * *
- *      *        **           **        *
- *      *  1   *  *           *  *   1  *
- *    2 *    *    * 3  -->  2 *    *    * 3
- *      *  *   0  *           *  0   *  *
- *      **        *           *        **
- *      * * * * * *           * * * * * *
- *     v0         v1         v0         v1
+ *     v3         v2            v3         v2 
+ *      * * * * * *             * * * * * *  
+ *      **        *             *        **  
+ *      *  *   1  *             *  1   *  *  
+ *    2 *    *    * 3   -->   2 *    *    * 3
+ *      *  0   *  *             *  *   0  *  
+ *      *        **             **        *  
+ *      * * * * * *             * * * * * *  
+ *     v0         v1            v0         v1 
  * \endcode
  */ 
 void Triangulation::move_22_2()
@@ -553,7 +562,7 @@ void Triangulation::move_22_2()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     int tr = transition(mt);
-//     cout << "move_22_2 :" << tr << endl;
+    cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
     
     // ___ find triangles (they are needed to compute the reject ratio) ___
     Label lab_t0 = transition2112[tr];
@@ -564,6 +573,8 @@ void Triangulation::move_22_2()
     Triangle* tri_lab1 = lab_t1.dync_triangle();
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
+    
+    cout << tri_lab0->vertices()[0]->position() << endl;
     
     
     // ----- REJECT RATIO -----
@@ -673,18 +684,18 @@ void Triangulation::move_22_2()
             Label lab = list0[x->position()];
             
             list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()].dync_vertex()->id = x->position();
+            list0[x->position()]->id = x->position();
             list0[num40 + num40p] = lab;
-            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            list0[num40 + num40p]->id = num40 + num40p;
             
             if(spatial_profile[x->time()] == 3){
                 num40p++;
             }
             else{                
                 list0[x->position()] = list0[num40];
-                list0[x->position()].dync_vertex()->id = x->position();
+                list0[x->position()]->id = x->position();
                 list0[num40] = lab;
-                list0[num40].dync_vertex()->id = num40;
+                list0[num40]->id = num40;
                 
                 num40++;
             }
@@ -706,14 +717,14 @@ void Triangulation::move_22_2()
                 num40--;
                 
                 list0[x->position()] = list0[num40];
-                list0[x->position()].dync_vertex()->id = x->position();
+                list0[x->position()]->id = x->position();
                 list0[num40] = lab;
-                list0[num40].dync_vertex()->id = num40;
+                list0[num40]->id = num40;
             }
             list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()].dync_vertex()->id = x->position();
+            list0[x->position()]->id = x->position();
             list0[num40 + num40p] = lab;
-            list0[num40 + num40p].dync_vertex()->id = num40 + num40p;
+            list0[num40 + num40p]->id = num40 + num40p;
         }        
     }
     
@@ -752,18 +763,19 @@ void Triangulation::move_24()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     // ----- REJECT RATIO -----
-    double reject_ratio = min(1.0,static_cast<double>(volume)/(num40+1)*exp(-lambda));
+    double reject_ratio = min(1.0,((exp(-2*lambda)*volume)/2)/(num40+1));
     
     if(reject_trial(mt) > reject_ratio)
         return; // if not rejected goes on, otherwise it returns with nothing done
     
     // ----- CELL "EVOLUTION" -----
     
-    // ___ cell recognition ___
-    
     int extr = extracted_triangle(mt);
+//     int extr = ;
     
-//     cout << "move_24: " << extr; 
+    cout << "move_24: " << extr;
+    
+    // ___ cell recognition ___
     
     Label lab_t0 = move_24_find_t0(list2[extr]);
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[2];
@@ -779,7 +791,7 @@ void Triangulation::move_24()
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
-//     cout << " (time " << v_lab0->time() << ")" << endl;
+    cout << " (time " << v_lab0->time() << ")" << endl;
     
     // ___ create new Triangles and vertex, and put already in them the right values ___
     Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
@@ -791,13 +803,13 @@ void Triangulation::move_24()
     Label t3_vertices[3];
     t2_adjancencies[0] = tri_lab1->adjacent_triangles()[0];
     t2_adjancencies[1] = lab_t1;
-    t2_adjancencies[2] = lab_t0;    // false, is lab_t3, but is still to be created
+    t2_adjancencies[2] = lab_t0;    // actually wrong, is lab_t3, but is still to be created
     t2_vertices[0] = lab_v4;
     t2_vertices[1] = lab_v1;
     t2_vertices[2] = lab_v3;
     t3_adjancencies[0] = tri_lab0->adjacent_triangles()[0];
     t3_adjancencies[1] = lab_t0;
-    t3_adjancencies[2] = lab_t1;    // false, is lab_t3, but is still to be created
+    t3_adjancencies[2] = lab_t1;    // actually wrong, is lab_t3, but is still to be created
     t3_vertices[0] = lab_v4;
     t3_vertices[1] = lab_v1;
     t3_vertices[2] = lab_v2;
@@ -815,14 +827,17 @@ void Triangulation::move_24()
     tri_lab3->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t3;
     tri_lab2->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = lab_t2;
     
+    tri_lab0->vertices()[1] = lab_v4;
+    tri_lab1->vertices()[1] = lab_v4;
+    
     // ___ update already existing vertex properties ___
     // coordination number
     v_lab2->coord_num++;
     v_lab3->coord_num++;
     
-    // the adjacency of vertex 3
+    // the adjacency of vertex 1
     /* (the other ones have still the same adjacencies of before, plus the new triangles, but not less) */
-    v_lab3->adjacent_triangle() = lab_t3;
+    v_lab1->near_t = lab_t3;
     
     // ___ update list0 (pathologies) ___
     
@@ -830,13 +845,17 @@ void Triangulation::move_24()
         /* vert. coord. 4 in the time slice of v4 previously pathological no longer are */
         if(v_lab0->coordination() == 4){
             list0[v_lab0->position()] = list0[num40];
+            list0[v_lab0->position()]->id = v_lab0->position();
             list0[num40] = lab_v0;
+            list0[num40]->id = num40;
             num40++;
             num40p--;
         }
         if(v_lab1->coordination() == 4){
             list0[v_lab1->position()] = list0[num40];
+            list0[v_lab1->position()]->id = v_lab1->position();
             list0[num40] = lab_v1;
+            list0[num40]->id = num40;
             num40++;
             num40p--;
         }
@@ -850,7 +869,9 @@ void Triangulation::move_24()
         Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
         if(third_vertex.dync_vertex()->coordination() == 4){
             list0[third_vertex->position()] = list0[num40];
+            list0[third_vertex->position()]->id = third_vertex->position();
             list0[num40] = third_vertex;
+            list0[num40]->id = num40;
             num40++;
             num40p--;
         }
@@ -890,9 +911,8 @@ void Triangulation::move_42()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     // ----- REJECT RATIO -----
-    /** @todo devo scrivere il reject ratio vero */
     int volume = list2.size();
-    double reject_ratio = min(1.0,static_cast<double>(num40)/(volume-1));
+    double reject_ratio = min(1.0,(exp(2*lambda)*num40)/(volume/2-1));
     
     if(reject_trial(mt) > reject_ratio)
         return; // if not rejected goes on, otherwise it returns with nothing done
@@ -900,7 +920,10 @@ void Triangulation::move_42()
     // ----- CELL "EVOLUTION" -----
     int extr = extracted_vertex(mt);
     
-//     cout << "move_24: " << extr;
+    cout << "move_42: " << extr << " " << list0[extr]->position();
+    cout.flush();
+    
+    // ___ cell recognition ___
     
     Label lab_t0 = move_42_find_t0(list0[extr]);
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[2];
@@ -922,7 +945,7 @@ void Triangulation::move_42()
     Vertex* v_lab3 = lab_v3.dync_vertex();
     Vertex* v_lab4 = lab_v4.dync_vertex();
     
-//     cout << " (time " << v_lab0->time() << ")" << endl;
+    cout << " (time " << v_lab0->time() << ")" << endl;
     
     // ___ update adjacencies of persisting simplexes ___
     //triangles
@@ -953,13 +976,17 @@ void Triangulation::move_42()
         /* vert. coord. 4 in the time slice of v4 previously were not pathological, now they are */
         if(v_lab0->coordination() == 4){
             list0[v_lab0->position()] = list0[num40-1];
+            list0[v_lab0->position()]->id = v_lab0->position();
             list0[num40-1] = lab_v0;
+            list0[num40-1]->id = num40-1;
             num40--;
             num40p++;
         }
         if(v_lab1->coordination() == 4){
             list0[v_lab1->position()] = list0[num40-1];
+            list0[v_lab1->position()]->id = v_lab1->position();
             list0[num40-1] = lab_v1;
+            list0[num40-1]->id = num40-1;
             num40--;
             num40p++;
         }
@@ -973,7 +1000,9 @@ void Triangulation::move_42()
         Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
         if(third_vertex.dync_vertex()->coordination() == 4){
             list0[third_vertex->position()] = list0[num40-1];
+            list0[third_vertex->position()]->id = third_vertex->position();
             list0[num40-1] = third_vertex;
+            list0[num40-1]->id = num40-1;
             num40--;
             num40p++;
         }
@@ -1009,15 +1038,25 @@ Label Triangulation::move_42_find_t0(Label extr_lab)
     
     if(tri_lab->is21()){
         if(tri_lab->vertices()[1] == extr_lab)
-            return extr_lab;
-        else
+            return lab_t;
+        else if(tri_lab->vertices()[0] == extr_lab)
             return tri_lab->adjacent_triangles()[1];
+        else{
+            cout << "ciao";
+            cout.flush();
+            throw runtime_error("Triangulation inconsistency: in cell (4,2) triangle 21 adjacent to the central vertex doesn't own it neither as v[0] nor as v[1]");
+        }
     }
     else{
         if(tri_lab->vertices()[1] == extr_lab)
             return tri_lab->adjacent_triangles()[2];
-        else
+        else if(tri_lab->vertices()[0] == extr_lab)
             return tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[1];
+        else{
+            cout << "ciao";
+            cout.flush();
+            throw runtime_error("Triangulation inconsistency: in cell (4,2) triangle 12 adjacent to the central vertex doesn't own it neither as v[0] nor as v[1]");
+        }
     }
 }
 
