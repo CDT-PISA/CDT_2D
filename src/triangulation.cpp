@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <random>
 #include <cmath>
+#include <string>
 #include "triangulation.h"
 /**
  * @todo Is a good practice to reinclude in the .cpp the header already included in the corresponding .h?
@@ -862,11 +863,11 @@ void Triangulation::move_24()
         
         // then find the third vertex
         /* the third, respect to vertex 1 and  0, already in the time slice of vertex 4 */
-        Label actual_triangle = tri_lab3->adjacent_triangles()[0];
-        while(actual_triangle.dync_triangle()->is12()){
-            actual_triangle = actual_triangle.dync_triangle()->adjacent_triangles()[0];
+        Label current_triangle = tri_lab3->adjacent_triangles()[0];
+        while(current_triangle.dync_triangle()->is12()){
+            current_triangle = current_triangle.dync_triangle()->adjacent_triangles()[0];
         }
-        Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
+        Label third_vertex = current_triangle.dync_triangle()->vertices()[1]; 
         if(third_vertex.dync_vertex()->coordination() == 4){
             list0[third_vertex->position()] = list0[num40];
             list0[third_vertex->position()]->id = third_vertex->position();
@@ -905,9 +906,12 @@ void Triangulation::move_42()
 {
     // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
     
+    if((num40 == 0) && (num40p == 0))
+        return;
+    
     random_device rd;
     mt19937_64 mt(rd());
-    uniform_int_distribution<int> extracted_vertex(0, num40 - 1);
+    uniform_int_distribution<int> extracted_vertex(0, num40 + num40p - 1);
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     // ----- REJECT RATIO -----
@@ -919,6 +923,9 @@ void Triangulation::move_42()
     
     // ----- CELL "EVOLUTION" -----
     int extr = extracted_vertex(mt);
+    
+    if(extr > num40 - 1)
+        return;
     
     cout << "move_42: " << extr << " " << list0[extr]->position();
     cout.flush();
@@ -993,11 +1000,11 @@ void Triangulation::move_42()
         
         // then find the third vertex
         /* the third, respect to vertex 1 and  0, already in the time slice of vertex 4 */
-        Label actual_triangle = tri_lab0->adjacent_triangles()[0];
-        while(actual_triangle.dync_triangle()->is12()){
-            actual_triangle = actual_triangle.dync_triangle()->adjacent_triangles()[0];
+        Label current_triangle = tri_lab0->adjacent_triangles()[0];
+        while(current_triangle.dync_triangle()->is12()){
+            current_triangle = current_triangle.dync_triangle()->adjacent_triangles()[0];
         }
-        Label third_vertex = actual_triangle.dync_triangle()->vertices()[1]; 
+        Label third_vertex = current_triangle.dync_triangle()->vertices()[1]; 
         if(third_vertex.dync_vertex()->coordination() == 4){
             list0[third_vertex->position()] = list0[num40-1];
             list0[third_vertex->position()]->id = third_vertex->position();
@@ -1107,4 +1114,191 @@ void Triangulation::print_space_profile(ofstream& output)
     for(auto x : spatial_profile)
         output << x << " ";
     output << endl;
+}
+
+// ##### DEBUG #####
+
+void Triangulation::is_consistent(bool debug_flag)
+{
+    if(not debug_flag)
+        return;
+        
+    // check list0: Vertices, num40, num40p
+    
+    for(int i=0; i < list0.size(); i++){
+        Label lab = list0[i];
+        Vertex* v_lab = lab.dync_vertex();
+        
+        // id
+        
+        if(i != lab->id)
+            throw runtime_error("Vertex identifier wrong: Vertex in position "+to_string(i)+" in list0, while its identifier points to "+to_string(lab->id));
+        
+        // near_t
+         
+        if(find_vertex_in_triangle(v_lab->near_t.dync_triangle(),lab->id))
+            throw runtime_error("Error in Vertex ["+to_string(i)+"]: adjacent Triangle ["+to_string(v_lab->near_t->id)+"] does not include it");
+        
+        // coordination_number
+        
+        if(v_lab->coordination() != count_adjacents(v_lab))
+            throw runtime_error("Error in Vertex ["+to_string(i)+"]: number of adjacents triangles is not equal to coordination number stored");
+        
+    }
+    
+    // check list2: Triangles
+    
+    for(int i=0; i < list0.size(); i++){
+        Label lab = list0[i];
+        Triangle* tri_lab = lab.dync_triangle();
+        
+        // id
+        
+        if(i != lab->id)
+            throw runtime_error("Triangle identifier wrong: Triangle in position ["+to_string(i)+"] in list2, while its identifier points to ["+to_string(lab->id)+"]");
+        
+        // TriangleType
+        
+        if(not (tri_lab->type == TriangleType::_12 or tri_lab->type == TriangleType::_21))
+            throw range_error("Error in Triangle ["+to_string(i)+"]: TriangleType not recognized");        
+        
+        // adjacent_triangles: they share a couple of vertices
+        
+        if(tri_lab->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] != lab)
+            throw runtime_error("Error in Triangle: The _right_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[0].dync_triangle()->id)+"], but its _left_ adjacent is not ["+to_string(i)+"] itself");
+        /**
+         * @todo shared vertices
+        bool find_shared_vertices(Triangle* tri_lab,Triangle* ->adjacent_triangles()[0].dync_triangle());
+         *
+        if(find_shared_vertices(tri_lab,tri_lab->adjacent_triangles()[0].dync_triangle(),found))
+            throw runtime_error("Error in Triangle ["+to_string(i)+"]: is adjacent with Triangle ["+to_string(i)+"] but they don't share two vertices");
+        */
+        
+        if(tri_lab->adjacent_triangles()[1].dync_triangle()->adjacent_triangles()[0] != lab)
+            throw runtime_error("Error in Triangle: The _left_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[1].dync_triangle()->id)+"], but its _right_ adjacent is not ["+to_string(i)+"] itself");
+        
+        if(tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[2] != lab)
+            throw runtime_error("Error in Triangle: The _time_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[2].dync_triangle()->id)+"], but its _time_ adjacent is not ["+to_string(i)+"] itself");
+        
+        // two vertices on the same t_slice, coherent with the TriangleType
+        
+        if(tri_lab->vertices()[0].dync_vertex()->time() == tri_lab->vertices()[1].dync_vertex()->time()){
+            check_TriangleType(tri_lab,0,2);
+        }
+        else if(tri_lab->vertices()[1].dync_vertex()->time() == tri_lab->vertices()[2].dync_vertex()->time()){
+            check_TriangleType(tri_lab,1,0);
+        }
+        else if(tri_lab->vertices()[2].dync_vertex()->time() == tri_lab->vertices()[0].dync_vertex()->time()){
+            check_TriangleType(tri_lab,2,1);
+        }
+        else
+            throw runtime_error("Error in Triangle["+to_string(i)+"]: no couple of vertices on the same time slice");
+        
+        // transition_id
+        
+        if(tri_lab->transition_id != -1){ // if is -1 and it's wrong it will be verified in transition lists checks
+            if(tri_lab->is12()){
+                if(transition2112[tri_lab->transition_id] != lab)
+                    throw runtime_error("Error in Triangle ["+to_string(i)+"]: wrong transition_id");
+            }
+            else{
+                if(transition1221[tri_lab->transition_id] != lab)
+                    throw runtime_error("Error in Triangle ["+to_string(i)+"]: wrong transition_id");
+                
+            }
+        }
+    }
+    
+    // check space_profile
+    
+    /**
+     * @todo devo trovare il modo di contare i vertici per fare il confronto
+     */
+    
+    // check transitions
+    
+    for(int i=0; i < transition1221.size(); i++){
+        Label lab = transition1221[i];
+        Triangle* tri_lab = lab.dync_triangle();
+        
+        if(tri_lab->transition_id != i)
+            throw runtime_error("Error in transition list: in transition1221 element ["+to_string(i)+"] has transition identifier"+to_string(tri_lab->transition_id));
+        
+        if(not tri_lab->is21())
+            throw runtime_error("Error in transition list: in transition1221 right member Triangle ["+to_string(lab->id)+"] is not of type (2,1)");
+        if(not tri_lab->adjacent_triangles()[1].dync_triangle()->is12())
+            throw runtime_error("Error in transition list: in transition1221 left member Triangle ["+to_string(tri_lab->adjacent_triangles()[1]->id)+"] is not of type (1,2)");
+    }
+    for(int i=0; i < transition2112.size(); i++){
+        Label lab = transition2112[i];
+        Triangle* tri_lab = lab.dync_triangle();
+        
+        if(tri_lab->transition_id != i)
+            throw runtime_error("Error in transition list: in transition2112 element ["+to_string(i)+"] has transition identifier"+to_string(tri_lab->transition_id));
+        
+        if(not tri_lab->is12())
+            throw runtime_error("Error in transition list: in transition2112 right member Triangle ["+to_string(lab->id)+"] is not of type (1,2)");
+        if(not tri_lab->adjacent_triangles()[1].dync_triangle()->is21())
+            throw runtime_error("Error in transition list: in transition2112 left member Triangle ["+to_string(tri_lab->adjacent_triangles()[1]->id)+"] is not of type (1,2)");
+    }
+}
+
+int Triangulation::count_adjacents(Vertex* v_lab){
+    Triangle* initial_triangle = v_lab->near_t.dync_triangle();
+    Triangle* current_triangle = initial_triangle;
+    int adjacencies = 1;
+    bool same_strip = true;
+    
+    while(same_strip){
+        current_triangle = current_triangle->adjacent_triangles()[1].dync_triangle();
+        if(not find_vertex_in_triangle(current_triangle,v_lab->id))
+            same_strip = false;
+        else
+            adjacencies++;
+    }
+    same_strip = true;
+    current_triangle = current_triangle->adjacent_triangles()[2].dync_triangle();
+    adjacencies++;
+    while(same_strip){
+        current_triangle = current_triangle->adjacent_triangles()[0].dync_triangle();
+        if(not find_vertex_in_triangle(current_triangle,v_lab->id))
+            same_strip = false;
+        else
+            adjacencies++;
+    }
+    current_triangle = current_triangle->adjacent_triangles()[2].dync_triangle();
+    adjacencies++;
+    while(current_triangle->id != initial_triangle->id){
+        current_triangle = current_triangle->adjacent_triangles()[1].dync_triangle();
+        adjacencies++;
+    }
+    return adjacencies;
+}
+
+bool Triangulation::find_vertex_in_triangle(Triangle* adjacent_triangle, int v_id){
+    if(v_id == adjacent_triangle->vertices()[0]->id){
+        return true;
+    }
+    else if(v_id == adjacent_triangle->vertices()[1]->id){
+        return true;
+    }
+    else if(v_id == adjacent_triangle->vertices()[2]->id){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+void Triangulation::check_TriangleType(Triangle* tri_lab, int x, int y){
+            if(tri_lab->vertices()[y].dync_vertex()->time() > tri_lab->vertices()[y].dync_vertex()->time()){
+                if(not tri_lab->is21())
+                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: two vertices on the lower time slice and triangle of type (1,2)");
+            }
+            else if(tri_lab->vertices()[y].dync_vertex()->time() < tri_lab->vertices()[x].dync_vertex()->time()){
+                if(not tri_lab->is21())
+                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: two vertices on the upper time slice and triangle of type (2,1)");
+            }
+            else
+                throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: three vertices on the same time slice");
 }

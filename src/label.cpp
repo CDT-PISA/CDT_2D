@@ -42,6 +42,11 @@ bool Label::operator==(Label lab)
     return this->sh_ptr_simplex->position() == lab.sh_ptr_simplex->position();
 }
 
+bool Label::operator!=(Label lab)
+{
+    return not(*this == lab);
+}
+
 /**
 * @todo migliorare il cast e completare con errore (throw nel ramo else)
 */

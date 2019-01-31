@@ -30,15 +30,17 @@ runs_history.write(record)
 
 # Simulation Arguments
 Lambda = 0
-TimeLength = 31
-attempts = 1000
+TimeLength = 51
+attempts = 500
+debug_flag = True
 Lambda_str = str(Lambda)
 TimeLength_str = str(TimeLength)
 attempts_str = str(attempts)
+debug_flag_str = str(debug_flag).lower()
 
 # Simulation run
 try:
-    run(["bin/cdt_2d",outdir,Lambda_str,TimeLength_str,attempts_str],stdout=output_file,stderr=error_file,text=True,check=True)
+    run(["bin/cdt_2d",outdir,Lambda_str,TimeLength_str,attempts_str,debug_flag_str],stdout=output_file,stderr=error_file,text=True,check=True)
 except CalledProcessError as err:
     err_name = "<"+str(err).split("<")[1]
     runs_history.write("Il run "+str(run_num)+" del programma \""+err.cmd[0][-6:]+"\" è fallito con errore: "+err_name+"\n")

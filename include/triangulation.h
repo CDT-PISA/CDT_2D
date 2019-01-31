@@ -225,6 +225,39 @@ public:
      */ 
     void print_space_profile(ofstream& output);
     
+    
+    // ##### DEBUG #####
+    
+    /**
+     * @brief check if the entire triangulation is in a consistent state
+     * 
+     */
+    void is_consistent(bool debug_flag);
+    
+    /**
+     * @brief find the number of adjacents triangles of a vertex
+     * 
+     * @param v_lab the vertex
+     */
+    int count_adjacents(Vertex* v_lab);
+    
+    /**
+     * @brief find if vertex identifier is present in its adjacent triangle
+     * 
+     * @param adjacent_triangle triangle adjacent to the vertex (according to the vertex)
+     * @param v_id vertex identifier in list0
+     * @return if found or not
+     */
+    bool find_vertex_in_triangle(Triangle* adjacent_triangle,int v_id);
+    
+    /**
+    * @brief check if TriangleType is consistent with vertices' informations on their time slices
+    * 
+    * @param tri_lab triangle to be checked
+    * @param x vertex index of one of the two vertices on the same time slice
+    * @param y vertex index of the one on the other time slice
+    */
+    void check_TriangleType(Triangle* tri_lab, int x, int y);
 };
 
 #endif // TRIANGULATION_H

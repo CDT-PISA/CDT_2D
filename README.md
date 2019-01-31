@@ -21,6 +21,9 @@ The only things really remain to do is:
 - find new observables for new plots
 - manage condition for simulation stop
 
+and one more:
+- for long run and/or long TimeLength is very difficult and meaningless for the python script to draw all points on the plot, so I have to set two cutoffs (one for TimeLength and one for attempts) above which I coarse-grain the information before plotting
+
 the rest is:
 
 - find meaningful names for objects in the script

@@ -39,6 +39,7 @@ public:
     Simplex* operator->();
     
     bool operator==(Label);
+    bool operator!=(Label);
     
     Vertex* dync_vertex();
     Triangle* dync_triangle();
