@@ -13,7 +13,7 @@ My own implementation of CDT in 1+1 dimension
 ### Simulation
 This is the real missing thing: DEBUG
 
-Idea: sometimes in the plots appear slice of spatial volume 2. It should not happen. Moreover they never appear with spatial volume 1, maybe these attempts are the cause of errors.
+**Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)**
 
 ### Python
 The only things really remain to do is:

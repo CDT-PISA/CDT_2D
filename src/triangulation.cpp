@@ -1136,20 +1136,22 @@ void Triangulation::is_consistent(bool debug_flag)
         
         // near_t
          
-        if(find_vertex_in_triangle(v_lab->near_t.dync_triangle(),lab->id))
+        if(not find_vertex_in_triangle(v_lab->near_t.dync_triangle(),lab->id))
             throw runtime_error("Error in Vertex ["+to_string(i)+"]: adjacent Triangle ["+to_string(v_lab->near_t->id)+"] does not include it");
         
         // coordination_number
         
+        /*
         if(v_lab->coordination() != count_adjacents(v_lab))
             throw runtime_error("Error in Vertex ["+to_string(i)+"]: number of adjacents triangles is not equal to coordination number stored");
+        */
         
     }
     
     // check list2: Triangles
     
-    for(int i=0; i < list0.size(); i++){
-        Label lab = list0[i];
+    for(int i=0; i < list2.size(); i++){
+        Label lab = list2[i];
         Triangle* tri_lab = lab.dync_triangle();
         
         // id
@@ -1160,7 +1162,7 @@ void Triangulation::is_consistent(bool debug_flag)
         // TriangleType
         
         if(not (tri_lab->type == TriangleType::_12 or tri_lab->type == TriangleType::_21))
-            throw range_error("Error in Triangle ["+to_string(i)+"]: TriangleType not recognized");        
+            throw range_error("Error in Triangle ["+to_string(i)+"]: TriangleType not recognized");
         
         // adjacent_triangles: they share a couple of vertices
         
@@ -1170,7 +1172,7 @@ void Triangulation::is_consistent(bool debug_flag)
          * @todo shared vertices
         bool find_shared_vertices(Triangle* tri_lab,Triangle* ->adjacent_triangles()[0].dync_triangle());
          *
-        if(find_shared_vertices(tri_lab,tri_lab->adjacent_triangles()[0].dync_triangle(),found))
+        if(not find_shared_vertices(tri_lab,tri_lab->adjacent_triangles()[0].dync_triangle(),found))
             throw runtime_error("Error in Triangle ["+to_string(i)+"]: is adjacent with Triangle ["+to_string(i)+"] but they don't share two vertices");
         */
         
@@ -1180,19 +1182,24 @@ void Triangulation::is_consistent(bool debug_flag)
         if(tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[2] != lab)
             throw runtime_error("Error in Triangle: The _time_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[2].dync_triangle()->id)+"], but its _time_ adjacent is not ["+to_string(i)+"] itself");
         
-        // two vertices on the same t_slice, coherent with the TriangleType
+        // vertices 0 and 1 on the same t_slice, coherent with the TriangleType (vertex 2 on adjacent slice)
         
         if(tri_lab->vertices()[0].dync_vertex()->time() == tri_lab->vertices()[1].dync_vertex()->time()){
-            check_TriangleType(tri_lab,0,2);
-        }
-        else if(tri_lab->vertices()[1].dync_vertex()->time() == tri_lab->vertices()[2].dync_vertex()->time()){
-            check_TriangleType(tri_lab,1,0);
-        }
-        else if(tri_lab->vertices()[2].dync_vertex()->time() == tri_lab->vertices()[0].dync_vertex()->time()){
-            check_TriangleType(tri_lab,2,1);
+            int t_slice0 = tri_lab->vertices()[0].dync_vertex()->time();
+            int t_slice2 = tri_lab->vertices()[2].dync_vertex()->time();
+            if(tri_lab->is21()){
+                if(t_slice2 != ((t_slice0 + 1) % spatial_profile.size()))
+                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: vertex 2 in wrong time slice");
+            }
+            else{
+                if(t_slice0 == 0)
+                    t_slice0 += spatial_profile.size();
+                if(t_slice2 != (t_slice0-1))
+                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: vertex 2 in wrong time slice");
+            }
         }
         else
-            throw runtime_error("Error in Triangle["+to_string(i)+"]: no couple of vertices on the same time slice");
+            throw runtime_error("Error in Triangle["+to_string(i)+"]: vertices 0 and 1 of the triangle are not on the same time slice");
         
         // transition_id
         
@@ -1288,17 +1295,4 @@ bool Triangulation::find_vertex_in_triangle(Triangle* adjacent_triangle, int v_i
     else{
         return false;
     }
-}
-
-void Triangulation::check_TriangleType(Triangle* tri_lab, int x, int y){
-            if(tri_lab->vertices()[y].dync_vertex()->time() > tri_lab->vertices()[y].dync_vertex()->time()){
-                if(not tri_lab->is21())
-                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: two vertices on the lower time slice and triangle of type (1,2)");
-            }
-            else if(tri_lab->vertices()[y].dync_vertex()->time() < tri_lab->vertices()[x].dync_vertex()->time()){
-                if(not tri_lab->is21())
-                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: two vertices on the upper time slice and triangle of type (2,1)");
-            }
-            else
-                throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: three vertices on the same time slice");
 }

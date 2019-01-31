@@ -249,15 +249,6 @@ public:
      * @return if found or not
      */
     bool find_vertex_in_triangle(Triangle* adjacent_triangle,int v_id);
-    
-    /**
-    * @brief check if TriangleType is consistent with vertices' informations on their time slices
-    * 
-    * @param tri_lab triangle to be checked
-    * @param x vertex index of one of the two vertices on the same time slice
-    * @param y vertex index of the one on the other time slice
-    */
-    void check_TriangleType(Triangle* tri_lab, int x, int y);
 };
 
 #endif // TRIANGULATION_H

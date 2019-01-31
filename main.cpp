@@ -17,7 +17,7 @@ using namespace std;
 int main(int argc, char* argv[]) {
 // int main(){
 //     int argc = 5;
-//     string argv[6]={" ","output","0","31","10000","true"};
+//     string argv[6]={" ","output","0","51","10000","true"};
     
     if(argc < 1)
         throw logic_error("output folder not specified");
