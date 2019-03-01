@@ -230,7 +230,7 @@ Label Triangulation::create_vertex(int Time, int coordination_number, Label adja
 
 Label Triangulation::create_triangle()
 {
-    int list_position=list2.size();
+    int list_position = list2.size();
     Label lab(new Triangle(list_position));
     
     list2.push_back(lab);
@@ -262,18 +262,20 @@ Label Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],Tri
 void Triangulation::remove_vertex(Label lab_v)
 {
     try{        
-        if(lab_v->id < (num40 - 1)){
+        if(lab_v->id < num40){
             list0[lab_v->id] = list0[num40 - 1];
             list0[lab_v->id]->id = lab_v->id;
-            list0[num40-1] = lab_v;
+            list0[num40 - 1] = lab_v;
             lab_v->id = num40 - 1; 
             
             num40--;
+            if(lab_v->id < num40 + num40p)
+                num40p++;
         }
-        if(lab_v->id < (num40 + num40p - 1)){
+        if(lab_v->id < num40 + num40p){
             list0[lab_v->id] = list0[num40 + num40p - 1];
             list0[lab_v->id]->id = lab_v->id;
-            list0[num40 + num40p-1] = lab_v;            
+            list0[num40 + num40p - 1] = lab_v;            
             lab_v->id = num40 + num40p - 1; 
             
             num40p--;
@@ -281,8 +283,6 @@ void Triangulation::remove_vertex(Label lab_v)
         if(lab_v->id != list0.size() - 1){
             list0[lab_v->id] = list0[list0.size() - 1];            
             list0[lab_v->id]->id = lab_v->id;
-            list0[list0.size()-1] = lab_v;            
-            lab_v->id = list0.size() - 1;
         }
         
         // ___ update spatial_profile ___
@@ -304,14 +304,12 @@ void Triangulation::remove_vertex(Label lab_v)
  * 
  * @test verificare che funzioni regolarmente (magari anche dopo aver individuato esattamente come la uso nelle mossee e aver quindi definito cosa deve fare lei o cosa viene fatto esplicitamente nelle mosse)
  */
-void Triangulation::remove_triangle(Label tri_lab)
+void Triangulation::remove_triangle(Label lab_t)
 {
     try{
-        if(tri_lab->id != list2.size() - 1){
-            list2[tri_lab->id] = list2[list2.size() - 1];
-            list2[tri_lab->id]->id = tri_lab->id;
-            list2[list2.size()-1] = tri_lab;
-            tri_lab->id = list2.size() - 1;
+        if(lab_t->id != list2.size() - 1){
+            list2[lab_t->id] = list2[list2.size() - 1];
+            list2[lab_t->id]->id = lab_t->id;
         }
         
         list2.pop_back();
@@ -341,9 +339,13 @@ void Triangulation::remove_triangle(Label tri_lab)
  * 
  * @test devo fare i test per questa mossa (forse devo trovare un modo semplice di stampare tutta la triangolazione)
  */ 
-void Triangulation::move_22_1()
+void Triangulation::move_22_1(bool debug_flag)
 {   
     long num_t = transition1221.size(); 
+    
+    // if I don't consider this case separately transition would have an Undefined Behaviour
+    if(num_t == 0)
+        return;
     
     random_device rd;
     mt19937_64 mt(rd());
@@ -353,7 +355,9 @@ void Triangulation::move_22_1()
     int tr = transition(mt);
 //     static int tr = 3;
 //     tr++;
-    cout << "move_22_1 :" << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
+    if(debug_flag){
+        cout << "move_22_1 :" << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
+    }
     
     /**
      * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
@@ -381,8 +385,9 @@ void Triangulation::move_22_1()
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     
-    cout << tri_lab1->vertices()[0]->position() << endl;
-    
+    if(debug_flag){
+        cout << tri_lab1->vertices()[0]->position() << endl;
+    }
     
     // ----- REJECT RATIO -----
     int x = 1;
@@ -411,6 +416,13 @@ void Triangulation::move_22_1()
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
+    if(debug_flag){
+        cout << " (time " << v_lab0->time() << ")" << endl;
+        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
+        
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
     tri_lab0->adjacent_triangles()[1] = lab_t2;
@@ -470,10 +482,12 @@ void Triangulation::move_22_1()
     }
     
     /** @todo ripensare a questo errore */
-    if(transition1221.size() != transition2112.size()){
-        cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
-        cout.flush();
-        throw runtime_error("Not the same number of transitions of the two types");
+    if(debug_flag){
+        if(transition1221.size() != transition2112.size()){
+            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
+            cout.flush();
+            throw runtime_error("Not the same number of transitions of the two types");
+        }
     }
     
     // ___ find vert. coord. 4 and patologies ___
@@ -535,6 +549,13 @@ void Triangulation::move_22_1()
         }        
     }
     
+    if(debug_flag){
+        cout << "\t\t---\n";
+        cout << " at the end of the move_42:" << endl;
+        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
     // ----- END MOVE -----
 }
 
@@ -552,10 +573,14 @@ void Triangulation::move_22_1()
  *     v0         v1            v0         v1 
  * \endcode
  */ 
-void Triangulation::move_22_2()
+void Triangulation::move_22_2(bool debug_flag)
 {
        
     long num_t = transition2112.size(); 
+    
+    // if I don't consider this case separately transition would have an Undefined Behaviour
+    if(num_t == 0)
+        return;
     
     random_device rd;
     mt19937_64 mt(rd());
@@ -563,8 +588,10 @@ void Triangulation::move_22_2()
     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     int tr = transition(mt);
-    cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
-    
+    if(debug_flag){
+        cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
+    }
+        
     // ___ find triangles (they are needed to compute the reject ratio) ___
     Label lab_t0 = transition2112[tr];
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
@@ -574,8 +601,6 @@ void Triangulation::move_22_2()
     Triangle* tri_lab1 = lab_t1.dync_triangle();
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
-    
-    cout << tri_lab0->vertices()[0]->position() << endl;
     
     
     // ----- REJECT RATIO -----
@@ -605,6 +630,13 @@ void Triangulation::move_22_2()
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
+    if(debug_flag){
+        cout << " (time " << v_lab0->time() << ")" << endl;
+        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
+        
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
     tri_lab0->adjacent_triangles()[1] = lab_t2;
@@ -664,10 +696,12 @@ void Triangulation::move_22_2()
     }
     
     /** @todo ripensare a questo errore */
-    if(transition1221.size() != transition2112.size()){
-        cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
-        cout.flush();
-        throw runtime_error("Not the same number of transitions of the two types");
+    if(debug_flag){
+        if(transition1221.size() != transition2112.size()){
+            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
+            cout.flush();
+            throw runtime_error("Not the same number of transitions of the two types");
+        }
     }
     
     // ___ find vert. coord. 4 and patologies ___
@@ -729,6 +763,13 @@ void Triangulation::move_22_2()
         }        
     }
     
+    if(debug_flag){
+        cout << "\t\t---\n";
+        cout << " at the end of the move_42:" << endl;
+        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
     // ----- END MOVE -----
 }
 
@@ -753,10 +794,16 @@ void Triangulation::move_22_2()
  * @todo check if there is something more to be done by the move_24
  * @test check if it works
  */
-void Triangulation::move_24()
+void Triangulation::move_24(bool debug_flag)
 {
+    if(debug_flag){
+        cout << "move_24: ";
+    }
+    
     // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
     long volume = list2.size(); 
+    
+    // I don't have to consider separately the case of volume = 0, because the minimal volume is > 0
     
     random_device rd;
     mt19937_64 mt(rd());
@@ -766,15 +813,17 @@ void Triangulation::move_24()
     // ----- REJECT RATIO -----
     double reject_ratio = min(1.0,((exp(-2*lambda)*volume)/2)/(num40+1));
     
-    if(reject_trial(mt) > reject_ratio)
+    if(reject_trial(mt) > reject_ratio){
+        if(debug_flag){
+            cout << endl;
+        }
         return; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
     // ----- CELL "EVOLUTION" -----
     
     int extr = extracted_triangle(mt);
 //     int extr = ;
-    
-    cout << "move_24: " << extr;
     
     // ___ cell recognition ___
     
@@ -792,7 +841,9 @@ void Triangulation::move_24()
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
-    cout << " (time " << v_lab0->time() << ")" << endl;
+    if(debug_flag){
+        cout << " (time " << v_lab0->time() << ")" << endl;
+    }
     
     // ___ create new Triangles and vertex, and put already in them the right values ___
     Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
@@ -821,6 +872,12 @@ void Triangulation::move_24()
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     tri_lab2->adjacent_triangles()[2] = lab_t3;
     tri_lab3->adjacent_triangles()[2] = lab_t2;
+    
+    if(debug_flag){
+        cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) v0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
+        cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
+    }
     
     // ___ update adjancencies and vertices of the initial triangles ___
     tri_lab0->adjacent_triangles()[0] = lab_t3;
@@ -875,10 +932,18 @@ void Triangulation::move_24()
             list0[num40]->id = num40;
             num40++;
             num40p--;
-        }
+        }    
     }
-    /* vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice */ 
+    // vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice
     
+    if(debug_flag){
+        cout << "\t\t---\n";
+        cout << " at the the end of move_24:" << endl;
+        cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) v0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
+        cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
+        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
     // ----- END MOVE -----
     
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are inserted on the right, and transitions are represented by right members of the cell) */
@@ -902,13 +967,23 @@ void Triangulation::move_24()
  *              v3                              v3        
  * \endcode
  */
-void Triangulation::move_42()
+void Triangulation::move_42(bool debug_flag)
 {
     // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
     
-    if((num40 == 0) && (num40p == 0))
-        return;
+    // also toward states with num40 = num40p = 0 there are non-null probabilities to go in, so if I exclude the trial of this move(_42) for these states the other moves will have probabilities of 1/3 instead of 1/4, and detailed balance would be ruined
     
+    if(debug_flag){
+        cout << "move_42: ";
+    }
+    
+    if((num40 == 0) && (num40p == 0)){
+        if(debug_flag){
+            cout << endl;
+        }
+        return;
+    }
+        
     random_device rd;
     mt19937_64 mt(rd());
     uniform_int_distribution<int> extracted_vertex(0, num40 + num40p - 1);
@@ -918,8 +993,12 @@ void Triangulation::move_42()
     int volume = list2.size();
     double reject_ratio = min(1.0,(exp(2*lambda)*num40)/(volume/2-1));
     
-    if(reject_trial(mt) > reject_ratio)
+    if(reject_trial(mt) > reject_ratio){
+        if(debug_flag){
+            cout << endl;
+        }
         return; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
     // ----- CELL "EVOLUTION" -----
     int extr = extracted_vertex(mt);
@@ -927,8 +1006,9 @@ void Triangulation::move_42()
     if(extr > num40 - 1)
         return;
     
-    cout << "move_42: " << extr << " " << list0[extr]->position();
-    cout.flush();
+    if(debug_flag){
+        cout << extr;
+    }
     
     // ___ cell recognition ___
     
@@ -942,7 +1022,7 @@ void Triangulation::move_42()
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     
     Label lab_v0 = tri_lab0->vertices()[0];
-    Label lab_v1 = tri_lab2->vertices()[1];
+    Label lab_v1 = tri_lab3->vertices()[1];
     Label lab_v2 = tri_lab0->vertices()[2];
     Label lab_v3 = tri_lab1->vertices()[2];
     Label lab_v4 = list0[extr];
@@ -952,9 +1032,18 @@ void Triangulation::move_42()
     Vertex* v_lab3 = lab_v3.dync_vertex();
     Vertex* v_lab4 = lab_v4.dync_vertex();
     
-    cout << " (time " << v_lab0->time() << ")" << endl;
+    /// @todo
+    if(debug_flag){
+        cout << " (time " << v_lab0->time() << ")" << endl;
+        cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
+        cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
+        cout << " [vertices' times] v0: " << v_lab0->time() << ", v1: " << v_lab1->time() << ", v4: " << v_lab4->time() << " \t\t[pretending v4] t0:" << tri_lab0->vertices()[1]->position() << " t1:" << tri_lab1->vertices()[1]->position() << " t2:" << tri_lab2->vertices()[0]->position() << " t3:" << tri_lab3->vertices()[0]->position() << endl;
+        cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
+        cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
+    }
     
     // ___ update adjacencies of persisting simplexes ___
+    
     //triangles
     tri_lab0->adjacent_triangles()[0] = tri_lab3->adjacent_triangles()[0];
     tri_lab1->adjacent_triangles()[0] = tri_lab2->adjacent_triangles()[0];
@@ -966,9 +1055,9 @@ void Triangulation::move_42()
     /* there is no need to update also the vertices for these two because they are already connected to the right one, because it will be vertex 4 that will be removed, and vertex 1 (the one they are already connected to) will remain */
     
     //vertices
-    v_lab1->adjacent_triangle() = lab_t0;
-    v_lab2->adjacent_triangle() = lab_t0;
-    v_lab3->adjacent_triangle() = lab_t1;
+    v_lab1->near_t = lab_t0;
+    v_lab2->near_t = lab_t0;
+    v_lab3->near_t = lab_t1;
     v_lab2->coord_num--;
     v_lab3->coord_num--;
     
@@ -1015,6 +1104,15 @@ void Triangulation::move_42()
         }
     }
     
+    if(debug_flag){
+        cout << "\t\t---\n";
+        cout << " at the end of the move_42:" << endl;
+        cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
+        cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
+        cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
+        cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+    }
     /* vertex 2 and 3 cannot become of coord. 4, because they have more than one time link toward the same time slice */ 
 
     // ----- END MOVE -----
@@ -1048,22 +1146,16 @@ Label Triangulation::move_42_find_t0(Label extr_lab)
             return lab_t;
         else if(tri_lab->vertices()[0] == extr_lab)
             return tri_lab->adjacent_triangles()[1];
-        else{
-            cout << "ciao";
-            cout.flush();
+        else
             throw runtime_error("Triangulation inconsistency: in cell (4,2) triangle 21 adjacent to the central vertex doesn't own it neither as v[0] nor as v[1]");
-        }
     }
     else{
         if(tri_lab->vertices()[1] == extr_lab)
             return tri_lab->adjacent_triangles()[2];
         else if(tri_lab->vertices()[0] == extr_lab)
             return tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[1];
-        else{
-            cout << "ciao";
-            cout.flush();
+        else
             throw runtime_error("Triangulation inconsistency: in cell (4,2) triangle 12 adjacent to the central vertex doesn't own it neither as v[0] nor as v[1]");
-        }
     }
 }
 
@@ -1116,183 +1208,4 @@ void Triangulation::print_space_profile(ofstream& output)
     output << endl;
 }
 
-// ##### DEBUG #####
-
-void Triangulation::is_consistent(bool debug_flag)
-{
-    if(not debug_flag)
-        return;
-        
-    // check list0: Vertices, num40, num40p
-    
-    for(int i=0; i < list0.size(); i++){
-        Label lab = list0[i];
-        Vertex* v_lab = lab.dync_vertex();
-        
-        // id
-        
-        if(i != lab->id)
-            throw runtime_error("Vertex identifier wrong: Vertex in position "+to_string(i)+" in list0, while its identifier points to "+to_string(lab->id));
-        
-        // near_t
-         
-        if(not find_vertex_in_triangle(v_lab->near_t.dync_triangle(),lab->id))
-            throw runtime_error("Error in Vertex ["+to_string(i)+"]: adjacent Triangle ["+to_string(v_lab->near_t->id)+"] does not include it");
-        
-        // coordination_number
-        
-        /*
-        if(v_lab->coordination() != count_adjacents(v_lab))
-            throw runtime_error("Error in Vertex ["+to_string(i)+"]: number of adjacents triangles is not equal to coordination number stored");
-        */
-        
-    }
-    
-    // check list2: Triangles
-    
-    for(int i=0; i < list2.size(); i++){
-        Label lab = list2[i];
-        Triangle* tri_lab = lab.dync_triangle();
-        
-        // id
-        
-        if(i != lab->id)
-            throw runtime_error("Triangle identifier wrong: Triangle in position ["+to_string(i)+"] in list2, while its identifier points to ["+to_string(lab->id)+"]");
-        
-        // TriangleType
-        
-        if(not (tri_lab->type == TriangleType::_12 or tri_lab->type == TriangleType::_21))
-            throw range_error("Error in Triangle ["+to_string(i)+"]: TriangleType not recognized");
-        
-        // adjacent_triangles: they share a couple of vertices
-        
-        if(tri_lab->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] != lab)
-            throw runtime_error("Error in Triangle: The _right_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[0].dync_triangle()->id)+"], but its _left_ adjacent is not ["+to_string(i)+"] itself");
-        /**
-         * @todo shared vertices
-        bool find_shared_vertices(Triangle* tri_lab,Triangle* ->adjacent_triangles()[0].dync_triangle());
-         *
-        if(not find_shared_vertices(tri_lab,tri_lab->adjacent_triangles()[0].dync_triangle(),found))
-            throw runtime_error("Error in Triangle ["+to_string(i)+"]: is adjacent with Triangle ["+to_string(i)+"] but they don't share two vertices");
-        */
-        
-        if(tri_lab->adjacent_triangles()[1].dync_triangle()->adjacent_triangles()[0] != lab)
-            throw runtime_error("Error in Triangle: The _left_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[1].dync_triangle()->id)+"], but its _right_ adjacent is not ["+to_string(i)+"] itself");
-        
-        if(tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[2] != lab)
-            throw runtime_error("Error in Triangle: The _time_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[2].dync_triangle()->id)+"], but its _time_ adjacent is not ["+to_string(i)+"] itself");
-        
-        // vertices 0 and 1 on the same t_slice, coherent with the TriangleType (vertex 2 on adjacent slice)
-        
-        if(tri_lab->vertices()[0].dync_vertex()->time() == tri_lab->vertices()[1].dync_vertex()->time()){
-            int t_slice0 = tri_lab->vertices()[0].dync_vertex()->time();
-            int t_slice2 = tri_lab->vertices()[2].dync_vertex()->time();
-            if(tri_lab->is21()){
-                if(t_slice2 != ((t_slice0 + 1) % spatial_profile.size()))
-                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: vertex 2 in wrong time slice");
-            }
-            else{
-                if(t_slice0 == 0)
-                    t_slice0 += spatial_profile.size();
-                if(t_slice2 != (t_slice0-1))
-                    throw runtime_error("Error in Triangle ["+to_string(tri_lab->id)+"]: vertex 2 in wrong time slice");
-            }
-        }
-        else
-            throw runtime_error("Error in Triangle["+to_string(i)+"]: vertices 0 and 1 of the triangle are not on the same time slice");
-        
-        // transition_id
-        
-        if(tri_lab->transition_id != -1){ // if is -1 and it's wrong it will be verified in transition lists checks
-            if(tri_lab->is12()){
-                if(transition2112[tri_lab->transition_id] != lab)
-                    throw runtime_error("Error in Triangle ["+to_string(i)+"]: wrong transition_id");
-            }
-            else{
-                if(transition1221[tri_lab->transition_id] != lab)
-                    throw runtime_error("Error in Triangle ["+to_string(i)+"]: wrong transition_id");
-                
-            }
-        }
-    }
-    
-    // check space_profile
-    
-    /**
-     * @todo devo trovare il modo di contare i vertici per fare il confronto
-     */
-    
-    // check transitions
-    
-    for(int i=0; i < transition1221.size(); i++){
-        Label lab = transition1221[i];
-        Triangle* tri_lab = lab.dync_triangle();
-        
-        if(tri_lab->transition_id != i)
-            throw runtime_error("Error in transition list: in transition1221 element ["+to_string(i)+"] has transition identifier"+to_string(tri_lab->transition_id));
-        
-        if(not tri_lab->is21())
-            throw runtime_error("Error in transition list: in transition1221 right member Triangle ["+to_string(lab->id)+"] is not of type (2,1)");
-        if(not tri_lab->adjacent_triangles()[1].dync_triangle()->is12())
-            throw runtime_error("Error in transition list: in transition1221 left member Triangle ["+to_string(tri_lab->adjacent_triangles()[1]->id)+"] is not of type (1,2)");
-    }
-    for(int i=0; i < transition2112.size(); i++){
-        Label lab = transition2112[i];
-        Triangle* tri_lab = lab.dync_triangle();
-        
-        if(tri_lab->transition_id != i)
-            throw runtime_error("Error in transition list: in transition2112 element ["+to_string(i)+"] has transition identifier"+to_string(tri_lab->transition_id));
-        
-        if(not tri_lab->is12())
-            throw runtime_error("Error in transition list: in transition2112 right member Triangle ["+to_string(lab->id)+"] is not of type (1,2)");
-        if(not tri_lab->adjacent_triangles()[1].dync_triangle()->is21())
-            throw runtime_error("Error in transition list: in transition2112 left member Triangle ["+to_string(tri_lab->adjacent_triangles()[1]->id)+"] is not of type (1,2)");
-    }
-}
-
-int Triangulation::count_adjacents(Vertex* v_lab){
-    Triangle* initial_triangle = v_lab->near_t.dync_triangle();
-    Triangle* current_triangle = initial_triangle;
-    int adjacencies = 1;
-    bool same_strip = true;
-    
-    while(same_strip){
-        current_triangle = current_triangle->adjacent_triangles()[1].dync_triangle();
-        if(not find_vertex_in_triangle(current_triangle,v_lab->id))
-            same_strip = false;
-        else
-            adjacencies++;
-    }
-    same_strip = true;
-    current_triangle = current_triangle->adjacent_triangles()[2].dync_triangle();
-    adjacencies++;
-    while(same_strip){
-        current_triangle = current_triangle->adjacent_triangles()[0].dync_triangle();
-        if(not find_vertex_in_triangle(current_triangle,v_lab->id))
-            same_strip = false;
-        else
-            adjacencies++;
-    }
-    current_triangle = current_triangle->adjacent_triangles()[2].dync_triangle();
-    adjacencies++;
-    while(current_triangle->id != initial_triangle->id){
-        current_triangle = current_triangle->adjacent_triangles()[1].dync_triangle();
-        adjacencies++;
-    }
-    return adjacencies;
-}
-
-bool Triangulation::find_vertex_in_triangle(Triangle* adjacent_triangle, int v_id){
-    if(v_id == adjacent_triangle->vertices()[0]->id){
-        return true;
-    }
-    else if(v_id == adjacent_triangle->vertices()[1]->id){
-        return true;
-    }
-    else if(v_id == adjacent_triangle->vertices()[2]->id){
-        return true;
-    }
-    else{
-        return false;
-    }
-}
+#include "debug/debug.cpp"

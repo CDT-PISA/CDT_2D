@@ -36,9 +36,11 @@
 CDT_2D.kdev4
 
 # Folders
+bin/*
 build/*
 doc/*
 output/*
+record/*
 CMakeFiles/*
 lib/__pycache__/*
 

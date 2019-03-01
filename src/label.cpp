@@ -27,7 +27,7 @@ Label::Label(Simplex* s_ptr)
 }
 
 
-Simplex Label::operator*()
+Simplex& Label::operator*()
 {
     return *sh_ptr_simplex;
 }

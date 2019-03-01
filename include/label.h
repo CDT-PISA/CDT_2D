@@ -35,7 +35,7 @@ public:
     
     ~Label(){}
     
-    Simplex operator*();
+    Simplex& operator*();
     Simplex* operator->();
     
     bool operator==(Label);

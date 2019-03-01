@@ -165,13 +165,13 @@ public:
     /**
     * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
     */
-    void move_22_1();
+    void move_22_1(bool debug_flag);
     
-    void move_22_2();
+    void move_22_2(bool debug_flag);
     
-    void move_24();
+    void move_24(bool debug_flag);
     
-    void move_42();
+    void move_42(bool debug_flag);
     
     // auxiliary functions (for moves)
     
@@ -190,6 +190,11 @@ public:
     * @return Label of the Triangle 0 of the cell
     */
     Label move_42_find_t0(Label extr_lab);
+    
+    /**
+     * @brief same function as before, with a flag for printing information for debugging
+     */ 
+//     Label move_42_find_t0(Label extr_lab, bool print_flag);
     
     // ##### USER INTERACTION METHODS #####
     
