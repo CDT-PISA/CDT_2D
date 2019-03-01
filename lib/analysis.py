@@ -53,7 +53,8 @@ def analyze_output(outdir):
     sm.get_shared_x_axes().join(ev, sm)
     subplots_adjust(bottom=0.05,top=0.89,left=0.07,right=0.95,hspace=0.05,wspace=0.05)
     sm.plot(space_profiles.sum(1),color="#A10000")
-    im = ev.imshow(space_profiles.transpose(), cmap="hot", interpolation='bilinear', origin="lower", aspect="auto")
+    im = ev.imshow(space_profiles.transpose(), cmap="hot", interpolation=None, origin="lower", aspect="auto")
+    #'bilinear'
     fig2.colorbar(im,cax=ax2)
     
     ev.grid(False)

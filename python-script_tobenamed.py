@@ -29,7 +29,7 @@ record = "run"+str(run_num)+": "+datetime.fromtimestamp(time()).strftime('%d-%m-
 runs_history.write(record)
 
 # Simulation Arguments
-Lambda = 0.65
+Lambda = log(2)
 TimeLength = 80
 attempts = 500000
 debug_flag = False
