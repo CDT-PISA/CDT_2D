@@ -40,7 +40,7 @@ bin/*
 build/*
 doc/*
 output/*
-record/*
+test/*
 CMakeFiles/*
 lib/__pycache__/*
 

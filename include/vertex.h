@@ -4,8 +4,9 @@
 
 #include "simplex.h"
 #include "label.h"
-#include "triangulation.h"
 #include <memory>
+#include <vector>
+#include <fstream>
 using namespace std;
 
 /**
@@ -15,6 +16,12 @@ using namespace std;
 class Vertex : public Simplex
 {
 private:    
+    
+    /**
+     * 
+     */ 
+    Vertex(int list_position);
+    
     /**
      * @brief Constructor
      * 
@@ -83,6 +90,12 @@ public:
     * @return near_t
     */
     Label adjacent_triangle();
+    
+    // ##### FILE I/O #####
+    
+    void write(ostream& output);
+    
+    void read(istream& input, vector<Label> List2);
 
 };
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Sun Jan 27 11:32:00 2019
@@ -11,7 +10,8 @@ from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots,
 
 def analyze_output(outdir):
     """Output analysis for CDT_2D simulation.
-    
+    attempts_str = str(attempts)
+
     Descrizione...
     
     Parameters
@@ -65,6 +65,8 @@ def analyze_output(outdir):
     savefig(outdir+"/space_profile_evolution.png")
     close(fig2)
     
+    # per imshow devo assicurarmi che siano equispaziati!
+    
 #    si potrebbe pensare di stampare almeno un paio di profili spaziali insieme, magari non vicini (entrambi nella parte finale, così che siano ben termalizzati, ma non vicini in modo che siano il meno possibile correlati) per analizzare l'andamento dell'evoluzione
 #    ma in realtà forse no: si vede già dal secondo plot
 #
@@ -73,5 +75,6 @@ def analyze_output(outdir):
 #    plot(space_profiles[-10])
     
 #    close("all")
-    
-    return
+
+
+# def funzione per controllare se è termalizzato  (fit bayesiano o ANOVA)

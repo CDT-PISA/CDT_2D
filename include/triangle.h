@@ -4,6 +4,9 @@
 
 #include "simplex.h"
 #include "label.h"
+#include <fstream>
+#include <stdexcept>
+#include <vector>
 using namespace std;
 
 enum class TriangleType {_12, _21 };
@@ -80,6 +83,12 @@ public:
     bool is21();
     
     bool is_transition();
+    
+    // ##### FILE I/O #####
+    
+    void write(ostream& output);
+    
+    void read(istream& input, vector<Label> List0, vector<Label> List2);
 };
 
 #endif // TRIANGLE_H

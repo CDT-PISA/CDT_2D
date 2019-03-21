@@ -8,6 +8,7 @@
 #include <fstream>
 #include "label.h"
 #include "triangle.h"
+#include "vertex.h"
 using namespace std;
 
 /**
@@ -17,15 +18,10 @@ using namespace std;
  */
 class Triangulation
 {
-public: /// @todo magari la metterò ogni tanto a public per fare dei test ma alla fine deve essere private
+public: /// @todo deve essere private
     // DATA
     
-    /**
-    * @brief the space-time volume of the triangulation
-    * 
-    * @todo perché devo tenermi Triangulation::volume se è = list2.size() ? per ora non lo uso... così non devo tenerlo aggiornato
-    */
-//     long volume;
+    double lambda;
     
     /**
      * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n
@@ -39,7 +35,6 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * - [0,num40-1] vert. coord. 4
     * - [num40,num40+num40p-1] vert. coord. 4 patological (see Triangulation::num40p)
     * - [num40+num40p,num0] all other vert.
-    * 
     */
     vector<Label> list0;
     
@@ -47,7 +42,6 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * @brief vert. coord. 4 
     * 
     * the number of vertices of coordination number 4 in the triangulation
-    * 
     */
     long num40;
     
@@ -55,7 +49,6 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * @brief vert. coord. 4 patological
     * 
     * the number of vertices of coordination number 4 "patological", i.e. that belongs to patological time-slices (slices with only 3 vertices)
-    * 
     */
     long num40p;
     
@@ -64,6 +57,13 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     * 
     */
     vector<Label> list2;
+    
+    /**
+    * @brief sizes of time slices
+    * 
+    * the list of spatial volumes of each slice in the triangulation
+    */
+    vector<long> spatial_profile;
     
     /**
     * @brief list of 1st type transition
@@ -101,25 +101,24 @@ public: /// @todo magari la metterò ogni tanto a public per fare dei test ma al
     */
     vector<Label> transition2112;
     
-    /**
-    * @brief sizes of time slices
-    * 
-    * the list of spatial volumes of each slice in the triangulation
-    * 
-    */
-    vector<long> spatial_profile;
-    
-    double lambda;
-    
 public:
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 
     
     /**
+     * @brief default constructor: setup default configuration
+     * 
      * @param TimeLength the number of time slices
      */
     Triangulation(int TimeLength, double Lambda);
+    
+    /**
+     * @brief load a stored configuration
+     * 
+     * @param ciao
+     */
+    Triangulation(string ciao);
     
     /**
      * Destructor
@@ -221,7 +220,7 @@ public:
     */
     void print_space_profile(char orientation);
     
-    // ##### SIMULATION RESULTS - SAVE METHODS #####
+    // ##### SIMULATION RESULTS #####
     
     /**
      * @todo dovrebbe poter scegliere il file anche una volta sola e poi usare sempre quello
@@ -230,8 +229,21 @@ public:
      */ 
     void print_space_profile(ofstream& output);
     
+    // ##### FILE I/O #####
+    
+    void save(string filename);
+    
+    void save(ofstream& output);
+    
+    void load(string filename);
+    
+    void load(ifstream& input);
     
     // ##### DEBUG #####
+    
+    /**
+     * @todo forse qui posso inserire tutto in un file `debug.h` e includere quello
+     */
     
     /**
      * @brief check if the entire triangulation is in a consistent state

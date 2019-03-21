@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdexcept>
 #include "triangle.h"
 
 using namespace std;
@@ -70,5 +69,39 @@ bool Triangle::is_transition()
 Label* Triangle::vertices(){ return v; }
 
 Label * Triangle::adjacent_triangles(){ return t; }
+
+void Triangle::write(ostream& output)
+{
+    output.write((char*)&id, sizeof(id));
+    output.write((char*)&transition_id, sizeof(transition_id));
+    output.write((char*)&type, sizeof(type));
+    
+    for(auto x : v){
+        int pos = x->position();
+        output.write((char*)&pos, sizeof(pos));
+    }
+    for(auto x : t){
+        int pos = x->position();
+        output.write((char*)&pos, sizeof(pos));
+    }
+}
+
+void Triangle::read(istream& input, vector<Label> List0, vector<Label> List2)
+{
+    input.read((char*)&id, sizeof(id));
+    input.read((char*)&transition_id, sizeof(transition_id));
+    input.read((char*)&type, sizeof(type));
+    
+    for(auto& x : v){
+        int pos = 0;
+        input.read((char*)&pos, sizeof(pos));
+        x = List0[pos];
+    }
+    for(auto& x : t){
+        int pos = 0;
+        input.read((char*)&pos, sizeof(pos));
+        x = List2[pos];
+    }   
+}
 
 

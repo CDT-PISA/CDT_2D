@@ -21,11 +21,35 @@
 #include "triangle.h"
 #include <memory>
 
+// Constructors
+
 Label::Label(Simplex* s_ptr)
 {
     sh_ptr_simplex.reset(s_ptr);
 }
 
+
+/*
+// Copy & Move
+
+Label::Label(const Label&)
+{
+}
+
+Label::Label(Label &&)
+{
+}
+
+Label& Label::operator=(const Label&)
+{
+}
+
+Label& Label::operator=(Label &&)
+{
+}
+*/
+
+// Operators
 
 Simplex& Label::operator*()
 {
@@ -46,6 +70,9 @@ bool Label::operator!=(Label lab)
 {
     return not(*this == lab);
 }
+
+
+// Recast
 
 /**
 * @todo migliorare il cast e completare con errore (throw nel ramo else)

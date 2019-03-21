@@ -18,6 +18,11 @@
 
 #include "vertex.h"
 
+Vertex::Vertex(int list_position)
+{   
+    id = list_position;
+}
+
 Vertex::Vertex(int list_position, int Time, int coordination_number, Label triangle)
 {   
     id = list_position;
@@ -31,3 +36,26 @@ int Vertex::time(){ return t_slice; }
 int Vertex::coordination(){ return coord_num; }
 
 Label Vertex::adjacent_triangle(){ return near_t; }
+
+// ##### FILE I/O #####
+
+void Vertex::write(ostream& output)
+{
+    output.write((char*)&id, sizeof(id));
+    output.write((char*)&t_slice, sizeof(t_slice));
+    output.write((char*)&coord_num, sizeof(coord_num));
+    
+    int pos = near_t->position();
+    output.write((char*)&pos, sizeof(pos));
+}
+
+void Vertex::read(istream& input, vector<Label> List2)
+{
+    input.read((char*)&id, sizeof(id));
+    input.read((char*)&t_slice, sizeof(t_slice));
+    input.read((char*)&coord_num, sizeof(coord_num));
+    
+    int pos = 0;
+    input.read((char*)&pos, sizeof(pos));
+    near_t = List2[pos];
+}

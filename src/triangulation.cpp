@@ -17,6 +17,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <memory>
 #include <stdexcept>
@@ -198,7 +199,12 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         tri_lab3->vertices()[2] = list0[(TimeLength - 1)*3 + (j + 2)%3];
     }
 }
- 
+
+Triangulation::Triangulation(string ciao)
+{
+    load(ciao);
+}
+
 // ##### SIMPLEX MANAGEMENT #####
  
 Label Triangulation::create_vertex(int Time, int coordination_number, Label adjacent_triangle)
@@ -1161,7 +1167,7 @@ Label Triangulation::move_42_find_t0(Label extr_lab)
 
 // ##### USER INTERACTION METHODS #####
 
-/** @todo implementare quella carina orizzontale*/
+/** @todo implementare quella carina orizzontale */
 void Triangulation::print_space_profile()
 {
     
@@ -1198,7 +1204,7 @@ void Triangulation::print_space_profile(char orientation)
     }
 }
 
-// ##### SIMULATION RESULTS - SAVE METHODS #####
+// ##### SIMULATION RESULTS #####
 
 /** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
 void Triangulation::print_space_profile(ofstream& output)
@@ -1206,6 +1212,121 @@ void Triangulation::print_space_profile(ofstream& output)
     for(auto x : spatial_profile)
         output << x << " ";
     output << endl;
+}
+
+// ##### FILE I/O #####
+
+void Triangulation::save(string filename)
+{
+    ofstream of(filename, ios::binary | ios::out);
+	save(of);
+    of.close();
+}
+
+void Triangulation::save(ofstream& output)
+{   
+    output.write((char*)&lambda, sizeof(lambda));
+    output.write((char*)&num40, sizeof(num40));
+    output.write((char*)&num40p, sizeof(num40p));
+    
+    int n_tri = list2.size();
+    output.write((char*)&n_tri, sizeof(n_tri));
+    
+    int n_v = list0.size();
+    output.write((char*)&n_v, sizeof(n_v));
+    
+    for(auto lab_v : list0)
+        lab_v.dync_vertex()->write(output);
+        
+    for(auto lab_tri : list2)
+        lab_tri.dync_triangle()->write(output);
+    
+    int TimeLength = spatial_profile.size();
+    output.write((char*)&TimeLength, sizeof(TimeLength));
+}
+
+void Triangulation::load(string filename)
+{
+    /** @todo aggiungere come documentazione:
+     *
+     * leggere id, transition_id e type è facile
+     * 
+     * per leggere i label invece devo ricostruirle, e per farlo è necessario andare nello stesso ordine del setup di default:
+     *      - creo la lista dei triangoli vuoti 
+     *      - creo i vertici attaccati ai triangoli
+     *      - ripasso sulla lista dei triangoli vuoti e carico i vertici e i triangoli
+     * per farlo dovrò creare un array temporaneo parallelo a quello dei triangoli con i t[3] e i v[3]
+     */
+    
+    ifstream input(filename, ios::binary | ios::in);
+    load(input);
+    input.close();
+}
+
+void Triangulation::load(ifstream& input)
+{
+    list0.clear();
+    list2.clear();
+    
+    input.read((char*)&lambda, sizeof(lambda));
+    input.read((char*)&num40, sizeof(num40));
+    input.read((char*)&num40p, sizeof(num40p));
+    
+    // 1st list: empty Triangles
+    
+    int n_tri = 0;
+    input.read((char*)&n_tri, sizeof(n_tri));
+    
+    for(int i=0; i<n_tri; i++){
+        Label lab(new Triangle(i));
+        list2.push_back(lab);
+    }
+    
+    // 2nd list: initialized Vertices
+    
+    int n_v = 0;
+    input.read((char*)&n_v, sizeof(n_v));
+    
+    for(int i=0; i<n_v; i++){        
+        Label lab(new Vertex(i));
+        list0.push_back(lab);
+        
+        lab.dync_vertex()->read(input, list2);
+    }
+    
+    // 3rd list: Triangle initialization
+    
+    for(int i=0; i<n_tri; i++)
+        list2[i].dync_triangle()->read(input, list0, list2);
+    
+    // further structures recostruction
+    
+    int TimeLength;
+    input.read((char*)&TimeLength, sizeof(TimeLength));
+    
+    spatial_profile.resize(TimeLength);
+    
+    
+    // space profile
+    for(auto x : list0){
+        Vertex v = *x.dync_vertex();
+        spatial_profile[v.time()]++;
+    }
+    
+    // transition lists
+    for(auto x : list2){
+        Triangle tri = *x.dync_triangle();
+        
+        if(tri.is12()){
+            if(tri.adjacent_triangles()[1].dync_triangle()->is21())
+                transition2112.push_back(x);
+        }
+        else{
+            if(tri.adjacent_triangles()[1].dync_triangle()->is12())
+                transition1221.push_back(x);
+        }
+    }
+        
 }
 
 #include "debug/debug.cpp"
