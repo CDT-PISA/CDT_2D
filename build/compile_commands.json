@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d.dir/main.cpp.o -c /home/alessandro/projects/CDT_2D/main.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/main.cpp"
+},
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d_lib.dir/src/label.cpp.o -c /home/alessandro/projects/CDT_2D/src/label.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/src/label.cpp"
+},
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d_lib.dir/src/simplex.cpp.o -c /home/alessandro/projects/CDT_2D/src/simplex.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/src/simplex.cpp"
+},
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d_lib.dir/src/triangle.cpp.o -c /home/alessandro/projects/CDT_2D/src/triangle.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/src/triangle.cpp"
+},
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d_lib.dir/src/triangulation.cpp.o -c /home/alessandro/projects/CDT_2D/src/triangulation.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/src/triangulation.cpp"
+},
+{
+  "directory": "/home/alessandro/projects/CDT_2D/build",
+  "command": "/usr/bin/c++   -I/home/alessandro/projects/CDT_2D/include  -g   -o CMakeFiles/cdt_2d_lib.dir/src/vertex.cpp.o -c /home/alessandro/projects/CDT_2D/src/vertex.cpp",
+  "file": "/home/alessandro/projects/CDT_2D/src/vertex.cpp"
+}
+]

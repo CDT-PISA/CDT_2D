@@ -1,0 +1,8 @@
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/install/strip.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/install/local.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/cdt_2d.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/cdt_2d_lib.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/edit_cache.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/rebuild_cache.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/list_install_components.dir
+/home/alessandro/projects/CDT_2D/build/CMakeFiles/install.dir

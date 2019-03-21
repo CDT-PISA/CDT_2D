@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcdt_2d_lib.a  CMakeFiles/cdt_2d_lib.dir/src/label.cpp.o CMakeFiles/cdt_2d_lib.dir/src/simplex.cpp.o CMakeFiles/cdt_2d_lib.dir/src/triangle.cpp.o CMakeFiles/cdt_2d_lib.dir/src/triangulation.cpp.o CMakeFiles/cdt_2d_lib.dir/src/vertex.cpp.o
+/usr/bin/ranlib libcdt_2d_lib.a

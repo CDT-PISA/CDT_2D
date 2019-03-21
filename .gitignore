@@ -37,7 +37,6 @@ CDT_2D.kdev4
 
 # Folders
 bin/*
-build/*
 doc/*
 output/*
 test/*
