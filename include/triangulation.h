@@ -99,9 +99,15 @@ public: /// @todo deve essere private
     * 
     * the advantage of using a vector of Label instead of a vector of positions in list2 (int) is that I don't have to update it when I do the moves (2,4)-(4,2) if I do these correctly
     */
-    vector<Label> transition2112;
+    vector<Label> transition2112;    
     
 public:
+    // DI SERVIZIO (misurano gli step della simulazione)
+    
+    int volume_step;
+    int steps_done;
+    long iterations_done;
+    
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 

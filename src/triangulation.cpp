@@ -43,6 +43,10 @@ using namespace std;
  */ 
 Triangulation::Triangulation(int TimeLength, double Lambda)
 {
+    volume_step = 16;
+    steps_done = -512;
+    iterations_done = 0;
+    
     if(TimeLength < 1)
         throw out_of_range("only positive time length are excepted for a triangulation");
  
@@ -200,9 +204,10 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
     }
 }
 
-Triangulation::Triangulation(string ciao)
+/// @todo I NOMI alle variabili
+Triangulation::Triangulation(string filename)
 {
-    load(ciao);
+    load(filename);
 }
 
 // ##### SIMPLEX MANAGEMENT #####
@@ -1225,6 +1230,10 @@ void Triangulation::save(string filename)
 
 void Triangulation::save(ofstream& output)
 {   
+    output.write((char*)&volume_step, sizeof(volume_step));
+    output.write((char*)&steps_done, sizeof(steps_done));
+    output.write((char*)&iterations_done, sizeof(iterations_done));
+    
     output.write((char*)&lambda, sizeof(lambda));
     output.write((char*)&num40, sizeof(num40));
     output.write((char*)&num40p, sizeof(num40p));
@@ -1267,6 +1276,10 @@ void Triangulation::load(ifstream& input)
 {
     list0.clear();
     list2.clear();
+    
+    input.read((char*)&volume_step, sizeof(volume_step));
+    input.read((char*)&steps_done, sizeof(steps_done));
+    input.read((char*)&iterations_done, sizeof(iterations_done));
     
     input.read((char*)&lambda, sizeof(lambda));
     input.read((char*)&num40, sizeof(num40));
@@ -1318,12 +1331,20 @@ void Triangulation::load(ifstream& input)
         Triangle tri = *x.dync_triangle();
         
         if(tri.is12()){
-            if(tri.adjacent_triangles()[1].dync_triangle()->is21())
+            if(tri.adjacent_triangles()[1].dync_triangle()->is21()){
+                x.dync_triangle()->transition_id = transition2112.size();
                 transition2112.push_back(x);
+            }
+            else
+                x.dync_triangle()->transition_id = -1;
         }
         else{
-            if(tri.adjacent_triangles()[1].dync_triangle()->is12())
+            if(tri.adjacent_triangles()[1].dync_triangle()->is12()){
+                x.dync_triangle()->transition_id = transition1221.size();
                 transition1221.push_back(x);
+            }
+            else
+                x.dync_triangle()->transition_id = -1;
         }
     }
         

@@ -4,13 +4,10 @@ Created on Sun Jan 27 12:25:38 2019
 
 @author: alessandro
 """
-from os.path import isdir
-from os import mkdir, scandir
+from os import scandir
 from re import search
-from inspect import cleandoc
 from shutil import rmtree
 from math import floor, log10
-from numpy import linspace
 
 # commons
 
@@ -36,6 +33,23 @@ def find_all_availables(config="data", dir_prefix="Lambda"):
     all_availables.sort()
     
     return all_availables
+    
+def clear_data(lambdas, config='test'):
+    """Remove data for a gi
+    print('Work in progress')ven value of lambda
+    
+    Parameters
+    ----------
+    Lambda : float
+        the parameter of the simulation whose data you want to remove
+    """
+    for Lambda in lambdas:
+        try:
+            rmtree("output/" + config + "/Lambda"+str(Lambda))
+        except FileNotFoundError:
+            all_lambdas = find_all_availables()
+            raise ValueError("A folder with the given lambda it doesn't exist"+
+                             "\n\t\t\t all_lambdas: " + str(all_lambdas))
 
 s = {-9: 'n',
      -6: 'u',
@@ -93,70 +107,3 @@ def eng_not(num):
          format_num = '-' + format_num
          
     return format_num
-
-# test
-
-def out_test():
-    """Find the run folder in test configuration
-    
-    Find the first integer free for a new run.
-    Is not intended to preserve chronological ordering,
-    but only to find a unique folder for each test.
-    
-    Returns
-    -------
-    str
-        the path to run folder, relative to project folder
-    int
-        the number of current run
-    """
-    # Find output directory
-    outdir = "output/test/run"
-    run_num = 1
-    
-    # todo: per non fare valanghe di tentativ inutili è meglio che legga il run corrente
-    # dal file runs.txt, e se non esiste lascia run_num = 1
-    while(isdir(outdir+str(run_num))):
-        run_num += 1
-    
-    outdir += str(run_num)
-    mkdir(outdir)
-    
-    return outdir, run_num
-
-def clear_test():
-    """Remove all the test simulation
-    
-        The function remove all the folders with test simulations' outputs,
-        but not the checkpoints
-    """
-    rmtree("output/test/run")
-    mkdir("output/test/run")
-
-def clear_test_checkpoint():
-    """Remove all the test checkpoints
-    
-        The function remove all the test checkpoints,
-        but not the simulations' outputs
-    """
-    rmtree("output/test/run")
-    mkdir("output/test/run")
-    
-# datas
-    
-def clear_data(Lambda):
-    """Remove data for a given value of lambda
-    
-    Parameters
-    ----------
-    Lambda : float
-        the parameter of the simulation whose data you want to remove
-    """
-    try:
-        rmtree("output/data/Lambda"+str(Lambda))
-    except FileNotFoundError:
-        all_lambdas = find_all_availables()
-        raise ValueError("A folder with the given lambda it doesn't exist"+#
-                         "\n\t\t\t all_lambdas: " + str(all_lambdas))
-    else:
-        mkdir("output/data/Lambda"+str(Lambda))

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void save_routine(string outdir, vector<string> chkpts, int n_chkpt, Triangulation universe);
+void save_routine(string outdir, vector<string> chkpts, int n_chkpt, Triangulation universe, int i);
 
 int main(int argc, char* argv[]) {
     
@@ -19,22 +19,35 @@ int main(int argc, char* argv[]) {
     
     /// @todo sarebbe bene che rientrasse nel log
     /// quindi andrebbe postposto dopo
-    for(int i=0; i<7; i++)
-        cout << argv[i] << endl;
-    cout.flush();
     
     int run_num = stoi(argv[1]);
     double lambda = stod(argv[2]);
     string outdir = argv[3];
     int TimeLength = stoi(argv[4]);
-    int last_step = stoi(argv[5]);
+    string end_condition = argv[5];
     string arg = argv[6]; /// @todo da sostituire il nome
     string last_chkpt = argv[7];
     
     float save_interval = 0.004;//15.; // in minutes
     int n_chkpt = 3;
     
-    cerr << argv[7] << endl;
+    string logfile = outdir + "/" + "runs_log.txt";
+    ofstream logput;
+    logput.open (logfile, ofstream::out | ofstream::app);
+    if (!logput)
+        throw runtime_error("couldn't open 'logput' for writing");
+    
+    logput << "\nSimulation Parameters:" << endl;
+    logput << "\trun_num: " << run_num << endl;
+    logput << "\tlambda: " << lambda << endl;
+    logput << "\toutdir: " << outdir << endl;
+    logput << "\tTimeLength: " << TimeLength << endl;
+    logput << "\tend_condition: " << end_condition << endl;
+    logput << "\targ: " << arg << endl; /// @todo da sostituire il nome
+    logput << "\tlast_chkpt: " << last_chkpt << endl;
+    logput.close();
+    
+    // CHECKPOINT NAMES
     
     vector<string> chkpts;
     chkpts.push_back("");
@@ -43,6 +56,7 @@ int main(int argc, char* argv[]) {
     
     // CHECK IF DEBUG MODE IS ACTIVATED
     /// @todo trasformare tutto in direttive preprocessor #ifndef
+    
     bool debug_flag;
     
     const string True = "true";
@@ -54,26 +68,48 @@ int main(int argc, char* argv[]) {
     else
         throw logic_error("The 5th argument in function main() must be a bool (it is the \"debug_flag\")");
     
+    // END CONDITION
+    
+    char last_char = end_condition[end_condition.size()-1];
+    bool limited_step = false;
+    int last_step;
+    int sim_duration;
+    if(last_char == 'h')
+        sim_duration = stoi(end_condition)*60*60;
+    else if(last_char == 'm')
+        sim_duration = stoi(end_condition)*60;
+    else if(last_char == 's')
+        sim_duration = stoi(end_condition);
+    else{
+        limited_step = true;
+        last_step = stoi(end_condition);
+    }
+    
     // OPEN OUTPUT FILE
     
-    string outfile = outdir + "/history/" + "simulation_output";
-    ofstream output(outfile);
-    if (!output)
-        throw runtime_error("couldn't open 'simulation_output' for writing");
+    string profile_file = outdir + "/history/" + "profiles.txt";
+    ofstream profile_stream(profile_file, ofstream::out | ofstream::app);
+    if (!profile_stream)
+        throw runtime_error("couldn't open 'profiles.txt' for writing");
+    if (run_num == 1)
+        profile_stream << "# iteration[0] - profile[1:]" << endl << endl;
     
-    string outfile1 = outfile + "_volumes";
-    ofstream output1(outfile1);
-    if (!output1)
-        throw runtime_error("couldn't open 'simulation_output_volumes' for writing");
+    string volume_file = outdir + "/history/" + "volumes.txt";
+    ofstream volume_stream(volume_file, ofstream::out | ofstream::app);
+    if (!volume_stream)
+        throw runtime_error("couldn't open 'volumes.txt' for writing");
+    if (run_num == 1)
+        volume_stream << "# iteration[0] - volume[1]" << endl << endl;
     
     // SETUP THE TRIANGULATION
+    // and output parameters
     
     Triangulation universe(TimeLength,lambda);
-//     if(false){
+    
+    int profile_ratio = 4;
+    
     if(run_num !=1){
-        cerr << "ciao";
         string loadfile = outdir + "/checkpoint/" + last_chkpt;
-        cout << loadfile;
         
         Triangulation aux_universe(loadfile);
         universe = aux_universe;
@@ -85,17 +121,22 @@ int main(int argc, char* argv[]) {
     mt19937_64 mt(rd());
     uniform_int_distribution<int> dice(1,4);
     
+    // FIRST SAVE, then begin
+    save_routine(outdir, chkpts, n_chkpt, universe, 0);
+    auto time_ref = chrono::system_clock::now();
+    auto start_time = time_ref;
+    
+    /// @todo aggiungere il supporto per riconosciuta termalizzazione
+    
     int i=0;
     int j=0;
-	auto time_ref = chrono::system_clock::now();
     
-    
-    // prima di cominciare faccio il primo salvataggio
-    save_routine(outdir, chkpts, n_chkpt, universe);
-    
-    /// @todo devo decidere se fermarmi dopo un certo numero di mosse o se raggiungo una certa condizione (ad esempio: un certo numero di mosse termalizzate)
-    
-    while(i<last_step){
+    while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
+        
+        chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
+        if(elapsed.count() > sim_duration)
+            break;
+        
         if(debug_flag){
             cout << i << ") ";
         }
@@ -122,33 +163,26 @@ int main(int argc, char* argv[]) {
                 break;
             }
         }
-        i++;
-        if(i % (last_step/1000) == 0)
-            universe.print_space_profile(output);
         
         /// @todo mettere un #ifdef (copia da Giuseppe) anziché debug_flag
         universe.is_consistent(debug_flag);
         
-        /** @todo ogni tot mosse deve
-         *      - salvare il volume
-         *      - salvare il profilo spaziale
-         *      - fare un checkpoint (fa i check con il tempo)
-         *          - i checkpoint ruotano su un numero x di file
-         *            prima li rinomina tutti facendoli scorrere
-         *            poi salva sull'ultimo che si è liberato
-         */ 
-		
-        if(i % 100 == 0){
-            /// @todo in realtà sarà la condizione logaritmica
+        //
+        if((universe.iterations_done + i) % universe.volume_step == 0){
+            universe.steps_done++;
+            if(universe.steps_done == 512){
+                    universe.volume_step *= 2;
+                    universe.steps_done = 0;
+            }
             j++;
-            output1 << i << ", " << universe.list2.size();
-            if(j == 1){
+            volume_stream << universe.iterations_done + i << " " << universe.list2.size() << endl;
+            if(j == profile_ratio){
                 j=0;
-                universe.print_space_profile(output);
+                profile_stream << universe.iterations_done + i << " ";
+                universe.print_space_profile(profile_stream);
             }
             chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
             if(from_last.count()/60 > save_interval){
-                cerr << "ciao";
                 time_ref = chrono::system_clock::now();
                 
                 char aux_cstr[chkpts[1].size()+1];
@@ -167,28 +201,44 @@ int main(int argc, char* argv[]) {
                     aux_cstr2[chkpts[j+1].size()] = '\0';
                     
                     rename(aux_cstr2, aux_cstr1);
-                }                
-            save_routine(outdir, chkpts, n_chkpt, universe);
+                }
+            save_routine(outdir, chkpts, n_chkpt, universe, i);
             }
         }
+        
+        i++;
     }
     
-    universe.print_space_profile('v');
+    logput.open(logfile, ofstream::out | ofstream::app);
+    if (!logput)
+        throw runtime_error("couldn't open 'logput' for writing");
+    logput << "\nSimulation Run --> COMPLETED" << endl;
 }
 
 
-void save_routine(string outdir, vector<string> chkpts, int n_chkpt, Triangulation universe){
+void save_routine(string outdir, vector<string> chkpts, int n_chkpt, Triangulation universe, int i){
+    static int count=-1;
+    count++;
+    universe.iterations_done += i;
+    
     string logfile = outdir + "/" + "runs_log.txt";
     ofstream logput;
-    logput.open (logfile, ofstream::out | ofstream::app);
+    logput.open(logfile, ofstream::out | ofstream::app);
     if (!logput)
         throw runtime_error("couldn't open 'logput' for writing");
-    logput << "\nsto salvando... ";
+    
+    if(count % 4 == 0)
+        logput << endl;
+    else
+        logput << ", ";    
+    logput << "saving... ";
     
     string tmp_chkpt = chkpts[n_chkpt] + ".tmp";
     universe.save(tmp_chkpt);
+    universe.iterations_done -= i;  // tiene il conto dal checkpoint precedente, 
+                                    // quindi deve rimanere fisso
     
-    logput << "COMPLETATO";
+    logput << "COMPLETED";
     
     char aux_cstr1[tmp_chkpt.size()+1];
     tmp_chkpt.copy(aux_cstr1, tmp_chkpt.size()+1);

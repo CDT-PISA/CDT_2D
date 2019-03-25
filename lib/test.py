@@ -1,66 +1,111 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 15 10:54:29 2019
+Created on Fri Mar 15 10:54:46 2019
 
 @author: alessandro
 """
 
-from os.path import getsize
-from os import remove
-from time import time
-from datetime import datetime
-from subprocess import run, CalledProcessError
-from math import log
+from os import mkdir, chdir, system, getcwd, scandir
+from shutil import copyfile
+from platform import node
+import json
 from numpy import histogram, median
-from lib.analysis import analyze_output
-from lib.utils import out_test, eng_not
+from lib.utils import eng_not
 
-def launch(lambdas):
-    outdir, run_num = out_test()
-    
-    # Open files and write log
-    runs_history = open(outdir+"/../runs.txt", "a")
-    output_file = open(outdir+"/stdout.txt", "w")
-    error_file = open(outdir+"/stderr.txt", "w")
-    
-    record = "run"+str(run_num)+": "+datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')+"\t\t"
-    runs_history.write(record)
-    
-    # Simulation Arguments
-    Lambda = log(2)
-    TimeLength = 80
-    attempts = 50000
-    debug_flag = False
-    loadfile = "osndv"
-    Lambda_str = str(Lambda)
-    TimeLength_str = str(TimeLength)
+def launch(lambdas_old, lambdas_new):
+    """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
-    debug_flag_str = str(debug_flag).lower()
+
+    Descrizione...
     
-    # Simulation run
-    try:
-        run(["bin/cdt_2d", outdir, Lambda_str, TimeLength_str, attempts_str, debug_flag_str, loadfile], stdout=output_file, stderr=error_file, text=True, check=True)
-    except CalledProcessError as err:
-        err_name = "<"+str(err).split("<")[1]
-        runs_history.write("Il run "+str(run_num)+" del programma \""+err.cmd[0][-6:]+"\" è fallito con errore: "+err_name+"\n")
-        succeed = False
-    else:
-        succeed = True
-        runs_history.write("\n")
-    finally:
-    #    output_file.write("\n")
-        output_file.close()
-        if(getsize(output_file.name) == 0):
-            remove(outdir+"/stdout.txt")
-        error_file.close()
-        if(getsize(error_file.name) == 0):
-            remove(outdir+"/stderr.txt")
-        runs_history.close()
+    Parameters
+    ----------
+    p1 : tipo
+        descrizione del primo parametro p1
+    p2 : tipo
+        descrizione del secondo parametro p2
+    p3 : tipo, optional
+        descrizione del terzo parametro opzionale p3
     
-    if(succeed):
-        analyze_output(outdir)
+    Returns
+    -------
+    tipo
+        descrizione del tipo di ritorno
         
-def show(lambda_input='*'):
+    Raises
+    ------
+    Exception
+        descrizione dell'eccezione lanciata
+    """
+    
+    lambdas = lambdas_old + lambdas_new
+    
+    project_folder = getcwd()
+    
+    for Lambda in lambdas:
+        chdir(project_folder + '/output/test')
+        
+        dir_name = "Lambda" + str(Lambda)
+        launch_script_name = 'launch_' + str(Lambda) + '.py'
+        
+        if Lambda in lambdas_old:
+            with open(dir_name + "/state.json", "r+") as state_file: # @todo nei print c'è da
+                                                                     # specificare il valore di Lambda
+                state = json.load(state_file)
+                if state['is_thermalized']:
+                    print('Ha già finito idiota!') # @todo da migliorare
+                    continue
+                
+                if state['last_run_succesful']:
+                    run_num = state['run_done'] + 1
+                else:
+                    print('Problem in the last run')
+                    continue
+                
+            checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
+                           if (x.name[3] == str(run_num - 1) and x.name[-4:] != '.tmp')]
+            checkpoints.sort()
+            last_check = checkpoints[-1]
+        else:
+            mkdir(dir_name)
+            mkdir(dir_name + "/checkpoint")
+            mkdir(dir_name + "/history")
+            mkdir(dir_name + "/bin")
+            
+            copyfile('../../lib/launch_script.py', dir_name + '/' + launch_script_name)
+            
+            run_num = 1
+            last_check = None
+        
+        # devo farlo qui perché prima non sono sicuro che dir_name esista ('mkdir(dir_name)')
+        chdir(dir_name)
+        
+        # @todo aggiungere su json checkpoint
+#        if(run_num != 1):
+#            runs_history.write('\nstarted from checkpoint: ' + last_check)
+        
+        
+#        arguments = [dir_name, Lambda, 5e5, 3]
+        outdir = '.'
+        TimeLength = 80
+        attempts = '3s'
+        debug_flag = 'false'
+        arguments = [dir_name, run_num, Lambda, outdir, TimeLength, attempts, 
+                     debug_flag, last_check]
+        arg_str = ''
+        for x in arguments:
+            arg_str += ' ' + str(x)
+        
+        if(node() == 'Paperopoli'):
+            system('python3 $PWD/' + launch_script_name + arg_str)
+            
+        elif(node() == 'gridui3.pi.infn.it'):
+            system('bsub -q theophys -o stdout.txt -e stderr.txt -J ' + \
+                   dir_name + ' $PWD/' + launch_script_name + arg_str)
+        else:
+            raise NameError('Node not recognized (known nodes in test.py)')
+        
+def show(lambdas_old, lambdas_new):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -77,24 +122,31 @@ def show(lambda_input='*'):
         descrizione del tipo di ritorno
     """
     
-    lambdas = find_lambdas(lambda_input,'test')
-    # print(lambdas)
-    #
-    # i lambda vanno trovati nei file di checkpoint!!!
-    
-    hist_lambda = histogram(lambdas,20)
-    highest = max(hist_lambda[0])
-    
-    print()
-    for h in range(0,highest):
-        for x in hist_lambda[0]:
-            if(x >= highest - h):
-                print(' X ', end='')
-            else:
-                print('   ', end='')
-        print("")
-    
-    l_min = eng_not(min(lambdas))
-    l_med = eng_not(median(lambdas))
-    l_max = eng_not(max(lambdas))
-    print(l_min, ' '*23, l_med, ' '*23, l_max)
+    if len(lambdas_old) == 0:
+        print("There are no folders currently")
+    else:
+        print(lambdas_old)
+        
+        hist_lambda = histogram(lambdas_old,20)
+        highest = max(hist_lambda[0])
+        
+        print()
+        for h in range(0,highest):
+            for x in hist_lambda[0]:
+                if(x >= highest - h):
+                    print(' X ', end='')
+                else:
+                    print('   ', end='')
+            print("")
+        
+        l_min = eng_not(min(lambdas_old))
+        l_med = eng_not(median(lambdas_old))
+        l_max = eng_not(max(lambdas_old))
+        print(l_min, ' '*23, l_med, ' '*23, l_max)
+        
+
+def clear_bin():
+    """
+    Ripulisco tutti i binari che scritto nel frattempo
+    """
+    print(2)

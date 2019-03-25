@@ -88,7 +88,7 @@ public:
     
     void write(ostream& output);
     
-    void read(istream& input, vector<Label> List0, vector<Label> List2);
+    void read(istream& input, const vector<Label>& List0, const vector<Label>& List2);
 };
 
 #endif // TRIANGLE_H

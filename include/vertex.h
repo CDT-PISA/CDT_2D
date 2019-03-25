@@ -95,7 +95,7 @@ public:
     
     void write(ostream& output);
     
-    void read(istream& input, vector<Label> List2);
+    void read(istream& input, const vector<Label>& List2);
 
 };
 

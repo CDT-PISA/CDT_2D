@@ -86,7 +86,7 @@ void Triangle::write(ostream& output)
     }
 }
 
-void Triangle::read(istream& input, vector<Label> List0, vector<Label> List2)
+void Triangle::read(istream& input, const vector<Label>& List0, const vector<Label>& List2)
 {
     input.read((char*)&id, sizeof(id));
     input.read((char*)&transition_id, sizeof(transition_id));

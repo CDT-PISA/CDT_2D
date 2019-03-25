@@ -49,7 +49,7 @@ void Vertex::write(ostream& output)
     output.write((char*)&pos, sizeof(pos));
 }
 
-void Vertex::read(istream& input, vector<Label> List2)
+void Vertex::read(istream& input, const vector<Label>& List2)
 {
     input.read((char*)&id, sizeof(id));
     input.read((char*)&t_slice, sizeof(t_slice));

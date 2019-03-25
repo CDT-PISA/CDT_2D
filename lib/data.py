@@ -8,9 +8,7 @@ Created on Fri Mar 15 10:54:46 2019
 from os import mkdir, chdir, system, getcwd, scandir
 from shutil import copyfile
 from platform import node
-from datetime import datetime
-from time import time
-from re import search
+import json
 from numpy import histogram, median
 from lib.utils import eng_not
 
@@ -49,19 +47,25 @@ def launch(lambdas_old, lambdas_new):
         
         dir_name = "Lambda" + str(Lambda)
         launch_script_name = 'launch_' + str(Lambda) + '.py'
+        
         if Lambda in lambdas_old:
-            with open(dir_name + "/runs.txt", "r+") as runs:
-                runs.seek(0)
-                last_lines = list(enumerate(runs))[-2:-1]
-                last_run = last_lines[0][1]
+            with open(dir_name + "/state.json", "r+") as state_file: # @todo nei print c'è da
+                                                                     # specificare il valore di Lambda
+                state = json.load(state_file)
+                if state['is_thermalized']:
+                    print('Ha già finito idiota!') # @todo da migliorare
+                    continue
                 
-                match = search("RUN \d*", last_run)
-                run_num = int(last_run[match.start()+4:match.end()]) + 1
+                if state['last_run_succesful']:
+                    run_num = state['run_done'] + 1
+                else:
+                    print('Problem in the last run')
+                    continue
                 
-                checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
-                               if (x.name[3] == str(run_num - 1) and x.name[-4:] != '.tmp')]
-                checkpoints.sort()
-                last_check = checkpoints[-1]
+            checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
+                           if (x.name[3] == str(run_num - 1) and x.name[-4:] != '.tmp')]
+            checkpoints.sort()
+            last_check = checkpoints[-1]
         else:
             mkdir(dir_name)
             mkdir(dir_name + "/checkpoint")
@@ -71,20 +75,15 @@ def launch(lambdas_old, lambdas_new):
             copyfile('../../lib/launch_script.py', dir_name + '/' + launch_script_name)
             
             run_num = 1
-            last_check = 'empty'
+            last_check = None
         
+        # devo farlo qui perché prima non sono sicuro che dir_name esista ('mkdir(dir_name)')
         chdir(dir_name)
-        runs_history = open("runs.txt", "a")
         
-        runs_history.write("#---------------- RUN " + str(run_num) + " ----------------#")
+        # @todo aggiungere su json checkpoint
+#        if(run_num != 1):
+#            runs_history.write('\nstarted from checkpoint: ' + last_check)
         
-        timestamp = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')                       
-        runs_history.write("\n" + timestamp)
-        if(run_num != 1):
-            runs_history.write('\nstarted from checkpoint: ' + last_check)
-        
-        runs_history.write("\n#-------------- END RUN " + str(run_num) + " --------------#\n\n")
-        runs_history.close()
         
 #        arguments = [dir_name, Lambda, 5e5, 3]
         outdir = '.'
