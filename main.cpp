@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     float save_interval = 0.004;//15.; // in minutes
     int n_chkpt = 3;
     
-    string logfile = outdir + "/" + "runs_log.txt";
+    string logfile = outdir + "/" + "runs.txt";
     ofstream logput;
     logput.open (logfile, ofstream::out | ofstream::app);
     if (!logput)
@@ -221,7 +221,7 @@ void save_routine(string outdir, vector<string> chkpts, int n_chkpt, Triangulati
     count++;
     universe.iterations_done += i;
     
-    string logfile = outdir + "/" + "runs_log.txt";
+    string logfile = outdir + "/" + "runs.txt";
     ofstream logput;
     logput.open(logfile, ofstream::out | ofstream::app);
     if (!logput)

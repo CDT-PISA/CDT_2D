@@ -30,7 +30,6 @@ def main():
     exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
 
     chdir(project_folder + "build")
-    system("make")
     system("make install")
 
     chdir(lambda_folder)
@@ -41,7 +40,7 @@ def main():
     move(project_folder + 'bin/cdt_2d', 'bin/' + exe_name)
     system('chmod 777 bin/' + exe_name)
 
-    log_file = open("runs_log.txt", "a")
+    log_file = open("runs.txt", "a")
     log_file.write("#---------------- RUN " + str(run_num) + " ----------------#")
     log_file.close()
 

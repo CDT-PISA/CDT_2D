@@ -3,25 +3,31 @@ My own implementation of CDT in 1+1 dimension
 
 ## TODO:
 
-**ALIAS SU GRID: `cdt2d='python3 ~\projects\CDT_2D\launcher.py`**
-
 #### Simulazione
 This is the real missing thing: DEBUG
 
-**Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)**
+*DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
-**utils.h:** funzione per decifrare i bool (così posso vedere anche il bool `test`)
+DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
+(e capire come settare debug mode a livello del comando `gcc`)
 
-Se non sono in `test` argomenti sul file con cui leggere se è termalizzato (interazioni col Python)
+**TERMALIZZAZIONE**
+
+progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
+- 
 
 #### Script
 
 - **documentazione**
 	- magari scrivo anche un README decente, con una sezione sviluppo, ma anche una descrizione vera
-		(e magari sposto i commenti e TODO in un altro file, così in README rimangono solo la descrizione e la descrizione degli sviluppi futuri)
+		- (e magari sposto i commenti e TODO in un altro file, così in README rimangono solo la descrizione e la descrizione degli sviluppi futuri)
+		- magari faccio un file vX.md per ogni major version X che intendo fare (v1.md, v2.md, v3.md)
 - nomi sensati per gli oggetti negli script
+- gestione base della termalizzazione
 - gestione misure esistenti
-- gestione run falliti
+	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
+	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
+- gestione run *falliti*
 - gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
@@ -30,7 +36,13 @@ Quelle dopo possono anche aspettare, perché non danno problemi di compatibilit�
 ### New features
 Raccolta di feature nuove non strettamente necessarie:
 
-
+- aggiungere funzione per vedere il numero di **binari** in ogni cartella
+	- in modo da cancellarli a mano
+		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
+		- poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)
+		- magari ogni 5 X stampo una V per contare meglio
+	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
+- stesso di cui sopra per i **checkpoint**
 - aggiungere state & stop
 - aggiungere gestione delle misure esistenti, in corso, nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
@@ -47,6 +59,8 @@ Raccolta di feature nuove non strettamente necessarie:
 				piccoli e uguali per tutti
 
 ### Done
+
+~~ALIAS SU GRID: `cdt2d='python3 ~\projects\CDT_2D\launcher.py`~~
 
 - ~~find meaningful name for THE script~~
 - ~~aggiungere a find_lambdas la possibilità di specificare tuple lunghe 3: (start,stop,step)~~
