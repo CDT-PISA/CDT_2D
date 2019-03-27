@@ -47,11 +47,13 @@ CDT_2D.kdev4
 
 # Folders
 bin/*
+build/*
 doc/*
+lib/__pycache__/*
 output/*
 test/*
-lib/__pycache__/*
 
 # Other
 .directory
+CDT_2D.kdev4
 main_test.cpp

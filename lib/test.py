@@ -100,7 +100,7 @@ def launch(lambdas_old, lambdas_new):
             system('python3 $PWD/' + launch_script_name + arg_str)
             
         elif(node() == 'gridui3.pi.infn.it'):
-            system('bsub -q theophys -o stdout.txt -e stderr.txt -J ' + \
+            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
                    dir_name + ' $PWD/' + launch_script_name + arg_str)
         else:
             raise NameError('Node not recognized (known nodes in test.py)')
