@@ -96,7 +96,7 @@ def launch(lambdas_old, lambdas_new):
         for x in arguments:
             arg_str += ' ' + str(x)
         
-        if(node() == 'Paperopoli'):
+        if(node() == 'Paperopoli' or node() == 'fis-delia.unipi.it'):
             system('python3 $PWD/' + launch_script_name + arg_str)
             
         elif(node() == 'gridui3.pi.infn.it'):

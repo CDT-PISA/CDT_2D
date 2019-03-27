@@ -43,6 +43,7 @@ Raccolta di feature nuove non strettamente necessarie:
 		- magari ogni 5 X stampo una V per contare meglio
 	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
 - stesso di cui sopra per i **checkpoint**
+- aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
 - aggiungere state & stop
 - aggiungere gestione delle misure esistenti, in corso, nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
