@@ -55,5 +55,4 @@ test/*
 
 # Other
 .directory
-CDT_2D.kdev4
 main_test.cpp

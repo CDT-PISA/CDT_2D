@@ -30,13 +30,14 @@ def main():
     exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
 
     chdir(project_folder + "build")
-    system("make -j4")
-    system("make -j4 install")
+    system("make")
+    system("make install")
 
     chdir(lambda_folder)
     #copyfile(project_folder + '../ciao/ciao','bin/ciao')
     #system('chmod 777 bin/ciao')
-
+	
+    print('-- Moving: CDT_2D/bin/cdt_2d --> CDT_2D/output/' + lambda_folder.split('/')[-2] + '/Lambda' + Lambda_str + '/bin/cdt_2d')
     move(project_folder + 'bin/cdt_2d', 'bin/' + exe_name)
     system('chmod 777 bin/' + exe_name)
 
@@ -88,7 +89,7 @@ def main():
             state['run_done'] += 1
         json.dump(state, state_file, indent=4)
 
-    print("Run " + run_num + " completed.\n")
+    print("\nRun " + run_num + " completed.\n")
 
     #import smtplib
     #
