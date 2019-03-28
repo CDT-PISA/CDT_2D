@@ -4,17 +4,13 @@ My own implementation of CDT in 1+1 dimension
 ## TODO:
 
 #### Simulazione
-This is the real missing thing: DEBUG
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
 DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 (e capire come settare debug mode a livello del comando `gcc`)
 
-**TERMALIZZAZIONE**
 
-progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
-- :smile:
 
 #### Script
 
@@ -22,12 +18,14 @@ progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare su
 	- magari scrivo anche un README decente, con una sezione sviluppo, ma anche una descrizione vera
 		- (e magari sposto i commenti e TODO in un altro file, così in README rimangono solo la descrizione e la descrizione degli sviluppi futuri)
 		- magari faccio un file vX.md per ogni major version X che intendo fare (v1.md, v2.md, v3.md)
-- nomi sensati per gli oggetti negli script
 - gestione base della termalizzazione
 - gestione misure esistenti
 	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
 	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
 - gestione run *falliti*
+- **TERMALIZZAZIONE**  
+	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
+	- :smile:
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -35,9 +33,10 @@ Quelle dopo possono anche aspettare, perché non danno problemi di compatibilit�
 ### New features
 Raccolta di feature nuove non strettamente necessarie:
 
-In realtà questa può essere implementata dopo la v1.0, ma è necessario farla:
+In realtà queste possono essere implementate dopo la v1.0, ma è necessario farle:
 
 - gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
+- nomi sensati per gli oggetti negli script
 
 queste quelle davvero opzionali:
 
