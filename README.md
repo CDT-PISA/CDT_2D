@@ -14,7 +14,7 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 **TERMALIZZAZIONE**
 
 progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
-- 
+- :smile:
 
 #### Script
 
@@ -28,13 +28,18 @@ progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare su
 	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
 	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
 - gestione run *falliti*
-- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
 
 ### New features
 Raccolta di feature nuove non strettamente necessarie:
+
+In realtà questa può essere implementata dopo la v1.0, ma è necessario farla:
+
+- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
+
+queste quelle davvero opzionali:
 
 - aggiungere funzione per vedere il numero di **binari** in ogni cartella
 	- in modo da cancellarli a mano
@@ -44,6 +49,9 @@ Raccolta di feature nuove non strettamente necessarie:
 	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
 - stesso di cui sopra per i **checkpoint**
 - aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
+- `argomplete` e gli alias
+	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
+	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
 - aggiungere state & stop
 - aggiungere gestione delle misure esistenti, in corso, nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
@@ -52,6 +60,7 @@ Raccolta di feature nuove non strettamente necessarie:
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti con `-f` evita)
 - aggiungere checkpoint da cui si parte su `state.json`
+- decidere se 
 - modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
 - exit_condition: iterazioni o tempo
 		---> c'è da mettere anche un limite gigante in volume
@@ -63,7 +72,8 @@ Raccolta di feature nuove non strettamente necessarie:
 
 ~~ALIAS SU GRID: `cdt2d='python3 ~\projects\CDT_2D\launcher.py`~~
 
-- ~~find meaningful name for THE script~~
+- ~~trovare un nome sensato per il launcher~~
+- ~~far funzionare `argcomplete`~~
 - ~~aggiungere a find_lambdas la possibilità di specificare tuple lunghe 3: (start,stop,step)~~
 - ~~aggiungere lancio di processi su grid (e magari anche la configurazione sul mio computer: se rileva il mio pc è comunque in grado di lanciarlo)~~
 - ~~aggiungere cazzi con log2 16,2^14,... nel codice C++~~

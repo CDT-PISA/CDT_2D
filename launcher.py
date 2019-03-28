@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
 # -*- coding: utf-8 -*-
 
 #Created on Fri Mar 15 11:18:52 2019
@@ -74,14 +75,14 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False, is_data=False, cmd
     return lambdas_old, lambdas_new
     
 from platform import node
-import argparse
 import sys
+import argparse
 
 if(node() == 'Paperopoli'):
     import argcomplete
 
 def main():
-    
+
     chdir(expanduser('~/projects/CDT_2D'))
     
     parser = argparse.ArgumentParser(description='Manage CDT_2D simulations.')
@@ -116,8 +117,8 @@ def main():
     parser.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag (the '-' in front is not needed)")
     
-    # lambdas
-    parser.add_argument('lambdas', metavar='L', nargs='*', type=float, help='lambdas')
+    #lambdas
+    parser.add_argument('-l','--lambdas', metavar='L', nargs='*', type=float, help='lambdas')
     
     lambdas_specifiers = parser.add_mutually_exclusive_group()
     lambdas_specifiers.add_argument('-°', dest='is_all', action='store_true', 
@@ -134,7 +135,11 @@ def main():
                    clear : clear_test
                    }
     if args.my_command in cmds:
-        lambdas_old, lambdas_new = lambdas_recast(args.lambdas, args.is_range, 
+        lambdas = args.lambdas
+        if lambdas == None:
+            lambdas = []
+        
+        lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
                                                   args.is_all, args.is_data,
                                                   args.my_command)
         if args.is_data:

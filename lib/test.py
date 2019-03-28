@@ -125,6 +125,7 @@ def show(lambdas_old, lambdas_new):
     if len(lambdas_old) == 0:
         print("There are no folders currently")
     else:
+        print("  {} lambdas in the range requested".format(len(lambdas_old)))
         print(lambdas_old)
         
         hist_lambda = histogram(lambdas_old,20)
