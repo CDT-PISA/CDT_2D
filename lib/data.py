@@ -96,12 +96,15 @@ def launch(lambdas_old, lambdas_new):
         for x in arguments:
             arg_str += ' ' + str(x)
         
-        if(node() == 'Paperopoli' or node() == 'fis-delia.unipi.it'):
+        if(node() == 'Paperopoli'):
             system('python3 $PWD/' + launch_script_name + arg_str)
-            
+        elif(node() == 'fis-delia.unipi.it'):
+            system('python36 $PWD/' + launch_script_name + arg_str)
         elif(node() == 'gridui3.pi.infn.it'):
             system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
                    dir_name + ' $PWD/' + launch_script_name + arg_str)
+        elif(node() == 'r000u06l01'):
+            print('support for marconi still missing')
         else:
             raise NameError('Node not recognized (known nodes in data.py)')
         

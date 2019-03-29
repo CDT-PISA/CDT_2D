@@ -88,7 +88,7 @@ def launch(lambdas_old, lambdas_new):
 #        arguments = [dir_name, Lambda, 5e5, 3]
         outdir = '.'
         TimeLength = 80
-        attempts = '3s'
+        attempts = '1m'
         debug_flag = 'false'
         arguments = [dir_name, run_num, Lambda, outdir, TimeLength, attempts, 
                      debug_flag, last_check]
@@ -96,12 +96,15 @@ def launch(lambdas_old, lambdas_new):
         for x in arguments:
             arg_str += ' ' + str(x)
         
-        if(node() == 'Paperopoli' or node() == 'fis-delia.unipi.it'):
+        if(node() == 'Paperopoli'):
             system('python3 $PWD/' + launch_script_name + arg_str)
-            
+        elif(node() == 'fis-delia.unipi.it'):
+            system('python36 $PWD/' + launch_script_name + arg_str)
         elif(node() == 'gridui3.pi.infn.it'):
             system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
                    dir_name + ' $PWD/' + launch_script_name + arg_str)
+        elif(node() == 'r000u06l01'):
+            print('support for marconi still missing')
         else:
             raise NameError('Node not recognized (known nodes in test.py)')
         

@@ -10,15 +10,16 @@ My own implementation of CDT in 1+1 dimension
 DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 (e capire come settare debug mode a livello del comando `gcc`)
 
-
-
 #### Script
 
 - **documentazione**
 	- magari scrivo anche un README decente, con una sezione sviluppo, ma anche una descrizione vera
 		- (e magari sposto i commenti e TODO in un altro file, così in README rimangono solo la descrizione e la descrizione degli sviluppi futuri)
 		- magari faccio un file vX.md per ogni major version X che intendo fare (v1.md, v2.md, v3.md)
-- gestione base della termalizzazione
+	- oltre a documentare il C++ (doxygen) e Python (docstring) sarebbe utile scrivere subito una guida al contenuto del project folder e a tutta l'alberatura, quindi strutturata a ipertesto:
+		- guida al progetto
+			- --> guida alla simulazione (C++)
+			- --> guida all'interfaccia (Python)
 - gestione misure esistenti
 	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
 	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
@@ -59,7 +60,10 @@ queste quelle davvero opzionali:
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti con `-f` evita)
 - aggiungere checkpoint da cui si parte su `state.json`
-- decidere se 
+- aggiungere `--linear-history`
+	- anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari
+		- utile per prendere dati su una configurazione già termalizzata
+	- accetta 1 o 2 argomenti di tipo `int`, il primo fissa il numero di volumi da salvare, il secondo (opzionale) lo step (un salvataggio ogni x passi MC)
 - modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
 - exit_condition: iterazioni o tempo
 		---> c'è da mettere anche un limite gigante in volume
@@ -93,4 +97,6 @@ Ogni nuova versione viene rilasciata con un `tag`, e sarebbe bello che per ogni 
 ### Termalizzazione
 
 ### Campi di materia
+
+Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporre un volume fissato, rinunciando a $\lambda$
 

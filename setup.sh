@@ -53,8 +53,16 @@ fi
 
 # check if there is a recent enough version of cmake
 
+if 
+
 REGEX_VNUM='\d+[.]\d+[.]\d+'
 VNUM=$(cmake --version | grep -o -m 1 -P $REGEX_VNUM)
+
+if [ -z $VNUM ]; then
+	echo "No available version of cmake found."
+	exit
+fi
+
 vercomp $VNUM 3
 case $? in
 	0) op='=';;
