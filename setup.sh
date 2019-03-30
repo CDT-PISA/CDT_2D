@@ -53,8 +53,6 @@ fi
 
 # check if there is a recent enough version of cmake
 
-if 
-
 REGEX_VNUM='\d+[.]\d+[.]\d+'
 VNUM=$(cmake --version | grep -o -m 1 -P $REGEX_VNUM)
 

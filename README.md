@@ -3,7 +3,13 @@ My own implementation of CDT in 1+1 dimension
 
 ## TODO:
 
+- Quando Pierino finisce `mv test data`
+- Aggiustare `~` con il path alla home su `grid`
+- Aggiustare `modules` su `marconi` con Giuseppe
+
 #### Simulazione
+
+- **MEMORY LEAKS**
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -27,6 +33,23 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 - **TERMALIZZAZIONE**  
 	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
 	- :smile:
+- sistemare `setup.sh`
+- subparser per `-d`:
+	- modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
+	- aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)
+		- anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari
+			- utile per prendere dati su una configurazione già termalizzata
+		- implementare anche nel C++
+		- aggiungere `--step-size`, ogni quanti step salvare
+	- aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)
+		- se `--step-size` è settato `--steps` è in unità di `--step-size`
+				es.: --step-size=4, --steps=200  --->  actual_steps_number=800
+		  altrimenti è in unità di 1
+- aggiungere i plot, almeno uno stupido
+	- opzione `-p/--plot` con un suo subparser
+	- prende come argomenti `volumes` o `profiles`
+	- implementare intanto `volumes`
+	- in seguito anche `profiles`
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -60,11 +83,6 @@ queste quelle davvero opzionali:
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti con `-f` evita)
 - aggiungere checkpoint da cui si parte su `state.json`
-- aggiungere `--linear-history`
-	- anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari
-		- utile per prendere dati su una configurazione già termalizzata
-	- accetta 1 o 2 argomenti di tipo `int`, il primo fissa il numero di volumi da salvare, il secondo (opzionale) lo step (un salvataggio ogni x passi MC)
-- modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
 - exit_condition: iterazioni o tempo
 		---> c'è da mettere anche un limite gigante in volume
 				per evitare che quelle che divergono esplodano, così
