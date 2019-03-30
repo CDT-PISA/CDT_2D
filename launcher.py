@@ -100,7 +100,7 @@ def main():
     # commands (mutually exclusive)
     group = parser.add_mutually_exclusive_group()
     
-    group.add_argument('-d', '--data', dest='my_command', action='store_const', 
+    group.add_argument('-r', '--run', dest='my_command', action='store_const', 
                        default=data, const=data, help='data')
     group.add_argument('-s', '--show', dest='my_command', action='store_const', 
                        const=show, help='show')
@@ -123,7 +123,7 @@ def main():
     lambdas_specifiers = parser.add_mutually_exclusive_group()
     lambdas_specifiers.add_argument('-°', dest='is_all', action='store_true', 
                         help="all (the '-' in front is not needed)")
-    lambdas_specifiers.add_argument('-r', '--range', dest='is_range', action='store_true', help='range')
+    lambdas_specifiers.add_argument('--range', dest='is_range', action='store_true', help='range')
         
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
