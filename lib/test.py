@@ -9,6 +9,7 @@ from os import mkdir, chdir, system, getcwd, scandir
 from shutil import copyfile
 from platform import node
 import json
+from subprocess import Popen
 from numpy import histogram, median
 from lib.utils import eng_not
 
@@ -47,6 +48,7 @@ def launch(lambdas_old, lambdas_new):
         
         dir_name = "Lambda" + str(Lambda)
         launch_script_name = 'launch_' + str(Lambda) + '.py'
+        make_script_name = 'make_' + str(Lambda) + '.py'
         
         if Lambda in lambdas_old:
             with open(dir_name + "/state.json", "r+") as state_file: # @todo nei print c'è da
@@ -73,6 +75,7 @@ def launch(lambdas_old, lambdas_new):
             mkdir(dir_name + "/bin")
             
             copyfile('../../lib/launch_script.py', dir_name + '/' + launch_script_name)
+            copyfile('../../lib/make_script.py', dir_name + '/' + make_script_name)
             
             run_num = 1
             last_check = None
@@ -88,25 +91,29 @@ def launch(lambdas_old, lambdas_new):
 #        arguments = [dir_name, Lambda, 5e5, 3]
         outdir = '.'
         TimeLength = 80
-        attempts = '1m'
+        attempts = '10s'
         debug_flag = 'false'
-        arguments = [dir_name, run_num, Lambda, outdir, TimeLength, attempts, 
+        arguments = [run_num, Lambda, outdir, TimeLength, attempts, 
                      debug_flag, last_check]
         arg_str = ''
         for x in arguments:
             arg_str += ' ' + str(x)
         
+        make_script = Popen(["python3", make_script_name, str(run_num), 
+                             str(Lambda)])
+        make_script.wait()
+        
         if(node() == 'Paperopoli'):
-            system('python3 $PWD/' + launch_script_name + arg_str)
+            system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
         elif(node() == 'fis-delia.unipi.it'):
-            system('python36 $PWD/' + launch_script_name + arg_str)
+            system('nohup python36 $PWD/' + launch_script_name + arg_str + ' &')
         elif(node() == 'gridui3.pi.infn.it'):
             system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
                    dir_name + ' $PWD/' + launch_script_name + arg_str)
         elif(node() == 'r000u06l01'):
             print('support for marconi still missing')
         else:
-            raise NameError('Node not recognized (known nodes in test.py)')
+            raise NameError('Node not recognized (known nodes in data.py)')
         
 def show(lambdas_old, lambdas_new):
     """Output analysis for CDT_2D simulation.

@@ -6,39 +6,21 @@ Script that manages the single simulations of CDT_2D, each values of lambda
 has its own copy in its folder.
 """
 
-from os import system, chdir, getcwd, remove
+from os import remove, getcwd
 from sys import argv
 from subprocess import Popen
-from shutil import move
 from datetime import datetime
 from time import time
 import json
+from platform import node
 
 def main():
-    dir_name = argv[1]
-    run_num = argv[2]
-    Lambda_str = argv[3]
-    arguments = argv[2:]
-
-    lambda_folder = getcwd()
-    cwd_list = lambda_folder.split('/')
-    project_folder = ''
-    for i in range(0, len(cwd_list)-3):
-        project_folder += cwd_list[i] + '/'
+    run_num = argv[1]
+    Lambda_str = argv[2]
+    arguments = argv[1:]
 
     # is necessary to recompile each run because on the grid the node could be different
     exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
-
-    chdir(project_folder + "build")
-    system("make install")
-
-    chdir(lambda_folder)
-    #copyfile(project_folder + '../ciao/ciao','bin/ciao')
-    #system('chmod 777 bin/ciao')
-	
-    print('-- Moving: CDT_2D/bin/cdt_2d --> CDT_2D/output/' + lambda_folder.split('/')[-2] + '/Lambda' + Lambda_str + '/bin/cdt_2d')
-    move(project_folder + 'bin/cdt_2d', 'bin/' + exe_name)
-    system('chmod 777 bin/' + exe_name)
 
     log_file = open("runs.txt", "a")
     log_file.write("#---------------- RUN " + str(run_num) + " ----------------#")
@@ -90,17 +72,17 @@ def main():
 
     print("\nRun " + run_num + " completed.\n")
 
-    #import smtplib
-    #
-    #server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    ##   quando uno c'ha sbatta sarebbe carino trovare il modo di criptare la password
-    #server.login("cdt2d.email", "ciao_ciao")
-    #server.sendmail(
-    #  "cdt2d.email@gmail.com",
-    #  "candido.ale@gmail.com",
-    #  dir_name + " e' finito")
-    #server.quit()
+    if(node() != 'Paperopoli'):
+        import smtplib
+        
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        #   quando uno c'ha sbatta sarebbe carino trovare il modo di criptare la password
+        server.login("cdt2d.email", "ciao_ciao")
+        server.sendmail(
+          "cdt2d.email@gmail.com",
+          "candido.ale@gmail.com",
+          "Il run" + run_num + " per lambda = " + Lambda_str + " e' finito")
+        server.quit()
 
 if __name__ == "__main__":
     main()
-    

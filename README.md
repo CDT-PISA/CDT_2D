@@ -3,13 +3,13 @@ My own implementation of CDT in 1+1 dimension
 
 ## TODO:
 
-- Quando Pierino finisce `mv test data`
 - Aggiustare `~` con il path alla home su `grid`
 - Aggiustare `modules` su `marconi` con Giuseppe
 
 #### Simulazione
 
 - **MEMORY LEAKS**
+- sistemare gli intervalli di salvataggio a un tempo sensato (`1m`?)
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -30,10 +30,6 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
 	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
 - gestione run *falliti*
-- **TERMALIZZAZIONE**  
-	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
-	- :smile:
-- sistemare `setup.sh`
 - subparser per `-d`:
 	- modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
 	- aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)
@@ -42,14 +38,19 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 		- implementare anche nel C++
 		- aggiungere `--step-size`, ogni quanti step salvare
 	- aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)
+		- ci metto un default sensato così non allungo necessariamente i comandi
 		- se `--step-size` è settato `--steps` è in unità di `--step-size`
 				es.: --step-size=4, --steps=200  --->  actual_steps_number=800
 		  altrimenti è in unità di 1
+- aggiungere state & **stop**
 - aggiungere i plot, almeno uno stupido
 	- opzione `-p/--plot` con un suo subparser
 	- prende come argomenti `volumes` o `profiles`
 	- implementare intanto `volumes`
 	- in seguito anche `profiles`
+- **TERMALIZZAZIONE**  
+	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
+	- :smile:
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -64,6 +65,7 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
+- pensare a cosa farsene dell'output (`nohup.out`)
 - aggiungere funzione per vedere il numero di **binari** in ogni cartella
 	- in modo da cancellarli a mano
 		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
@@ -75,7 +77,6 @@ queste quelle davvero opzionali:
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
-- aggiungere state & stop
 - aggiungere gestione delle misure esistenti, in corso, nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
 	- specificando che ovviamente quelle in corso non le tocca
@@ -116,5 +117,7 @@ Ogni nuova versione viene rilasciata con un `tag`, e sarebbe bello che per ogni 
 
 ### Campi di materia
 
-Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporre un volume fissato, rinunciando a $\lambda$
+Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporre un volume fissato, rinunciando a $\lambda$.
+
+**COPIARE QUELLO CHE SI E' DETTO CON GIUSEPPE E D'ELIA E FINIRE DI CONTROLLARE COME IMPLEMENTARE BILANCIO DETTAGLIATO**
 
