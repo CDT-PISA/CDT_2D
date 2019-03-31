@@ -13,7 +13,7 @@ from subprocess import Popen
 from numpy import histogram, median
 from lib.utils import eng_not
 
-def launch(lambdas_old, lambdas_new):
+def launch(lambdas_old, lambdas_new, linear_history, time, steps):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -87,14 +87,15 @@ def launch(lambdas_old, lambdas_new):
 #        if(run_num != 1):
 #            runs_history.write('\nstarted from checkpoint: ' + last_check)
         
+        if steps != '0':
+            end_condition = steps
+        else:
+            end_condition = time
         
-#        arguments = [dir_name, Lambda, 5e5, 3]
-        outdir = '.'
         TimeLength = 80
-        attempts = '10s'
         debug_flag = 'false'
-        arguments = [run_num, Lambda, outdir, TimeLength, attempts, 
-                     debug_flag, last_check]
+        arguments = [run_num, Lambda, TimeLength, end_condition, debug_flag, 
+                     last_check, linear_history]
         arg_str = ''
         for x in arguments:
             arg_str += ' ' + str(x)

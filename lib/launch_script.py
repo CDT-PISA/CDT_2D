@@ -6,7 +6,7 @@ Script that manages the single simulations of CDT_2D, each values of lambda
 has its own copy in its folder.
 """
 
-from os import remove, getcwd
+from os import remove
 from sys import argv
 from subprocess import Popen
 from datetime import datetime

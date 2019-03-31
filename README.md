@@ -30,19 +30,11 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
 	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
 - gestione run *falliti*
-- subparser per `-d`:
-	- modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?
-	- aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)
-		- anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari
-			- utile per prendere dati su una configurazione già termalizzata
-		- implementare anche nel C++
-		- aggiungere `--step-size`, ogni quanti step salvare
-	- aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)
-		- ci metto un default sensato così non allungo necessariamente i comandi
-		- se `--step-size` è settato `--steps` è in unità di `--step-size`
-				es.: --step-size=4, --steps=200  --->  actual_steps_number=800
-		  altrimenti è in unità di 1
 - aggiungere state & **stop**
+	- il problema non è fare kill (cerca il PID dei processi e lancia la kill) ma fare in modo che C++ la gestisca in modo sensato, e non muoia male
+		- controllare come fa Giuseppe a chiudere bene una simulazione
+		- quando parte la kill inserisce in una lista (salvata e caricata da un oggetto)
+		- ogni volta che viene chiamato state o stop controlla se sono morti, se sì vengono eliminati dalla lista
 - aggiungere i plot, almeno uno stupido
 	- opzione `-p/--plot` con un suo subparser
 	- prende come argomenti `volumes` o `profiles`
@@ -77,6 +69,7 @@ queste quelle davvero opzionali:
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
+- aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 - aggiungere gestione delle misure esistenti, in corso, nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
 	- specificando che ovviamente quelle in corso non le tocca
@@ -104,6 +97,16 @@ queste quelle davvero opzionali:
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
 				che rimangano due file differenti
+- ~~subparser (*implementato in altro modo*) per `-d`~~:
+	- ~~modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?~~
+	- ~~aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)~~
+		- ~~anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari~~
+			- ~~utile per prendere dati su una configurazione già termalizzata~~
+		- ~~implementare anche nel C++~~
+		- ~~aggiungere `--step-size`, ogni quanti step salvare (*implementato in altro modo*)~~
+	- ~~aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)~~
+		- ~~ci metto un default sensato così non allungo necessariamente i comandi~~
+		 ~~ altrimenti è in unità di 1~~
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
