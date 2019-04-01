@@ -4,8 +4,9 @@
 """
 Collection of useful functions for CDT_2D project
 """
-from os import scandir
-from re import search
+from os import scandir, popen
+from re import search, split
+from platform import node
 from shutil import rmtree
 from math import floor, log10
 
@@ -35,6 +36,51 @@ def find_all_availables(config="data", dir_prefix="Lambda"):
     all_availables.sort()
 
     return all_availables
+
+def find_running():
+    """
+    @todo: scrivere la docstring
+    """
+    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+        l = popen("ps | grep -w 'CDT_2D-Lambda[0-9]*\.\?[0-9]*'").read().split('\n')
+        lambdas_run = [float(x.split()[3].split('CDT_2D-Lambda')[1]) for x in l[:-1]]
+    else:
+        lambdas_run = []
+        print("This platform is still not supported")
+    
+    return lambdas_run
+
+def recovery_history():
+    """
+    assume di essere chiamata nella cartella corretta
+    
+    @todo: aggiungere check, se fallisce risponde che è nel posto sbagliato
+    e non fa nulla
+    """
+    import json
+    
+    with open('state.json', 'r') as state_file:
+            state = json.load(state_file)
+    succesful = state['last_run_succesful']
+    run_num = state['run_done']
+    iter_done = state['iter_done']
+    
+    print(iter_done)
+    
+    checkpoints = [x.name for x in scandir("checkpoint") \
+                   if split('_|\.|run', x.name)[1] == str(run_num)]
+    checkpoints.sort()
+    if not succesful:
+        if checkpoints[-1][-4:] == '.tmp':
+            from numpy import loadtxt, savetxt
+            vol_file = loadtxt('history/volumes.txt', dtype=int)
+            pro_file = loadtxt('history/profiles.txt', dtype=int)
+            vol_file = vol_file[vol_file[:,0] < iter_done]
+            pro_file = pro_file[pro_file[:,0] < iter_done]
+            savetxt('history/volumes.txt', vol_file, fmt='%d',
+                    header='iteration[0] - volume[1]\n')
+            savetxt('history/profiles.txt', pro_file, fmt='%d',
+                    header='iteration[0] - profile[1:]\n')
 
 def clear_data(lambdas, config='test'):
     """Remove data for a given value of lambda

@@ -4,6 +4,7 @@
 #include <random>
 #include <chrono>
 #include <string>
+#include <sys/stat.h>
 #include "triangulation.h"
 
 using namespace std;
@@ -197,23 +198,11 @@ int main(int argc, char* argv[]){
                 if(from_last.count()/60 > save_interval){
                     time_ref = chrono::system_clock::now();
                     
-                    char aux_cstr[chkpts[1].size()+1];
-                    chkpts[1].copy(aux_cstr, chkpts[1].size()+1);
-                    aux_cstr[chkpts[1].size()] = '\0';
+                    remove(chkpts[1].c_str());
                     
-                    remove(aux_cstr);
+                    for(int j=1; j<n_chkpt; j++)                        
+                        rename(chkpts[j+1].c_str(), chkpts[j].c_str());
                     
-                    for(int j=1; j<n_chkpt; j++){
-                        char aux_cstr1[chkpts[j].size()+1];
-                        chkpts[j].copy(aux_cstr1, chkpts[j].size()+1);
-                        aux_cstr1[chkpts[j].size()] = '\0';
-                        
-                        char aux_cstr2[chkpts[j+1].size()+1];
-                        chkpts[j+1].copy(aux_cstr2, chkpts[j+1].size()+1);
-                        aux_cstr2[chkpts[j+1].size()] = '\0';
-                        
-                        rename(aux_cstr2, aux_cstr1);
-                    }
                     save_routine(chkpts, n_chkpt, universe, i);
                 }               
             }
@@ -236,49 +225,42 @@ int main(int argc, char* argv[]){
                 if(from_last.count()/60 > save_interval){
                     time_ref = chrono::system_clock::now();
                     
-                    char aux_cstr[chkpts[1].size()+1];
-                    chkpts[1].copy(aux_cstr, chkpts[1].size()+1);
-                    aux_cstr[chkpts[1].size()] = '\0';
+                    remove(chkpts[1].c_str());
                     
-                    remove(aux_cstr);
+                    for(int j=1; j<n_chkpt; j++)                        
+                        rename(chkpts[j+1].c_str(), chkpts[j].c_str());
                     
-                    for(int j=1; j<n_chkpt; j++){
-                        char aux_cstr1[chkpts[j].size()+1];
-                        chkpts[j].copy(aux_cstr1, chkpts[j].size()+1);
-                        aux_cstr1[chkpts[j].size()] = '\0';
-                        
-                        char aux_cstr2[chkpts[j+1].size()+1];
-                        chkpts[j+1].copy(aux_cstr2, chkpts[j+1].size()+1);
-                        aux_cstr2[chkpts[j+1].size()] = '\0';
-                        
-                        rename(aux_cstr2, aux_cstr1);
-                    }
                     save_routine(chkpts, n_chkpt, universe, i);
                 }
             }
         }
+        
+        if((universe.iterations_done + i) % int(2e5) == 0){
+            struct stat buffer;
+            if(stat("stop", &buffer) == 0){
+                ofstream logput;
+                logput.open (logfile, ofstream::out | ofstream::app);
+                if (!logput)
+                    throw runtime_error("couldn't open 'logput' for writing");
+                logput << "\t[STOPPED at iteration " << universe.iterations_done + i << "]" << endl;
+                logput.close();
+                
+                remove("stop");
+                
+                break;
+            }
+        }
+        
         i++;
     }
     
     // LAST SAVE, before quit
     
-    char aux_cstr[chkpts[1].size()+1];
-    chkpts[1].copy(aux_cstr, chkpts[1].size()+1);
-    aux_cstr[chkpts[1].size()] = '\0';
+    remove(chkpts[1].c_str());
     
-    remove(aux_cstr);
+    for(int j=1; j<n_chkpt; j++)                        
+        rename(chkpts[j+1].c_str(), chkpts[j].c_str());
     
-    for(int j=1; j<n_chkpt; j++){
-        char aux_cstr1[chkpts[j].size()+1];
-        chkpts[j].copy(aux_cstr1, chkpts[j].size()+1);
-        aux_cstr1[chkpts[j].size()] = '\0';
-        
-        char aux_cstr2[chkpts[j+1].size()+1];
-        chkpts[j+1].copy(aux_cstr2, chkpts[j+1].size()+1);
-        aux_cstr2[chkpts[j+1].size()] = '\0';
-        
-        rename(aux_cstr2, aux_cstr1);
-    }
     save_routine(chkpts, n_chkpt, universe, i);
     
     // COMPLETION MESSAGE
@@ -315,13 +297,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, in
     
     logput << "COMPLETED";
     
-    char aux_cstr1[tmp_chkpt.size()+1];
-    tmp_chkpt.copy(aux_cstr1, tmp_chkpt.size()+1);
-    aux_cstr1[tmp_chkpt.size()] = '\0';
+    rename(tmp_chkpt.c_str(), chkpts[n_chkpt].c_str());
     
-    char aux_cstr2[chkpts[n_chkpt].size()+1];
-    chkpts[n_chkpt].copy(aux_cstr2, chkpts[n_chkpt].size()+1);
-    aux_cstr2[chkpts[n_chkpt].size()] = '\0';
-    
-    rename(aux_cstr1, aux_cstr2);
+    ofstream iter("iterations_done");
+    iter << universe.iterations_done + i;
+    iter.close();
 }

@@ -7,10 +7,10 @@
 """
 
 from platform import node
-from os import chdir, popen
+from os import chdir, popen, system
 from os.path import expanduser
 from numpy import linspace
-from lib.utils import find_all_availables, clear_data
+from lib.utils import find_all_availables, find_running, recovery_history, clear_data
 import lib.test as test_cdt
 import lib.data as data_cdt
 
@@ -36,22 +36,110 @@ def clear_test(lambdas_old, lambdas_new):
     if len(lambdas_new) > 0:
         print("Following lambdas not found: ", lambdas_new)
 
+import pickle
+
 def state():
     # @todo: add support for the other platforms
     # @todo: add state field ('terminating','running')
     #   per i cluster aggiungere lo stato 'pending'
+    # @todo: show PID if requested
+    
+    try:
+        with open('output/test/pstop.pickle','rb') as stop_file:
+            lambdas_stopped = pickle.load(stop_file)
+    except FileNotFoundError:
+        lambdas_stopped = []
+    
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
         l = popen("ps | grep -w 'CDT_2D-Lambda[0-9]*\.\?[0-9]*'").read().split('\n')
-        if len(l) > 1:
-            print('  LAMBDA\t', '  TIME')
-            for x in l[:-1]:
-                y = x.split()
-                print(y[3].split('CDT_2D-Lambda')[1].rjust(10), '\t', y[2])
     else:
+        l = []
         print("This platform is still not supported")
-        
-def stop(lambdas_old, lambdas_new):
     
+    if len(l) > 1:
+        lambdas_run = []
+        print('  LAMBDA\t', '  TIME\t\t', ' STATUS')
+        for x in l[:-1]:
+            y = x.split()
+            Lambda = float(y[3].split('CDT_2D-Lambda')[1])
+            lambdas_run += [Lambda]
+            if Lambda in lambdas_stopped:
+                state = 'killed'
+            else:
+                state = 'running'
+            print(str(Lambda).rjust(10), '\t', y[2], '\t', state)
+            
+        l_aux = []
+        for Lambda in lambdas_stopped:
+            if Lambda in lambdas_run:
+                l_aux += [Lambda]
+        lambdas_stopped = l_aux
+    else:
+        lambdas_stopped = []
+    
+    with open('output/test/pstop.pickle','wb') as stop_file:
+            pickle.dump(lambdas_stopped, stop_file)
+              
+def stop(lambdas_old, lambdas_new):
+    # @todo: distinguere fra processi 'data' e 'test'
+    # si fa con un argomento config che viene da args.is_data
+    lambdas_run = find_running()
+        
+    try:
+        with open('output/test/pstop.pickle','rb') as stop_file:
+            lambdas_stopped = pickle.load(stop_file)
+    except FileNotFoundError:
+        lambdas_stopped = []
+        
+    l_aux = []
+    for Lambda in lambdas_stopped:
+        if Lambda in lambdas_run:
+            l_aux += [Lambda]
+    lambdas_stopped = l_aux
+            
+    for Lambda in lambdas_run:
+        if Lambda in lambdas_old and not Lambda in lambdas_stopped:
+            lambdas_stopped += [Lambda]
+            from time import time
+            from datetime import datetime
+            system('echo ' + datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S') +
+                   ' > output/test/Lambda' + str(Lambda) + '/stop') # forse '.stop' anzichè 'stop'
+            # prima di chiudersi una simulazione deve guardare se c'è il file
+            # 'stop' e rimuoverlo
+    
+    with open('output/test/pstop.pickle','wb') as stop_file:
+            pickle.dump(lambdas_stopped, stop_file)
+    
+def recovery(lambdas_old, lambdas_new):
+    # @todo: aggiungere opzione 'config'
+    for Lambda in lambdas_old:
+        print('ciao')
+        chdir('output/test/Lambda' + str(Lambda))
+        recovery_history()
+    
+def plot(lambdas_old, lambdas_new):
+    from matplotlib.pyplot import subplots, show
+    from numpy import loadtxt
+    
+    indices, volumes = loadtxt('output/test/Lambda' + str(lambdas_old[0]) + 
+                               '/history/volumes.txt', unpack=True)
+    
+    fig, ax = subplots()
+    ax.plot(indices, volumes, color='xkcd:carmine')
+    
+    def on_key(event):
+        if event.key == 'f5':
+            ind_aux, vol_aux = loadtxt('output/test/Lambda' + str(lambdas_old[0]) + 
+                               '/history/volumes.txt', unpack=True, 
+                               skiprows=on_key.skip)
+            if len(vol_aux) > 5:
+                on_key.skip += len(vol_aux)
+                ax.plot(ind_aux, vol_aux, color='xkcd:carmine')
+                fig.canvas.draw()
+    on_key.skip = len(volumes)
+
+    fig.canvas.mpl_connect('key_press_event', on_key)
+    show()
     
 def lambdas_recast(lambda_list, is_range=False, is_all=False, is_data=False, cmd=show):
     if len(lambda_list) == 0 and cmd in [show, checkpoint]:
@@ -60,6 +148,8 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False, is_data=False, cmd
     if is_data:
         config = 'data'
     elif cmd in [data, show, clear]:
+        config = 'test'
+    elif cmd in [stop, recovery, plot]:
         config = 'test'
     else:
         raise NameError('Testo da scrivere (non dovresti poter arrivare qui\
@@ -124,6 +214,12 @@ def main():
                        const=clear, help='clear')
     group.add_argument('--state', dest='my_command', action='store_const', 
                        const=state, help='state')
+    group.add_argument('--stop', dest='my_command', action='store_const', 
+                       const=stop, help='stop')
+    group.add_argument('--recovery', dest='my_command', action='store_const', 
+                       const=recovery, help='recovery')
+    group.add_argument('--plot', dest='my_command', action='store_const', 
+                       const=plot, help='plot')
     
     group.add_argument('--version', action='version', version='CDT_2D 0.0')
     
@@ -163,7 +259,7 @@ def main():
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
     
-    cmds = [data, show, clear]
+    cmds = [data, show, clear, stop, recovery, plot]
     test_config = {data  : test,
                    show  : checkpoint,
                    clear : clear_test
@@ -176,18 +272,21 @@ def main():
         lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
                                                   args.is_all, args.is_data,
                                                   args.my_command)
-        if args.is_data:
-            if args.my_command == data:
-                data(lambdas_old, lambdas_new, args.linear_history,
-                     args.time, args.steps)
+        if args.my_command in [data, show, clear]:
+            if args.is_data:
+                if args.my_command == data:
+                    data(lambdas_old, lambdas_new, args.linear_history,
+                         args.time, args.steps)
+                else:
+                    args.my_command(lambdas_old, lambdas_new)
             else:
-                args.my_command(lambdas_old, lambdas_new)
+                if args.my_command == data:
+                    test(lambdas_old, lambdas_new, args.linear_history,
+                         args.time, args.steps)
+                else:
+                    test_config[args.my_command](lambdas_old, lambdas_new)
         else:
-            if args.my_command == data:
-                test(lambdas_old, lambdas_new, args.linear_history,
-                     args.time, args.steps)
-            else:
-                test_config[args.my_command](lambdas_old, lambdas_new)
+            args.my_command(lambdas_old, lambdas_new)
     elif args.my_command == state:
         state()
             

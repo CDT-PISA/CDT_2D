@@ -9,7 +9,6 @@ My own implementation of CDT in 1+1 dimension
 #### Simulazione
 
 - **MEMORY LEAKS**
-- sistemare gli intervalli di salvataggio a un tempo sensato (`1m`?)
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -26,23 +25,15 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 		- guida al progetto
 			- --> guida alla simulazione (C++)
 			- --> guida all'interfaccia (Python)
-- gestione misure esistenti
-	- se con un checkpoint arriva fino a un certa iterazione le misure prima sono da buttare, o almeno da buttare prima del prossimo run
-	- salvare sul json il numero di iterazione e manipolare i file delle misure subito prima di lanciare un nuovo run
-- gestione run *falliti*
-- aggiungere state & **stop**
-	- il problema non è fare kill (cerca il PID dei processi e lancia la kill) ma fare in modo che C++ la gestisca in modo sensato, e non muoia male
-		- controllare come fa Giuseppe a chiudere bene una simulazione
-		- quando parte la kill inserisce in una lista (salvata e caricata da un oggetto)
-		- ogni volta che viene chiamato state o stop controlla se sono morti, se sì vengono eliminati dalla lista
-- aggiungere i plot, almeno uno stupido
-	- opzione `-p/--plot` con un suo subparser
-	- prende come argomenti `volumes` o `profiles`
-	- implementare intanto `volumes`
-	- in seguito anche `profiles`
+- aggiungere le opzioni `config` 
+	- attualmente tutte le nuove funzioni sono implementate solo in `test`
+	- aggiornare `data.py`
 - **TERMALIZZAZIONE**  
 	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
 	- :smile:
+	- launch_script intercetta `end-condition` e divide in blocchi la simulazione (se `time` magari blocchi da 15-30m, se `steps` blocchi corrispondenti in unità di step)
+		- i blocchi potrebbero anche essere proporzionali alla complessiva (quindi un numero fisso di blocchi)
+	- controlla se è termalizzato, se lo è conclude il run, altrimenti rilancia la simulazione
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -57,7 +48,18 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
+- localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
+- riimplementare i comandi principali come subparser (a costo di moltiplicare per ogni subparser le opzioni come `°`, `@` e `--range`)
+	- a questo punto `--run` diventerà `run`, quindi `--range` può riacquisire il `-r`
 - pensare a cosa farsene dell'output (`nohup.out`)
+- migliorare `--state` (vedi `launcher.py`)
+	- opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill
+- migliorare `--plot`
+	- prende come argomenti `volumes` o `profiles`
+	- implementare `profiles`
+- migliorare `--stop`
+	- aggiungere supporto per le altre piattaforme
+	- decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio)
 - aggiungere funzione per vedere il numero di **binari** in ogni cartella
 	- in modo da cancellarli a mano
 		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
@@ -70,13 +72,15 @@ queste quelle davvero opzionali:
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
 - aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
-- aggiungere gestione delle misure esistenti, in corso, nuove:	
+- aggiungere gestione delle misure esistenti, in corso e nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
 	- specificando che ovviamente quelle in corso non le tocca
 - aggiungere richiesta di conferma per eliminare cartelle
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti con `-f` evita)
-- aggiungere checkpoint da cui si parte su `state.json`
+- migliorare `state.json`
+	- aggiungere checkpoint da cui si parte
+	- aggiungere numero di iterazioni?
 - exit_condition: iterazioni o tempo
 		---> c'è da mettere anche un limite gigante in volume
 				per evitare che quelle che divergono esplodano, così
@@ -93,10 +97,27 @@ queste quelle davvero opzionali:
 - ~~aggiungere lancio di processi su grid (e magari anche la configurazione sul mio computer: se rileva il mio pc è comunque in grado di lanciarlo)~~
 - ~~aggiungere cazzi con log2 16,2^14,... nel codice C++~~
 - ~~supporto grid~~
+- ~~aggiungere state~~
 - ~~data: $ per prendere dati~~
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
 				che rimangano due file differenti
+- ~~aggiungere **stop**~~
+	- ~~quando parte la kill inserisce in una lista (salvata e caricata da un oggetto, pickle)~~
+	- ~~ogni volta che viene chiamato state o stop controlla se sono morti, se sì vengono eliminati dalla lista~~
+	- ~~aggiungere supporto nella simulazione~~
+		- ~~cerca ogni tot iterazioni se esiste 'stop' e nella sua cartella e se sì esce dal while e chiude normalmente~~
+- ~~aggiungere i plot, almeno uno stupido~~
+	- ~~opzione `-p/--plot`~~
+	- ~~implementare intanto `volumes`~~
+	- ~~plot interattivi~~
+- ~~gestione run *falliti*~~
+	- ~~se la simulazione C++ fallisce, in fondo a launch_script:~~
+		- ~~sceglie qual'è l'ultimo checkpoint utile~~
+		- ~~cancella i successivi~~
+		- ~~cancella i dati successivi~~
+	- ~~se fallisce tutto il processo:~~
+		- ~~implementare la funzione `recovery`, che fa quello che dovrebbe essere fatto in fondo a launch_script~~
 - ~~subparser (*implementato in altro modo*) per `-d`~~:
 	- ~~modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?~~
 	- ~~aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)~~
