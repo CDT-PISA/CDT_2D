@@ -28,12 +28,10 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 - aggiungere le opzioni `config` 
 	- attualmente tutte le nuove funzioni sono implementate solo in `test`
 	- aggiornare `data.py`
-- **TERMALIZZAZIONE**  
-	progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):
-	- :smile:
-	- launch_script intercetta `end-condition` e divide in blocchi la simulazione (se `time` magari blocchi da 15-30m, se `steps` blocchi corrispondenti in unità di step)
-		- i blocchi potrebbero anche essere proporzionali alla complessiva (quindi un numero fisso di blocchi)
-	- controlla se è termalizzato, se lo è conclude il run, altrimenti rilancia la simulazione
+- scrivere la funzione di termalizzazione
+	- prima finire i test sul funzionamento del resto
+- assicurarsi che un processo quando viene stoppato si rimuova dalla lista di quelli stoppati prima di finire
+	- altrimenti al run successivo non sarà più killabile
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -49,6 +47,7 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 queste quelle davvero opzionali:
 
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
+- aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
 - riimplementare i comandi principali come subparser (a costo di moltiplicare per ogni subparser le opzioni come `°`, `@` e `--range`)
 	- a questo punto `--run` diventerà `run`, quindi `--range` può riacquisire il `-r`
 - pensare a cosa farsene dell'output (`nohup.out`)
@@ -57,6 +56,8 @@ queste quelle davvero opzionali:
 - migliorare `--plot`
 	- prende come argomenti `volumes` o `profiles`
 	- implementare `profiles`
+	- aggiungere l'opzione `-color` (quando sarà disponibili il subparser)
+		- specificando `choices`
 - migliorare `--stop`
 	- aggiungere supporto per le altre piattaforme
 	- decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio)
@@ -128,6 +129,12 @@ queste quelle davvero opzionali:
 	- ~~aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)~~
 		- ~~ci metto un default sensato così non allungo necessariamente i comandi~~
 		 ~~ altrimenti è in unità di 1~~
+- ~~TERMALIZZAZIONE~~  
+	~~progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):~~
+	- :smile:
+	- ~~launch_script intercetta `end-condition` e divide in blocchi la simulazione (se `time` magari blocchi da 15-30m, se `steps` blocchi corrispondenti in unità di step)~~
+		- ~~i blocchi potrebbero anche essere proporzionali alla complessiva (quindi un numero fisso di blocchi)~~
+	- ~~controlla se è termalizzato, se lo è conclude il run, altrimenti rilancia la simulazione~~
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.

@@ -5,7 +5,7 @@ Created on Fri Mar 15 10:54:46 2019
 @author: alessandro
 """
 
-from os import mkdir, chdir, system, getcwd, scandir, remove
+from os import mkdir, chdir, system, getcwd, scandir
 from shutil import copyfile
 from re import split
 from platform import node
@@ -70,7 +70,10 @@ def launch(lambdas_old, lambdas_new, linear_history, time, steps):
                 checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
                                if (split('_|\.|run', x.name)[1] == str(run_num - 1)
                                and x.name[-4:] != '.tmp')]
-                checkpoints.sort()
+                # nell'ordinamento devo sostituire i '.' con le '~', o in generale
+                # un carattere che venga dopo '_', altrimenti 'run1.1_...' viene 
+                # prima di 'run1_...'
+                checkpoints.sort(key=lambda s: s.replace('.','~'))
                 last_check = checkpoints[-1]
             else:
                 mkdir(dir_name)
@@ -89,6 +92,8 @@ def launch(lambdas_old, lambdas_new, linear_history, time, steps):
             if run_num > 1:
                 recovery_history()
             
+            # ricongiungo le due variabili perché è ancora facile
+            # distinguerle dall'ultimo carattere
             if steps != '0':
                 end_condition = steps
             else:

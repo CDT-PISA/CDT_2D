@@ -7,6 +7,7 @@ has its own copy in its folder.
 """
 
 from os import remove, stat, scandir
+from os.path import isfile
 from sys import argv
 from re import split
 from subprocess import Popen, CalledProcessError
@@ -16,25 +17,12 @@ import json
 from platform import node
 from numpy import loadtxt
 
-def main():
-    run_num = argv[1]
-    Lambda_str = argv[2]
-    arguments = argv[1:]
-
-    # is necessary to recompile each run because on the grid the node could be different
-    exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
-
-    log_file = open("runs.txt", "a")
-    log_file.write("#---------------- RUN " + str(run_num) + " ----------------#")
-    log_file.close()
-
+def run_sim(exe_name, arguments):    
     out = open('stdout.txt', 'a')
     err = open('stderr.txt', 'a')
 
     #out_f = open('stdout.txt', 'w')
     #sim = Popen(["bin/ciao"] + arguments)
-
-    start_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
 
     succesful = True
     try:
@@ -47,10 +35,20 @@ def main():
     out.close()
     err.close()
     
+    if stat('stderr.txt').st_size != 0:
+        succesful = False
+       
+    stopped = isfile('stop')
+    if stopped:
+        remove('stop')
+    
+    return succesful, stopped
+
+def recovery_sim(run_id, succesful):
     iter_done = loadtxt('iterations_done')
     
     checkpoints = [x.name for x in scandir("checkpoint") \
-                   if split('_|\.|run', x.name)[1] == str(run_num)]
+                   if split('_|run', x.name)[1] == run_id]
     checkpoints.sort()
     if not succesful:
         if checkpoints[-1][-4:] == '.tmp':
@@ -64,27 +62,129 @@ def main():
             savetxt('history/profiles.txt', pro_file, fmt='%d',
                     header='iteration[0] - profile[1:]\n')
     remove('iterations_done')
+    
+    return checkpoints, iter_done
 
-    if stat('stderr.txt').st_size != 0:
-        succesful = False
+def log_header(run_id):
+    log_file = open("runs.txt", "a")
+    log_file.write("#---------------- RUN " + run_id + " ----------------#")
+    log_file.close()
 
+def log_footer(run_id, succesful):
     log_file = open("runs.txt", "a")
     end_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
     if succesful:
         log_file.write("\n" + end_time + "\t Run COMPLETED")
     else:
         log_file.write("\n" + end_time + "\t Run FINISHED with ERRORS")
-    log_file.write("\n#-------------- END RUN " + str(run_num) + " --------------#\n\n")
+    log_file.write("\n#-------------- END RUN " + run_id + " --------------#\n\n")
     log_file.close()
+    
+def end_parser(end_condition):
+       
+    last_char = end_condition[-1]
+    if last_char in ['s', 'm', 'h']:
+        end_type = 'time'
+        end_condition = int(float(end_condition[:-1]))
+        if last_char == 'm':
+            end_condition *= 60
+        elif last_char == 'h':
+            end_condition *= 60*60
+            
+        if end_condition < 600:
+            end_partial = str(int(end_condition) + 1) + 's'
+        elif end_condition < 1e4:
+            end_partial = str(int(end_condition // 5) + 1) + 's'
+        elif end_condition < 2e4:
+            end_partial = '1h'
+            
+    elif last_char.isdigit or end_condition[-1] in ['k', 'M', 'G']:
+        end_type = 'steps'
+        if last_char.isdigit:
+            end_condition = int(float(end_condition))
+        else:
+            end_condition = int(float(end_condition[:-1]))
+            if last_char == 'k':
+                end_condition *= int(1e3)
+            elif last_char == 'M':
+                end_condition *= int(1e6)
+            elif last_char == 'G':
+                end_condition *= int(1e9)
+                
+        if end_condition < 6e7:
+            end_partial = end_condition + 10
+        elif end_condition < 1e9:
+            end_partial = end_condition // 5 + 10
+        elif end_condition < 2e9:
+            end_partial = 1e5 * 3600 + 10
+            
+        end_partial = str(int(end_partial))
+    else:
+        raise ValueError("End condition not recognized")
+        
+    return end_partial, end_condition, end_type
 
-    is_thermalized = False
+def main():
+    run_num = argv[1]
+    Lambda_str = argv[2]
+    arguments = argv[1:]
+    
+    # IMPORT FROM LIB
+    from sys import path
+    from os.path import expanduser
+    path += [expanduser('~/projects/CDT_2D/lib')]
+    from analysis import is_thermalized
+    
+    # END CONDITION MANIPULATION
+    # needed for thermalization loop
+    arguments[3], end_condition, end_type = end_parser(arguments[3])
+
+    # is necessary to recompile each run because on the grid the launch node
+    # could be different from run_node
+    exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
+
+    start_record = time()
+    start_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
+    
+    run_id = str(run_num)
+    log_header(run_id)
+    succesful, stopped = run_sim(exe_name, arguments)
+    checkpoints, iter_done = recovery_sim(run_id, succesful)
+    log_footer(run_id, succesful)
+    
+    rerun = 0
+    if end_type == 'time':
+        end_run = (time() - start_record) > end_condition
+    elif end_type == 'steps':
+        end_run = iter_done > end_condition
+    
+    while succesful and not is_thermalized() and not end_run and not stopped:
+        rerun += 1
+        run_id = str(run_num) + '.' + str(rerun)
+        arguments[0] = run_id
+        
+        log_header(run_id)
+        arguments[5] = checkpoints[-1]
+        succesful, stopped = run_sim(exe_name, arguments)
+        
+        checkpoints, iter_done = recovery_sim(run_id, succesful)
+        log_footer(run_id, succesful)
+        
+        if end_type == 'time':
+            end_run = (time() - start_record) > end_condition
+        elif end_type == 'steps':
+            end_run = iter_done > end_condition
+        
+    end_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
+    
     if int(run_num) > 1:
         with open('state.json', 'r') as state_file:
             state = json.load(state_file)
         remove('state.json')
     else:
-        state = {'Lambda': float(Lambda_str), 'run_done': 0, 'is_thermalized': is_thermalized,
-                 'last_run_succesful': True, 'last_checkpoint': None, 'iter_done': 0}
+        state = {'Lambda': float(Lambda_str), 'run_done': 0, 
+                 'is_thermalized': is_thermalized(), 'last_run_succesful': True, 
+                 'last_checkpoint': None, 'iter_done': 0}
 
     with open('state.json', 'w') as state_file:
         state['last_run_succesful'] = succesful
@@ -105,7 +205,8 @@ def main():
         import smtplib
         
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        #   quando uno c'ha sbatta sarebbe carino trovare il modo di criptare la password
+        # quando uno c'ha sbatta sarebbe carino trovare il modo di criptare
+        # la password
         server.login("cdt2d.email", "ciao_ciao")
         server.sendmail(
           "cdt2d.email@gmail.com",

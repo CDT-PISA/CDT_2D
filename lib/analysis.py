@@ -78,3 +78,6 @@ def analyze_output(outdir):
 
 
 # def funzione per controllare se è termalizzato  (fit bayesiano o ANOVA)
+
+def is_thermalized():
+    return False

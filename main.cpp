@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
     
     // PARAMETERS
     
-    int run_num = stoi(argv[1]);
+    string run_id = argv[1];
     double lambda = stod(argv[2]);
     int TimeLength = stoi(argv[3]);
     string end_condition = argv[4];
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]){
         throw runtime_error("couldn't open 'logput' for writing");
     
     logput << "\nSimulation Parameters:" << endl;
-    logput << "\trun_num: " << run_num << endl;
+    logput << "\trun_id: " << run_id << endl;
     logput << "\tlambda: " << lambda << endl;
     logput << "\tTimeLength: " << TimeLength << endl;
     logput << "\tend_condition: " << end_condition << endl;
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]){
     vector<string> chkpts;
     chkpts.push_back("");
     for(int i=1; i<=n_chkpt; i++)
-        chkpts.push_back("checkpoint/run" + to_string(run_num) + "_check" + to_string(i) + ".chkpt");
+        chkpts.push_back("checkpoint/run" + run_id + "_check" + to_string(i) + ".chkpt");
     
     // CHECK IF DEBUG MODE IS ACTIVATED
     /// @todo trasformare tutto in direttive preprocessor #ifndef
@@ -69,43 +69,34 @@ int main(int argc, char* argv[]){
     long last_step;
     int sim_duration;
     if(last_char == 'h')
-        sim_duration = stoi(end_condition)*60*60;
+        sim_duration = stoi(end_condition)*60*60; // stoi("10afk") == 10 !
     else if(last_char == 'm')
         sim_duration = stoi(end_condition)*60;
     else if(last_char == 's')
         sim_duration = stoi(end_condition);
     else{
         limited_step = true;
-        if(isdigit(last_char))
-            last_step = stoi(end_condition);
-        else{
-            last_step = stoi(end_condition.substr(0,end_condition.size()-2));
-            
-            if(last_char == 'k')
-                last_step *= 1e3;
-            else if(last_char == 'M')
-                last_step *= 1e6;
-            else if(last_char == 'G')
-                last_step *= 1e9L;
-        }
+        last_step = stoi(end_condition);
+        if(last_char == 'k')
+            last_step *= 1e3;
+        else if(last_char == 'M')
+            last_step *= 1e6;
+        else if(last_char == 'G')
+            last_step *= 1e9L;
+        
     }
     
     // LINEAR HISTORY
     
     last_char = linear_history_str[linear_history_str.size()-1];
-    long linear_history;
-    if(isdigit(last_char)) 
-        linear_history = stoi(linear_history_str);
-    else{
-        linear_history = stoi(linear_history_str.substr(0,linear_history_str.size()-2));
-        
-        if(last_char == 'k')
-            linear_history *= 1e3;
-        else if(last_char == 'M')
-            linear_history *= 1e6;
-        else if(last_char == 'G')
-            linear_history *= 1e9L;
-    }
+    long linear_history = stoi(linear_history_str);
+    if(last_char == 'k')
+        linear_history *= 1e3;
+    else if(last_char == 'M')
+        linear_history *= 1e6;
+    else if(last_char == 'G')
+        linear_history *= 1e9L;
+    
     
     // OPEN OUTPUT FILE
     
@@ -113,14 +104,14 @@ int main(int argc, char* argv[]){
     ofstream profile_stream(profile_file, ofstream::out | ofstream::app);
     if (!profile_stream)
         throw runtime_error("couldn't open 'profiles.txt' for writing");
-    if (run_num == 1)
+    if (stod(run_id) == 1.)
         profile_stream << "# iteration[0] - profile[1:]" << endl << endl;
     
     string volume_file = "history/volumes.txt";
     ofstream volume_stream(volume_file, ofstream::out | ofstream::app);
     if (!volume_stream)
         throw runtime_error("couldn't open 'volumes.txt' for writing");
-    if (run_num == 1)
+    if (stod(run_id) == 1.)
         volume_stream << "# iteration[0] - volume[1]" << endl << endl;
     
     // SETUP THE TRIANGULATION
@@ -130,7 +121,7 @@ int main(int argc, char* argv[]){
     
     int profile_ratio = 4;
     
-    if(run_num !=1){
+    if(stod(run_id) != 1.){
         string loadfile = "checkpoint/" + last_chkpt;
         
         Triangulation aux_universe(loadfile);
@@ -158,7 +149,7 @@ int main(int argc, char* argv[]){
         chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
         if(elapsed.count() > sim_duration)
             break;
-        
+            
         if(debug_flag){
             cout << i << ") ";
         }
@@ -244,8 +235,6 @@ int main(int argc, char* argv[]){
                     throw runtime_error("couldn't open 'logput' for writing");
                 logput << "\t[STOPPED at iteration " << universe.iterations_done + i << "]" << endl;
                 logput.close();
-                
-                remove("stop");
                 
                 break;
             }

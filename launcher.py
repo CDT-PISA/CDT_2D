@@ -40,8 +40,7 @@ import pickle
 
 def state():
     # @todo: add support for the other platforms
-    # @todo: add state field ('terminating','running')
-    #   per i cluster aggiungere lo stato 'pending'
+    # @todo: per i cluster aggiungere lo stato 'pending'
     # @todo: show PID if requested
     
     try:
@@ -113,7 +112,6 @@ def stop(lambdas_old, lambdas_new):
 def recovery(lambdas_old, lambdas_new):
     # @todo: aggiungere opzione 'config'
     for Lambda in lambdas_old:
-        print('ciao')
         chdir('output/test/Lambda' + str(Lambda))
         recovery_history()
     

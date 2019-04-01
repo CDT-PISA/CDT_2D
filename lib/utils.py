@@ -65,8 +65,6 @@ def recovery_history():
     run_num = state['run_done']
     iter_done = state['iter_done']
     
-    print(iter_done)
-    
     checkpoints = [x.name for x in scandir("checkpoint") \
                    if split('_|\.|run', x.name)[1] == str(run_num)]
     checkpoints.sort()
