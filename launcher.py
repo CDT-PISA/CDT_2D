@@ -7,7 +7,7 @@
 """
 
 from platform import node
-from os import chdir, popen, system
+from os import chdir, popen, system, scandir
 from os.path import expanduser
 from numpy import linspace
 from lib.utils import find_all_availables, find_running, \
@@ -206,49 +206,33 @@ def main():
     sys.argv = [x if x != '°' else '-°' for x in sys.argv]
     sys.argv = [x if x != '@' else '-@' for x in sys.argv]
     
-    # commands (mutually exclusive)
-    group = parser.add_mutually_exclusive_group()
+    # SUBPARSERS
+    subparsers = parser.add_subparsers(dest='command', required=False)
     
-    group.add_argument('-r', '--run', dest='my_command', action='store_const', 
-                       default=data, const=data, help='run')
-    group.add_argument('-s', '--show', dest='my_command', action='store_const', 
-                       const=show, help='show')
-    group.add_argument('-c', '--clear', dest='my_command', action='store_const', 
-                       const=clear, help='clear')
-    group.add_argument('--state', dest='my_command', action='store_const', 
-                       const=state, help='state')
-    group.add_argument('--stop', dest='my_command', action='store_const', 
-                       const=stop, help='stop')
-    group.add_argument('--recovery', dest='my_command', action='store_const', 
-                       const=recovery, help='recovery')
-    group.add_argument('--plot', dest='my_command', action='store_const', 
-                       const=plot, help='plot')
+    parser.add_argument('--version', action='version', version='CDT_2D 0.2')
+    configs = [x.name for x in scandir('output') if x.is_dir()]
     
-    group.add_argument('--version', action='version', version='CDT_2D 0.0')
+    # run command
     
-    # lambdas
-    parser.add_argument('lambdas', metavar='L', nargs='*', type=float, help='lambdas')
-    
-    parser.add_argument('-@', dest='is_data', action='store_true', 
+    run_sub = subparsers.add_parser('run', help='run')
+    run_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    run_sub.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    run_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
-    
-    lambdas_specs = parser.add_mutually_exclusive_group()
-    lambdas_specs.add_argument('-°', dest='is_all', action='store_true', 
-                                    help="all (the '-' in front is not needed)")
-    lambdas_specs.add_argument('--range', dest='is_range', 
-                                    action='store_true', help='range')
-        
-    # additional flags
-    parser.add_argument('--linear-history', default='0',
+    run_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    run_sub.add_argument('--linear-history', default='0',
                         help="it takes an integer argument, that if set greater \
                         then zero let data points be saved at regular intervals, \
                         instead of at increasing ones (units: {k,M,G}) \
                         | ex: --linear-history 2k")
-    #parser.add_argument('--log-history', dest='linear_history', action='store_false',
-    #                    help="if set data points are saved at increasing intervals")
-    
-    end_conditions = parser.add_mutually_exclusive_group()
+    #run_sub.add_argument('--log-history', dest='linear_history', 
+    #               action='store_false', 
+    #               help="if set data points are saved at increasing intervals")
+    end_conditions = run_sub.add_mutually_exclusive_group()
     end_conditions.add_argument('--time', default='30m', 
                                 help='if set it specifies the duration of the run \
                                 (default: 30 minutes, units: {s,m,h}) | \
@@ -257,37 +241,131 @@ def main():
                                 help='if set it specifies the length of the run \
                                 in MC steps (is not the default, units: {k,M,G}) \
                                 | ex: --steps 200M')
-
+    
+    # state command
+    
+    state_sub = subparsers.add_parser('state', help='state')
+    state_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    state_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    state_sub.add_argument('-f', '--full-show', action='store_true',
+                           help='full-show')
+    
+    # stop command
+    
+    stop_sub = subparsers.add_parser('stop', help='stop')
+    stop_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    lambdas = stop_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    stop_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    stop_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
+    # show command
+    
+    show_sub = subparsers.add_parser('show', help='show')
+    show_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    lambdas = show_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    show_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    show_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
+    # clear command
+    
+    clear_sub = subparsers.add_parser('clear', help='clear')
+    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    lambdas = clear_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    clear_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    clear_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
+    # recovery command
+    
+    recovery_sub = subparsers.add_parser('recovery', help='recovery')
+    recovery_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    lambdas = recovery_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    recovery_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
+    # plot command
+    
+    plot_sub = subparsers.add_parser('plot', help='plot')
+    plot_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    plot_sub.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    plot_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    plot_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
     
-    cmds = [data, show, clear, stop, recovery, plot]
     if args.is_data:
-        config = 'data'
-    else:
-        config = 'test'
+        args.config = 'data'
+    
+    lambdas = args.lambdas
+    if lambdas == None:
+        lambdas = []
+    
+    lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
+                                              args.is_all, args.config,
+                                              args.my_command)
         
-    if args.my_command in cmds:
-        lambdas = args.lambdas
-        if lambdas == None:
-            lambdas = []
+    if args.command == 'run':
+        data(lambdas_old, lambdas_new, args.config, args.linear_history,
+             args.time, args.steps)
         
-        lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
-                                                  args.is_all, config,
-                                                  args.my_command)
+    elif args.command == 'state':
+        state(args.config, args.full_show)
+    
+    elif args.command == 'stop':
+        stop(lambdas_old, lambdas_new, args.config)
         
-        if args.my_command == data:
-            data(lambdas_old, lambdas_new, config, args.linear_history,
-                 args.time, args.steps)
-        elif args.my_command == show:
-            show(lambdas_old, lambdas_new)
-        elif args.my_command == clear:
-            clear(lambdas_old, lambdas_new, config)
-        else:
-            args.my_command(lambdas_old, lambdas_new, config)
-    elif args.my_command == state:
-        state(config)
+    elif args.command == 'show':
+        show(lambdas_old, lambdas_new)
+        
+    elif args.command == 'clear':
+        clear(lambdas_old, lambdas_new, args.config)
+    
+    elif args.command == 'recovery':
+        recovery(lambdas_old, lambdas_new, args.config)
+    
+    elif args.command == 'plot':
+        plot(lambdas_old, lambdas_new, args.config)
             
 if __name__ == "__main__":
     main()

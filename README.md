@@ -25,9 +25,6 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 		- guida al progetto
 			- --> guida alla simulazione (C++)
 			- --> guida all'interfaccia (Python)
-- ~~aggiungere le opzioni `config`~~
-	- ~~attualmente tutte le nuove funzioni sono implementate solo in `test`~~
-	- rimpiazzare `data.py`
 - scrivere la funzione di termalizzazione
 	- prima finire i test sul funzionamento del resto
 
@@ -49,14 +46,12 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
-- aggiungere `full-show` per `--state`
+- aggiungere `full-show` per `--state` (sotto il subparser)
 - comando `--info` che stampi le informazioni relative a un Lambda, tipo quelle contenute nel json
 - comando per settare a mano se un processo è già termalizzato
 	- così non devo aprire a mano il json e sono sicuro che sia modificato correttamente
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
 - aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
-- riimplementare i comandi principali come subparser (a costo di moltiplicare per ogni subparser le opzioni come `°`, `@` e `--range`)
-	- a questo punto `--run` diventerà `run`, quindi `--range` può riacquisire il `-r`
 - pensare a cosa farsene dell'output (`nohup.out`)
 - migliorare `--state` (vedi `launcher.py`)
 	- opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill
@@ -129,7 +124,7 @@ queste quelle davvero opzionali:
 		- ~~cancella i dati successivi~~
 	- ~~se fallisce tutto il processo:~~
 		- ~~implementare la funzione `recovery`, che fa quello che dovrebbe essere fatto in fondo a launch_script~~
-- ~~subparser (*implementato in altro modo*) per `-d`~~:
+- ~~subparser (*implementato in altro modo* --> *... e invece no*) per `-d`~~:
 	- ~~modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?~~
 	- ~~aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)~~
 		- ~~anziché avanzare logaritmicamente lo step di salvataggio salva a intervalli regolari~~
@@ -139,6 +134,11 @@ queste quelle davvero opzionali:
 	- ~~aggiungere `--time` e `--steps` (i limiti sulla lunghezza del run)~~
 		- ~~ci metto un default sensato così non allungo necessariamente i comandi~~
 		 ~~ altrimenti è in unità di 1~~
+- ~~riimplementare i comandi principali come subparser (a costo di moltiplicare per ogni subparser le opzioni come `°`, `@` e `--range`)~~
+	- ~~a questo punto `--run` diventerà `run`, quindi `--range` può riacquisire il `-r`~~
+- ~~aggiungere le opzioni `config`~~
+	- ~~attualmente tutte le nuove funzioni sono implementate solo in `test`~~
+	- ~~rimpiazzare `data.py`~~
 - ~~TERMALIZZAZIONE~~  
 	~~progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):~~
 	- :smile:
