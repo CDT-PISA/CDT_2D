@@ -124,6 +124,23 @@ def end_parser(end_condition):
         
     return end_partial, end_condition, end_type
 
+def remove_from_stopped(Lambda):
+    import pickle
+    
+    try:
+        with open('../pstop.pickle','rb') as stop_file:
+            lambdas_stopped = pickle.load(stop_file)
+    except FileNotFoundError:
+        raise FileNotFoundError("Ci dev'essere, perché il processo è ancora \
+                                in corso e quindi state non può averlo \
+                                eliminato")    
+    lambdas_stopped.remove(Lambda)
+    
+    with open('../pstop.pickle','wb') as stop_file:
+        pickle.dump(lambdas_stopped, stop_file)
+        
+    return
+
 def main():
     run_num = argv[1]
     Lambda_str = argv[2]
@@ -200,7 +217,10 @@ def main():
         
     if stat('nohup.out').st_size == 0:
         remove('nohup.out')
-
+        
+    if stopped:
+        remove_from_stopped(float(Lambda_str))
+            
     if(node() != 'Paperopoli'):
         import smtplib
         

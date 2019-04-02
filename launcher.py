@@ -10,82 +10,95 @@ from platform import node
 from os import chdir, popen, system
 from os.path import expanduser
 from numpy import linspace
-from lib.utils import find_all_availables, find_running, recovery_history, clear_data
+from lib.utils import find_all_availables, find_running
+# @todo
+from lib.utils import recovery_history, clear_data
 import lib.test as test_cdt
-import lib.data as data_cdt
-
-def data(lambdas_old, lambdas_new, linear_history, time, steps):
-    data_cdt.launch(lambdas_old, lambdas_new, linear_history, time, steps)
+    
+def data(lambdas_old, lambdas_new, config, linear_history, time, steps):
+    test_cdt.launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
 
 def show(lambdas_old, lambdas_new):
-    data_cdt.show(lambdas_old, lambdas_new)
-    
-def clear(lambdas_old, lambdas_new):
-    clear_data(lambdas_old, config='data')
-    if len(lambdas_new) > 0:
-        print("Following lambdas not found: ", lambdas_new)
-    
-def test(lambdas_old, lambdas_new, linear_history, time, steps):
-    test_cdt.launch(lambdas_old, lambdas_new, linear_history, time, steps)
-
-def checkpoint(lambdas_old, lambdas_new):
     test_cdt.show(lambdas_old, lambdas_new)
     
-def clear_test(lambdas_old, lambdas_new):
-    clear_data(lambdas_old, config='test')
+def clear(lambdas_old, lambdas_new, config):
+    clear_data(lambdas_old, config)
     if len(lambdas_new) > 0:
         print("Following lambdas not found: ", lambdas_new)
 
-import pickle
-
-def state():
+def state(config, full_show=False):
     # @todo: add support for the other platforms
-    # @todo: per i cluster aggiungere lo stato 'pending'
-    # @todo: show PID if requested
+    # @todo: for clusters: add 'pending' state
+    # @todo: show only for one config
+    # @todo: quando sarà implementato a subparser aggiungere anche 'entrambi
+    # le config' come opzione, e in quel caso deve stampare un campo in più
+    # per dire a quale config appartiene
+    import pickle
     
-    try:
-        with open('output/test/pstop.pickle','rb') as stop_file:
-            lambdas_stopped = pickle.load(stop_file)
-    except FileNotFoundError:
-        lambdas_stopped = []
+    if not type(config) == list:
+        config = [config]
     
-    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        l = popen("ps | grep -w 'CDT_2D-Lambda[0-9]*\.\?[0-9]*'").read().split('\n')
-    else:
-        l = []
-        print("This platform is still not supported")
-    
-    if len(l) > 1:
-        lambdas_run = []
-        print('  LAMBDA\t', '  TIME\t\t', ' STATUS')
-        for x in l[:-1]:
-            y = x.split()
-            Lambda = float(y[3].split('CDT_2D-Lambda')[1])
-            lambdas_run += [Lambda]
-            if Lambda in lambdas_stopped:
-                state = 'killed'
+    for config in config:
+        try:
+            with open('output/' + config + '/pstop.pickle','rb') as stop_file:
+                lambdas_stopped = pickle.load(stop_file)
+        except FileNotFoundError:
+            lambdas_stopped = []
+        
+        if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+            ps_out = popen('ps -f').read().split('\n')
+        else:
+            ps_out = []
+            print("This platform is still not supported")
+        
+        empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
+        if len(ps_out) > 1 and not empty:
+            lambdas_run = []
+            print('  LAMBDA\t  TIME\t\t STATUS', end='')
+            if not full_show:
+                print()
             else:
-                state = 'running'
-            print(str(Lambda).rjust(10), '\t', y[2], '\t', state)
-            
-        l_aux = []
-        for Lambda in lambdas_stopped:
-            if Lambda in lambdas_run:
-                l_aux += [Lambda]
-        lambdas_stopped = l_aux
-    else:
-        lambdas_stopped = []
-    
-    with open('output/test/pstop.pickle','wb') as stop_file:
-            pickle.dump(lambdas_stopped, stop_file)
+                print('\t    RUN_ID \t PID')
+                
+            for line in ps_out[1:]:
+                if 'CDT_2D-Lambda' in line:
+                    pinfos = line.split()
+                    Lambda = float(pinfos[-6])
+                    start_time = pinfos[6]
+                    lambdas_run += [Lambda]
+                    if Lambda in lambdas_stopped:
+                        state = 'killed'
+                    else:
+                        state = 'running'
+                    print(str(Lambda).rjust(10), '\t', start_time, '\t', state,
+                          end='')
+                    if not full_show:
+                        print()
+                    else:
+                        PID = int(pinfos[1])
+                        run_id = pinfos[8]
+                        print(' ', run_id.rjust(8), '\t', PID)
+                        
+            l_aux = []
+            for Lambda in lambdas_stopped:
+                if Lambda in lambdas_run:
+                    l_aux += [Lambda]
+            lambdas_stopped = l_aux
+        else:
+            lambdas_stopped = []
+        
+        with open('output/' + config + '/pstop.pickle','wb') as stop_file:
+                pickle.dump(lambdas_stopped, stop_file)
               
-def stop(lambdas_old, lambdas_new):
+def stop(lambdas_old, lambdas_new, config):
     # @todo: distinguere fra processi 'data' e 'test'
     # si fa con un argomento config che viene da args.is_data
+    import pickle
+    
     lambdas_run = find_running()
         
     try:
-        with open('output/test/pstop.pickle','rb') as stop_file:
+        with open('output/' + config + '/pstop.pickle','rb') as stop_file:
             lambdas_stopped = pickle.load(stop_file)
     except FileNotFoundError:
         lambdas_stopped = []
@@ -101,25 +114,24 @@ def stop(lambdas_old, lambdas_new):
             lambdas_stopped += [Lambda]
             from time import time
             from datetime import datetime
-            system('echo ' + datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S') +
-                   ' > output/test/Lambda' + str(Lambda) + '/stop') # forse '.stop' anzichè 'stop'
-            # prima di chiudersi una simulazione deve guardare se c'è il file
-            # 'stop' e rimuoverlo
+            sf = '%d-%m-%Y %H:%M:%S'
+            system('echo ' + datetime.fromtimestamp(time()).strftime(sf) +
+                   ' > output/' + config + '/Lambda' + str(Lambda) + '/stop')
+            # forse '.stop' anzichè 'stop'
     
-    with open('output/test/pstop.pickle','wb') as stop_file:
+    with open('output/' + config + '/pstop.pickle','wb') as stop_file:
             pickle.dump(lambdas_stopped, stop_file)
     
-def recovery(lambdas_old, lambdas_new):
-    # @todo: aggiungere opzione 'config'
+def recovery(lambdas_old, lambdas_new, config):
     for Lambda in lambdas_old:
-        chdir('output/test/Lambda' + str(Lambda))
+        chdir('output/' + config + '/Lambda' + str(Lambda))
         recovery_history()
     
-def plot(lambdas_old, lambdas_new):
+def plot(lambdas_old, lambdas_new, config):
     from matplotlib.pyplot import subplots, show
     from numpy import loadtxt
     
-    indices, volumes = loadtxt('output/test/Lambda' + str(lambdas_old[0]) + 
+    indices, volumes = loadtxt('output/' + config + '/Lambda' + str(lambdas_old[0]) + 
                                '/history/volumes.txt', unpack=True)
     
     fig, ax = subplots()
@@ -127,10 +139,11 @@ def plot(lambdas_old, lambdas_new):
     
     def on_key(event):
         if event.key == 'f5':
-            ind_aux, vol_aux = loadtxt('output/test/Lambda' + str(lambdas_old[0]) + 
-                               '/history/volumes.txt', unpack=True, 
-                               skiprows=on_key.skip)
-            if len(vol_aux) > 5:
+            ind_aux, vol_aux = loadtxt('output/' + config + '/Lambda' +
+                                       str(lambdas_old[0]) + '/history/volumes.txt', 
+                                       unpack=True, skiprows=on_key.skip)
+            
+            if type(vol_aux) != float and len(vol_aux) > 5:
                 on_key.skip += len(vol_aux)
                 ax.plot(ind_aux, vol_aux, color='xkcd:carmine')
                 fig.canvas.draw()
@@ -139,20 +152,13 @@ def plot(lambdas_old, lambdas_new):
     fig.canvas.mpl_connect('key_press_event', on_key)
     show()
     
-def lambdas_recast(lambda_list, is_range=False, is_all=False, is_data=False, cmd=show):
-    if len(lambda_list) == 0 and cmd in [show, checkpoint]:
+def lambdas_recast(lambda_list, is_range=False, is_all=False, 
+                   config='test', cmd=show):
+    # @todo: quando sarà implementato a subparser '--show'
+    # avrà is_all = True di default
+    if len(lambda_list) == 0 and cmd == show:
         is_all = True
-    
-    if is_data:
-        config = 'data'
-    elif cmd in [data, show, clear]:
-        config = 'test'
-    elif cmd in [stop, recovery, plot]:
-        config = 'test'
-    else:
-        raise NameError('Testo da scrivere (non dovresti poter arrivare qui\
-                                                se non sei un comando nelle liste\
-                                                di cui sopra)')
+        
     lambdas = []
     lambdas_old = []
     lambdas_new = []
@@ -196,7 +202,7 @@ def main():
     #   oppure il tipo di numeri
     # migliorare la descrizione di ogni comando
     
-    # to add: stop, plot, clear_bin (with default argument '°' and the possibility of pass lambdas)
+    # to add: clear_bin (with argument '°' or the possibility of pass lambdas)
     
     sys.argv = [x if x != '°' else '-°' for x in sys.argv]
     sys.argv = [x if x != '@' else '-@' for x in sys.argv]
@@ -222,11 +228,11 @@ def main():
     group.add_argument('--version', action='version', version='CDT_2D 0.0')
     
     # lambdas
-    #parser.add_argument('-l','--lambdas', metavar='L', nargs='*', type=float, help='lambdas')
     parser.add_argument('lambdas', metavar='L', nargs='*', type=float, help='lambdas')
     
     parser.add_argument('-@', dest='is_data', action='store_true', 
-                        help="data configuration flag (the '-' in front is not needed)")
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
     
     lambdas_specs = parser.add_mutually_exclusive_group()
     lambdas_specs.add_argument('-°', dest='is_all', action='store_true', 
@@ -258,35 +264,31 @@ def main():
     args = parser.parse_args()
     
     cmds = [data, show, clear, stop, recovery, plot]
-    test_config = {data  : test,
-                   show  : checkpoint,
-                   clear : clear_test
-                   }
+    if args.is_data:
+        config = 'data'
+    else:
+        config = 'test'
+        
     if args.my_command in cmds:
         lambdas = args.lambdas
         if lambdas == None:
             lambdas = []
         
         lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
-                                                  args.is_all, args.is_data,
+                                                  args.is_all, config,
                                                   args.my_command)
-        if args.my_command in [data, show, clear]:
-            if args.is_data:
-                if args.my_command == data:
-                    data(lambdas_old, lambdas_new, args.linear_history,
-                         args.time, args.steps)
-                else:
-                    args.my_command(lambdas_old, lambdas_new)
-            else:
-                if args.my_command == data:
-                    test(lambdas_old, lambdas_new, args.linear_history,
-                         args.time, args.steps)
-                else:
-                    test_config[args.my_command](lambdas_old, lambdas_new)
+        
+        if args.my_command == data:
+            data(lambdas_old, lambdas_new, config, args.linear_history,
+                 args.time, args.steps)
+        elif args.my_command == show:
+            show(lambdas_old, lambdas_new)
+        elif args.my_command == clear:
+            clear(lambdas_old, lambdas_new, config)
         else:
-            args.my_command(lambdas_old, lambdas_new)
+            args.my_command(lambdas_old, lambdas_new, config)
     elif args.my_command == state:
-        state()
+        state(config)
             
 if __name__ == "__main__":
     main()

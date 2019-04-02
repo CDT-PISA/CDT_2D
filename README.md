@@ -25,13 +25,11 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 		- guida al progetto
 			- --> guida alla simulazione (C++)
 			- --> guida all'interfaccia (Python)
-- aggiungere le opzioni `config` 
-	- attualmente tutte le nuove funzioni sono implementate solo in `test`
-	- aggiornare `data.py`
+- ~~aggiungere le opzioni `config`~~
+	- ~~attualmente tutte le nuove funzioni sono implementate solo in `test`~~
+	- rimpiazzare `data.py`
 - scrivere la funzione di termalizzazione
 	- prima finire i test sul funzionamento del resto
-- assicurarsi che un processo quando viene stoppato si rimuova dalla lista di quelli stoppati prima di finire
-	- altrimenti al run successivo non sarà più killabile
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -41,11 +39,20 @@ Raccolta di feature nuove non strettamente necessarie:
 
 In realtà queste possono essere implementate dopo la v1.0, ma è necessario farle:
 
+- se `--linear-history` è settato non ridistribuisce la `end_condition` su `end_partial`
+	- così quando è termalizzato fa tutto il run nel primo `Popen` e salta il loop `while`
+	- se termalizzato già al run precedente setta `--linear-history` (o equivalente) di default
+		- lo fa subito all'inizio di `launch_script`
+	- salvare l'informazione su quali run vengono fatti con `--linear-history` e da che iterazione parte ogni run
 - gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 - nomi sensati per gli oggetti negli script
 
 queste quelle davvero opzionali:
 
+- aggiungere `full-show` per `--state`
+- comando `--info` che stampi le informazioni relative a un Lambda, tipo quelle contenute nel json
+- comando per settare a mano se un processo è già termalizzato
+	- così non devo aprire a mano il json e sono sicuro che sia modificato correttamente
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
 - aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
 - riimplementare i comandi principali come subparser (a costo di moltiplicare per ogni subparser le opzioni come `°`, `@` e `--range`)
@@ -72,6 +79,7 @@ queste quelle davvero opzionali:
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
+	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
 - aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 - aggiungere gestione delle misure esistenti, in corso e nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
@@ -108,6 +116,8 @@ queste quelle davvero opzionali:
 	- ~~ogni volta che viene chiamato state o stop controlla se sono morti, se sì vengono eliminati dalla lista~~
 	- ~~aggiungere supporto nella simulazione~~
 		- ~~cerca ogni tot iterazioni se esiste 'stop' e nella sua cartella e se sì esce dal while e chiude normalmente~~
+- ~~assicurarsi che un processo quando viene stoppato si rimuova dalla lista di quelli stoppati prima di finire~~
+	- ~~altrimenti al run successivo non sarà più killabile~~
 - ~~aggiungere i plot, almeno uno stupido~~
 	- ~~opzione `-p/--plot`~~
 	- ~~implementare intanto `volumes`~~

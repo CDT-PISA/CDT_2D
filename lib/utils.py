@@ -42,8 +42,9 @@ def find_running():
     @todo: scrivere la docstring
     """
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        l = popen("ps | grep -w 'CDT_2D-Lambda[0-9]*\.\?[0-9]*'").read().split('\n')
-        lambdas_run = [float(x.split()[3].split('CDT_2D-Lambda')[1]) for x in l[:-1]]
+        ps_out = popen('ps -f').read().split('\n')                
+        lambdas_run = [float(line.split()[-6]) \
+                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
     else:
         lambdas_run = []
         print("This platform is still not supported")

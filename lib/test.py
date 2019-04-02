@@ -14,7 +14,7 @@ from subprocess import Popen
 from numpy import histogram, median
 from lib.utils import eng_not, find_running, recovery_history
 
-def launch(lambdas_old, lambdas_new, linear_history, time, steps):
+def launch(lambdas_old, lambdas_new, config, linear_history, time, steps):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -47,7 +47,7 @@ def launch(lambdas_old, lambdas_new, linear_history, time, steps):
     
     for Lambda in lambdas:
         if not Lambda in lambdas_run:
-            chdir(project_folder + '/output/test')
+            chdir(project_folder + '/output/' + config)
             
             dir_name = "Lambda" + str(Lambda)
             launch_script_name = 'launch_' + str(Lambda) + '.py'
