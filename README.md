@@ -9,6 +9,7 @@ My own implementation of CDT in 1+1 dimension
 #### Simulazione
 
 - **MEMORY LEAKS**
+- aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -41,28 +42,29 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 	- se termalizzato già al run precedente setta `--linear-history` (o equivalente) di default
 		- lo fa subito all'inizio di `launch_script`
 	- salvare l'informazione su quali run vengono fatti con `--linear-history` e da che iterazione parte ogni run
-- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 - nomi sensati per gli oggetti negli script
 
 queste quelle davvero opzionali:
 
-- aggiungere `full-show` per `--state` (sotto il subparser)
-- comando `--info` che stampi le informazioni relative a un Lambda, tipo quelle contenute nel json
+
+- migliorare `--state` (vedi `launcher.py`)
+	- opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill
+	- aggiungere `full-show` per `--state` (sotto il subparser)
 - comando per settare a mano se un processo è già termalizzato
 	- così non devo aprire a mano il json e sono sicuro che sia modificato correttamente
+- migliorare `--stop`
+	- aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)
+	- ~~decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio) *irrilevante*~~
+
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
 - aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
 - pensare a cosa farsene dell'output (`nohup.out`)
-- migliorare `--state` (vedi `launcher.py`)
-	- opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill
 - migliorare `--plot`
 	- prende come argomenti `volumes` o `profiles`
 	- implementare `profiles`
 	- aggiungere l'opzione `-color` (quando sarà disponibili il subparser)
 		- specificando `choices`
-- migliorare `--stop`
-	- aggiungere supporto per le altre piattaforme
-	- decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio)
+	- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 - aggiungere funzione per vedere il numero di **binari** in ogni cartella
 	- in modo da cancellarli a mano
 		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
@@ -70,26 +72,20 @@ queste quelle davvero opzionali:
 		- magari ogni 5 X stampo una V per contare meglio
 	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
 - stesso di cui sopra per i **checkpoint**
-- aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
-- `argomplete` e gli alias
-	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
-	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
-	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
-- aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 - aggiungere gestione delle misure esistenti, in corso e nuove:	
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
 	- specificando che ovviamente quelle in corso non le tocca
 - aggiungere richiesta di conferma per eliminare cartelle
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
-	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti con `-f` evita)
+	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)
 - migliorare `state.json`
 	- aggiungere checkpoint da cui si parte
 	- aggiungere numero di iterazioni?
-- exit_condition: iterazioni o tempo
-		---> c'è da mettere anche un limite gigante in volume
-				per evitare che quelle che divergono esplodano, così
-				posso liberamente imporre anche limiti di tempo non
-				piccoli e uguali per tutti
+- `argomplete` e gli alias
+	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
+	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
+	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
+- aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 
 ### Done
 
@@ -113,6 +109,7 @@ queste quelle davvero opzionali:
 		- ~~cerca ogni tot iterazioni se esiste 'stop' e nella sua cartella e se sì esce dal while e chiude normalmente~~
 - ~~assicurarsi che un processo quando viene stoppato si rimuova dalla lista di quelli stoppati prima di finire~~
 	- ~~altrimenti al run successivo non sarà più killabile~~
+- ~~comando `--info` che stampi le informazioni relative a un Lambda, tipo quelle contenute nel json~~
 - ~~aggiungere i plot, almeno uno stupido~~
 	- ~~opzione `-p/--plot`~~
 	- ~~implementare intanto `volumes`~~
@@ -139,6 +136,11 @@ queste quelle davvero opzionali:
 - ~~aggiungere le opzioni `config`~~
 	- ~~attualmente tutte le nuove funzioni sono implementate solo in `test`~~
 	- ~~rimpiazzare `data.py`~~
+- ~~exit_condition: iterazioni o tempo~~
+		---> ~~c'è da mettere anche un limite gigante in volume~~
+				~~per evitare che quelle che divergono esplodano, così~~
+				~~posso liberamente imporre anche limiti di tempo non~~
+				~~piccoli e uguali per tutti~~
 - ~~TERMALIZZAZIONE~~  
 	~~progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):~~
 	- :smile:

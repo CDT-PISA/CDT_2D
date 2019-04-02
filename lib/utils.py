@@ -4,7 +4,7 @@
 """
 Collection of useful functions for CDT_2D project
 """
-from os import scandir, popen
+from os import scandir, chdir, popen
 from re import search, split
 from platform import node
 from shutil import rmtree
@@ -50,6 +50,17 @@ def find_running():
         print("This platform is still not supported")
     
     return lambdas_run
+
+def sim_info(Lambda, config):
+    chdir('output/' + config + '/Lambda' + str(Lambda))
+    
+    import json
+    
+    with open('state.json', 'r') as state_file:
+            state = json.load(state_file)
+            
+    print(json.dumps(state, indent=4, sort_keys=True)[1:-1])
+    
 
 def recovery_history():
     """

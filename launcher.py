@@ -11,7 +11,7 @@ from os import chdir, popen, system, scandir
 from os.path import expanduser
 from numpy import linspace
 from lib.utils import find_all_availables, find_running, \
-                      recovery_history, clear_data
+                      recovery_history, clear_data, sim_info
 import lib.data as data_cdt
     
 def data(lambdas_old, lambdas_new, config, linear_history, time, steps):
@@ -125,7 +125,15 @@ def recovery(lambdas_old, lambdas_new, config):
     for Lambda in lambdas_old:
         chdir('output/' + config + '/Lambda' + str(Lambda))
         recovery_history()
-    
+        
+def info(lambdas_old, config):
+    if len(lambdas_old) == 0:
+        print("Lambda non trovato") # da migliorare
+    elif len(lambdas_old) == 1:
+        sim_info(lambdas_old[0], config)
+    else:
+        print()
+        
 def plot(lambdas_old, lambdas_new, config):
     from matplotlib.pyplot import subplots, show
     from numpy import loadtxt
@@ -155,7 +163,7 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False,
                    config='test', cmd=show):
     # @todo: quando sarà implementato a subparser '--show'
     # avrà is_all = True di default
-    if len(lambda_list) == 0 and cmd == show:
+    if len(lambda_list) == 0 and cmd == 'show':
         is_all = True
         
     lambdas = []
@@ -317,6 +325,17 @@ def main():
     recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     
+    # info command
+    
+    info_sub = subparsers.add_parser('info', help='info')
+    info_sub.add_argument('lambdas', metavar='L', nargs=1, type=float, 
+                         help='lambdas')
+    info_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    info_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
     # plot command
     
     plot_sub = subparsers.add_parser('plot', help='plot')
@@ -337,13 +356,19 @@ def main():
     if args.is_data:
         args.config = 'data'
     
-    lambdas = args.lambdas
-    if lambdas == None:
-        lambdas = []
+    
+    if not hasattr(args, 'lambdas'):
+        lambdas = []  
+    else:
+       lambdas = args.lambdas 
+    if not hasattr(args, 'is_all'):
+        args.is_all = False
+    if not hasattr(args, 'is_range'):
+        args.is_range = False
     
     lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
                                               args.is_all, args.config,
-                                              args.my_command)
+                                              args.command)
         
     if args.command == 'run':
         data(lambdas_old, lambdas_new, args.config, args.linear_history,
@@ -363,6 +388,9 @@ def main():
     
     elif args.command == 'recovery':
         recovery(lambdas_old, lambdas_new, args.config)
+        
+    elif args.command == 'info':
+        info(lambdas_old, args.config)
     
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)
