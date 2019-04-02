@@ -10,16 +10,15 @@ from platform import node
 from os import chdir, popen, system
 from os.path import expanduser
 from numpy import linspace
-from lib.utils import find_all_availables, find_running
-# @todo
-from lib.utils import recovery_history, clear_data
-import lib.test as test_cdt
+from lib.utils import find_all_availables, find_running, \
+                      recovery_history, clear_data
+import lib.data as data_cdt
     
 def data(lambdas_old, lambdas_new, config, linear_history, time, steps):
-    test_cdt.launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
+    data_cdt.launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
 
 def show(lambdas_old, lambdas_new):
-    test_cdt.show(lambdas_old, lambdas_new)
+    data_cdt.show(lambdas_old, lambdas_new)
     
 def clear(lambdas_old, lambdas_new, config):
     clear_data(lambdas_old, config)
