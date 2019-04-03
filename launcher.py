@@ -237,7 +237,8 @@ def main():
     sys.argv = [x if x != '@' else '-@' for x in sys.argv]
     
     # SUBPARSERS
-    subparsers = parser.add_subparsers(dest='command', required=False)
+    subparsers = parser.add_subparsers(dest='command')
+    subparsers.required = False
     
     parser.add_argument('--version', action='version', version='CDT_2D 0.2')
     configs = [x.name for x in scandir('output') if x.is_dir()]

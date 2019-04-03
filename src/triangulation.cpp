@@ -299,6 +299,9 @@ void Triangulation::remove_vertex(Label lab_v)
         // ___ update spatial_profile ___
         spatial_profile[lab_v.dync_vertex()->time()]--;
         
+        Label lab(nullptr);
+        list0[list0.size() - 1] = lab;
+        
         list0.pop_back();
     }
     catch(...){
@@ -322,6 +325,9 @@ void Triangulation::remove_triangle(Label lab_t)
             list2[lab_t->id] = list2[list2.size() - 1];
             list2[lab_t->id]->id = lab_t->id;
         }
+        
+        Label lab(nullptr);
+        list2[list2.size() - 1] = lab;
         
         list2.pop_back();
     }

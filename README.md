@@ -12,7 +12,7 @@ My own implementation of CDT in 1+1 dimension
 - aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
 - riferimenti circolari di `shared_ptr`
 	- testare se sono un problema
-	- mettere a `nullptr` prima di rimuovere
+	- ~~mettere a `nullptr` prima di rimuovere~~
 	- testare con i `nullptr` sul long run
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
@@ -65,15 +65,14 @@ queste quelle davvero opzionali:
 		- magari ogni 5 X stampo una V per contare meglio
 	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
 - stesso di cui sopra per i **checkpoint**
-- aggiungere gestione delle misure esistenti, in corso e nuove:	
+- aggiungere gestione delle misure esistenti, in corso e nuove:
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
+		- per ora sono gestite in modo sensato ma è tutto silenziato
+		- la cosa importante da aggiungere sarebbe il feedback all'utente
 	- specificando che ovviamente quelle in corso non le tocca
 - aggiungere richiesta di conferma per eliminare cartelle
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)
-- migliorare `state.json`
-	- aggiungere checkpoint da cui si parte
-	- aggiungere numero di iterazioni?
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
@@ -94,6 +93,9 @@ queste quelle davvero opzionali:
 - ~~migliorare `--state` (vedi `launcher.py`)~~
 	- ~~opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill~~
 	- ~~aggiungere `full-show` per `--state` (sotto il subparser)~~
+- ~~migliorare `state.json`~~
+	- ~~aggiungere checkpoint da cui si parte~~
+	- ~~aggiungere numero di iterazioni?~~
 - ~~data: $ per prendere dati~~
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
