@@ -39,6 +39,7 @@ int main(int argc, char* argv[]){
     logput << "\tend_condition: " << end_condition << endl;
     logput << "\tdebug_flag: " << debug_str << endl; /// @todo da sostituire il nome
     logput << "\tlast_chkpt: " << last_chkpt << endl;
+    logput << "\tlinear_history: " << linear_history_str<< endl;
     logput.close();
     
     // CHECKPOINT NAMES

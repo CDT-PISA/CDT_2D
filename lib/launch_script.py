@@ -146,6 +146,13 @@ def main():
     Lambda_str = argv[2]
     arguments = argv[1:]
     
+    if int(run_num) > 1:
+        with open('state.json', 'r') as state_file:
+            state = json.load(state_file)
+            
+        if state['is_thermalized'] and arguments[6] == '0':
+            arguments[6] = '1M'
+    
     # IMPORT FROM LIB
     from sys import path
     from os.path import expanduser
@@ -155,10 +162,14 @@ def main():
     # END CONDITION MANIPULATION
     # needed for thermalization loop
     arguments[3], end_condition, end_type = end_parser(arguments[3])
+    
+    if not arguments[6] == '0':
+        arguments[3] == end_condition
 
     # is necessary to recompile each run because on the grid the launch node
     # could be different from run_node
     exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
+        
 
     start_record = time()
     start_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
@@ -169,28 +180,31 @@ def main():
     checkpoints, iter_done = recovery_sim(run_id, succesful)
     log_footer(run_id, succesful)
     
-    rerun = 0
-    if end_type == 'time':
-        end_run = (time() - start_record) > end_condition
-    elif end_type == 'steps':
-        end_run = iter_done > end_condition
-    
-    while succesful and not is_thermalized() and not end_run and not stopped:
-        rerun += 1
-        run_id = str(run_num) + '.' + str(rerun)
-        arguments[0] = run_id
-        
-        log_header(run_id)
-        arguments[5] = checkpoints[-1]
-        succesful, stopped = run_sim(exe_name, arguments)
-        
-        checkpoints, iter_done = recovery_sim(run_id, succesful)
-        log_footer(run_id, succesful)
-        
+    # lo eseguo solo se non è termalizzato
+    # serve appunto a controllare se termalizza
+    if arguments[6] == '0':
+        rerun = 0
         if end_type == 'time':
             end_run = (time() - start_record) > end_condition
         elif end_type == 'steps':
             end_run = iter_done > end_condition
+        
+        while succesful and not is_thermalized() and not end_run and not stopped:
+            rerun += 1
+            run_id = str(run_num) + '.' + str(rerun)
+            arguments[0] = run_id
+            
+            log_header(run_id)
+            arguments[5] = checkpoints[-1]
+            succesful, stopped = run_sim(exe_name, arguments)
+            
+            checkpoints, iter_done = recovery_sim(run_id, succesful)
+            log_footer(run_id, succesful)
+            
+            if end_type == 'time':
+                end_run = (time() - start_record) > end_condition
+            elif end_type == 'steps':
+                end_run = iter_done > end_condition
         
     end_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
     
@@ -209,7 +223,8 @@ def main():
         state['end_time'] = end_time
         state['run_done'] += 1
         state['iter_done'] = int(iter_done)
-        state['is_thermalized'] = is_thermalized()
+        if not state['is_thermalized'] and not state['run_done'] == 1:
+            state['is_thermalized'] = is_thermalized()
         if succesful:
             state['last_checkpoint'] = checkpoints[-1]
         else:

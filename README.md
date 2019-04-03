@@ -10,6 +10,10 @@ My own implementation of CDT in 1+1 dimension
 
 - **MEMORY LEAKS**
 - aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
+- riferimenti circolari di `shared_ptr`
+	- testare se sono un problema
+	- mettere a `nullptr` prima di rimuovere
+	- testare con i `nullptr` sul long run
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -37,11 +41,6 @@ Raccolta di feature nuove non strettamente necessarie:
 
 In realtà queste possono essere implementate dopo la v1.0, ma è necessario farle:
 
-- se `--linear-history` è settato non ridistribuisce la `end_condition` su `end_partial`
-	- così quando è termalizzato fa tutto il run nel primo `Popen` e salta il loop `while`
-	- se termalizzato già al run precedente setta `--linear-history` (o equivalente) di default
-		- lo fa subito all'inizio di `launch_script`
-	- salvare l'informazione su quali run vengono fatti con `--linear-history` e da che iterazione parte ogni run
 - nomi sensati per gli oggetti negli script
 
 queste quelle davvero opzionali:
@@ -146,6 +145,11 @@ queste quelle davvero opzionali:
 	- ~~controlla se è termalizzato, se lo è conclude il run, altrimenti rilancia la simulazione~~
 - ~~comando per settare a mano se un processo è già termalizzato~~
 	- ~~così non devo aprire a mano il json e sono sicuro che sia modificato correttamente~~
+- ~~se `--linear-history` è settato non ridistribuisce la `end_condition` su `end_partial`~~
+	- ~~così quando è termalizzato fa tutto il run nel primo `Popen` e salta il loop `while`~~
+	- ~~se termalizzato già al run precedente setta `--linear-history` (o equivalente) di default~~
+		- ~~lo fa subito all'inizio di `launch_script`~~
+	- ~~salvare l'informazione su quali run vengono fatti con `--linear-history` e da che iterazione parte ogni run~~
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
