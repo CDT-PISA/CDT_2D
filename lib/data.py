@@ -108,17 +108,23 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps):
             for x in arguments:
                 arg_str += ' ' + str(x)
             
-            make_script = Popen(["python3", make_script_name, str(run_num), 
-                                 str(Lambda)])
-            make_script.wait()
-            
             if(node() == 'Paperopoli'):
+                make_script = Popen(["python3", make_script_name, str(run_num), 
+                                 str(Lambda)])
+                make_script.wait()
                 system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
             elif(node() == 'fis-delia.unipi.it'):
+                make_script = Popen(["python36", make_script_name, str(run_num), 
+                                 str(Lambda)])
+                make_script.wait()
                 system('nohup python36 $PWD/' + launch_script_name + arg_str + ' &')
             elif(node() == 'gridui3.pi.infn.it'):
-                system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
-                       dir_name + ' $PWD/' + launch_script_name + arg_str)
+                print('support for grid still missing')
+#                make_script = Popen(["python3", make_script_name, str(run_num), 
+#                                 str(Lambda)])
+#                make_script.wait()
+#                system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
+#                       dir_name + ' $PWD/' + launch_script_name + arg_str)
             elif(node() == 'r000u06l01'):
                 print('support for marconi still missing')
             else:
