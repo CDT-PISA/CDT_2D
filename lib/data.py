@@ -41,7 +41,8 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps):
     """
     
     lambdas = lambdas_old + lambdas_new
-    lambdas_run = find_running()
+    lambdas_run, sim_info = find_running()
+    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
     
     project_folder = getcwd()
     

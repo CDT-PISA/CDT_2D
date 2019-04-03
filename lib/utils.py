@@ -43,13 +43,41 @@ def find_running():
     """
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
         ps_out = popen('ps -f').read().split('\n')                
-        lambdas_run = [float(line.split()[-6]) \
-                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
+#        lambdas_run = [float(line.split()[-6]) \
+#                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
+        lambdas_run = []
+        sim_info = []
+        PPID_list = []
+        for line in ps_out[1:]:
+            if 'CDT_2D-Lambda' in line:
+                pinfos = line.split()
+                Lambda = float(pinfos[-6])
+                start_time = pinfos[6]
+                run_id = pinfos[8]
+                PID = pinfos[1]
+                PPID = pinfos[2]
+                lambdas_run += [[Lambda]]
+                sim_info += [[start_time, run_id, PID]]
+                PPID_list += [PPID]
+                
+        for line in ps_out[1:]:
+            pinfos = line.split()
+            if len(pinfos) > 0:
+                try:
+                    i = PPID_list.index(pinfos[1])
+                except ValueError:
+                    continue
+                
+                from re import split
+                config = split('.*/output|/', pinfos[8])[2]
+                lambdas_run[i] += [config]
+        
     else:
         lambdas_run = []
+        sim_info = []
         print("This platform is still not supported")
     
-    return lambdas_run
+    return lambdas_run, sim_info
 
 def sim_info(Lambda, config):
     chdir('output/' + config + '/Lambda' + str(Lambda))
@@ -59,7 +87,7 @@ def sim_info(Lambda, config):
     with open('state.json', 'r') as state_file:
             state = json.load(state_file)
             
-    print(json.dumps(state, indent=4, sort_keys=True)[1:-1])
+    print(json.dumps(state, indent=4)[1:-1])
     
 
 def recovery_history():

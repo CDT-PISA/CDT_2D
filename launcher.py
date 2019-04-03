@@ -25,59 +25,68 @@ def clear(lambdas_old, lambdas_new, config):
     if len(lambdas_new) > 0:
         print("Following lambdas not found: ", lambdas_new)
 
-def state(config, full_show=False):
+def state(configs, full_show=False):
     # @todo: add support for the other platforms
     # @todo: for clusters: add 'pending' state
-    # @todo: show only for one config
-    # @todo: quando sarà implementato a subparser aggiungere anche 'entrambi
-    # le config' come opzione, e in quel caso deve stampare un campo in più
-    # per dire a quale config appartiene
     import pickle
     
-    if not type(config) == list:
-        config = [config]
+    if not type(configs) == list:
+        configs = [configs]
     
-    for config in config:
+    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+        ps_out = popen('ps -f').read().split('\n')
+    else:
+        ps_out = []
+        print("This platform is still not supported")
+    
+    empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
+    if len(ps_out) > 1 and not empty:
+        print('   LAMBDA\t   TIME\t     STATUS\t CONFIG', end='')
+        if not full_show:
+            print()
+        else:
+            print('\t   RUN_ID    PID')
+        
+        lambdas_run_all, sim_all = find_running()
+        
+        d = {}
+        for config in configs:
+            lambdas_run_list = []
+            sim_list = []
+            for i in range(0, len(sim_all)):
+                if lambdas_run_all[i][1] == config:
+                    lambdas_run_list += [lambdas_run_all[i]]
+                    sim_list += [sim_all[i]]
+            d[config] = lambdas_run_list, sim_list
+    
+    for config in configs:
         try:
             with open('output/' + config + '/pstop.pickle','rb') as stop_file:
                 lambdas_stopped = pickle.load(stop_file)
         except FileNotFoundError:
             lambdas_stopped = []
         
-        if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-            ps_out = popen('ps -f').read().split('\n')
-        else:
-            ps_out = []
-            print("This platform is still not supported")
-        
-        empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
         if len(ps_out) > 1 and not empty:
-            lambdas_run = []
-            print('  LAMBDA\t  TIME\t\t STATUS', end='')
-            if not full_show:
-                print()
-            else:
-                print('\t    RUN_ID \t PID')
-                
-            for line in ps_out[1:]:
-                if 'CDT_2D-Lambda' in line:
-                    pinfos = line.split()
-                    Lambda = float(pinfos[-6])
-                    start_time = pinfos[6]
-                    lambdas_run += [Lambda]
-                    if Lambda in lambdas_stopped:
-                        state = 'killed'
-                    else:
-                        state = 'running'
-                    print(str(Lambda).rjust(10), '\t', start_time, '\t', state,
-                          end='')
-                    if not full_show:
-                        print()
-                    else:
-                        PID = int(pinfos[1])
-                        run_id = pinfos[8]
-                        print(' ', run_id.rjust(8), '\t', PID)
+            
+            lambdas_run_list, sim_list = d[config]
+            
+            for i in range(0,len(sim_list)):
+                lambdas_run = lambdas_run_list[i]
+                sim = sim_list[i]
+                Lambda = lambdas_run[0]
+                l_conf = lambdas_run[1]
+                if Lambda in lambdas_stopped:
+                    state = 'killed'
+                else:
+                    state = 'running'
+                print(str(Lambda).rjust(9), '\t', sim[0], '  ', state, '\t',
+                      l_conf, end='')
+                if not full_show:
+                    print()
+                else:
+                    print(' ', sim[1].rjust(10), '  ', sim[2])
                         
+            lambdas_run = [x[0] for x in lambdas_run_list if x[1] == config]
             l_aux = []
             for Lambda in lambdas_stopped:
                 if Lambda in lambdas_run:
@@ -94,7 +103,8 @@ def stop(lambdas_old, lambdas_new, config):
     # si fa con un argomento config che viene da args.is_data
     import pickle
     
-    lambdas_run = find_running()
+    lambdas_run, sim_info = find_running()
+    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
         
     try:
         with open('output/' + config + '/pstop.pickle','rb') as stop_file:
@@ -133,6 +143,18 @@ def info(lambdas_old, config):
         sim_info(lambdas_old[0], config)
     else:
         print()
+        
+def therm(lambdas_old, config, is_therm):
+    import json
+    
+    for Lambda in lambdas_old:
+        filename = 'output/' + config + '/Lambda' + str(Lambda) + '/state.json'
+        with open(filename, 'r') as state_file:
+            state = json.load(state_file)
+            state['is_thermalized'] = eval(is_therm)
+            
+        with open(filename, 'w') as state_file:
+            json.dump(state, state_file, indent=4)
         
 def plot(lambdas_old, lambdas_new, config):
     from matplotlib.pyplot import subplots, show
@@ -251,13 +273,25 @@ def main():
                                 | ex: --steps 200M')
     
     # state command
+    class ConfigAction(argparse.Action):
+        def __init__(self, option_strings, dest, ifcall, nargs=None, **kwargs):
+            if nargs is not None:
+                raise ValueError("nargs not allowed")
+            super(ConfigAction, self).__init__(option_strings, dest, nargs='?',
+                 **kwargs)
+            self.ifcall = ifcall
+        def __call__(self, parser, namespace, values, option_string=None):
+            if values == None:
+                setattr(namespace, self.dest, self.ifcall)
+            else:
+                setattr(namespace, self.dest, values)
     
     state_sub = subparsers.add_parser('state', help='state')
     state_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
-    state_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
+    state_sub.add_argument('-c', '--config', choices=configs, default=configs,
+                           ifcall='test', action=ConfigAction, help='config')
     state_sub.add_argument('-f', '--full-show', action='store_true',
                            help='full-show')
     
@@ -336,6 +370,19 @@ def main():
     info_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     
+    # thermalization command
+    
+    therm_sub = subparsers.add_parser('therm', help='therm')
+    therm_sub.add_argument('lambdas', metavar='L', nargs='+', type=float, 
+                         help='lambdas')
+    therm_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    therm_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    therm_sub.add_argument('-t', '--is-therm', default='True', 
+                           choices=['True', 'False'], help='thermalization')
+    
     # plot command
     
     plot_sub = subparsers.add_parser('plot', help='plot')
@@ -356,7 +403,6 @@ def main():
     if args.is_data:
         args.config = 'data'
     
-    
     if not hasattr(args, 'lambdas'):
         lambdas = []  
     else:
@@ -366,15 +412,17 @@ def main():
     if not hasattr(args, 'is_range'):
         args.is_range = False
     
-    lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
-                                              args.is_all, args.config,
-                                              args.command)
+    if not args.command == 'state':
+        lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
+                                                  args.is_all, args.config,
+                                                  args.command)
         
     if args.command == 'run':
         data(lambdas_old, lambdas_new, args.config, args.linear_history,
              args.time, args.steps)
         
     elif args.command == 'state':
+#        print(args)
         state(args.config, args.full_show)
     
     elif args.command == 'stop':
@@ -391,6 +439,9 @@ def main():
         
     elif args.command == 'info':
         info(lambdas_old, args.config)
+    
+    elif args.command == 'therm':
+        therm(lambdas_old, args.config, args.is_therm)
     
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)

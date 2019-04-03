@@ -209,6 +209,7 @@ def main():
         state['end_time'] = end_time
         state['run_done'] += 1
         state['iter_done'] = int(iter_done)
+        state['is_thermalized'] = is_thermalized()
         if succesful:
             state['last_checkpoint'] = checkpoints[-1]
         else:

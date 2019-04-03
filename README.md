@@ -46,12 +46,6 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
-
-- migliorare `--state` (vedi `launcher.py`)
-	- opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill
-	- aggiungere `full-show` per `--state` (sotto il subparser)
-- comando per settare a mano se un processo è già termalizzato
-	- così non devo aprire a mano il json e sono sicuro che sia modificato correttamente
 - migliorare `--stop`
 	- aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)
 	- ~~decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio) *irrilevante*~~
@@ -98,6 +92,9 @@ queste quelle davvero opzionali:
 - ~~aggiungere cazzi con log2 16,2^14,... nel codice C++~~
 - ~~supporto grid~~
 - ~~aggiungere state~~
+- ~~migliorare `--state` (vedi `launcher.py`)~~
+	- ~~opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill~~
+	- ~~aggiungere `full-show` per `--state` (sotto il subparser)~~
 - ~~data: $ per prendere dati~~
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
@@ -147,6 +144,8 @@ queste quelle davvero opzionali:
 	- ~~launch_script intercetta `end-condition` e divide in blocchi la simulazione (se `time` magari blocchi da 15-30m, se `steps` blocchi corrispondenti in unità di step)~~
 		- ~~i blocchi potrebbero anche essere proporzionali alla complessiva (quindi un numero fisso di blocchi)~~
 	- ~~controlla se è termalizzato, se lo è conclude il run, altrimenti rilancia la simulazione~~
+- ~~comando per settare a mano se un processo è già termalizzato~~
+	- ~~così non devo aprire a mano il json e sono sicuro che sia modificato correttamente~~
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
