@@ -41,8 +41,10 @@ def find_running():
     """
     @todo: scrivere la docstring
     """
+    from os import environ
+    
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -f').read().split('\n')                
+        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
 #        lambdas_run = [float(line.split()[-6]) \
 #                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
         lambdas_run = []

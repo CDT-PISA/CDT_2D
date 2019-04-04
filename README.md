@@ -46,9 +46,13 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 queste quelle davvero opzionali:
 
 - migliorare `--stop`
-	- aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)
+	- ~~aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)~~
 	- ~~decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio) *irrilevante*~~
 
+- reset di log step
+	- inserire un comando che di default resetti a un valore non enorme, ma nemmeno quello iniziale
+	- inserire l'opzione per specificare il valore a cui resettare (come esponente di una potenza di 2)
+- risolvere il problema di `state` su ssh (che poi è un problema anche per `run` e `stop`)
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
 - aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
 - pensare a cosa farsene dell'output (`nohup.out`)

@@ -29,12 +29,13 @@ def state(configs, full_show=False):
     # @todo: add support for the other platforms
     # @todo: for clusters: add 'pending' state
     import pickle
+    from os import environ
     
     if not type(configs) == list:
         configs = [configs]
     
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -f').read().split('\n')
+        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
     else:
         ps_out = []
         print("This platform is still not supported")

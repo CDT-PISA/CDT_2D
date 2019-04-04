@@ -163,6 +163,9 @@ def main():
     # needed for thermalization loop
     arguments[3], end_condition, end_type = end_parser(arguments[3])
     
+    # @todo: da rimuovere quando risolverò il leak
+    arguments[3] = '5m'
+    
     if not arguments[6] == '0':
         arguments[3] == end_condition
 
@@ -233,6 +236,10 @@ def main():
         
     if stat('nohup.out').st_size == 0:
         remove('nohup.out')
+    if stat('stdout.txt').st_size == 0:
+        remove('stdout.txt')
+    if stat('stderr.txt').st_size == 0:
+        remove('stderr.txt')
         
     if stopped:
         remove_from_stopped(float(Lambda_str))
