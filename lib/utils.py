@@ -210,9 +210,34 @@ def clear_data(lambdas, config='test'):
     Lambda : float
         the parameter of the simulation whose data you want to remove
     """
+    from inspect import cleandoc
+    
     for Lambda in lambdas:
         try:
-            rmtree("output/" + config + "/Lambda"+str(Lambda))
+            if not config == 'test':
+                import readline
+                print(cleandoc("""Do you really want to remove simulation
+                      folder for Lambda = """) + str(Lambda) + " ? [y/n]")
+                authorized = False
+                ans_recog = False
+                count = 0
+                while not ans_recog and count < 3:
+                    count += 1
+                    ans = input('--> ')
+                    ans_recog = True
+                    if ans != 'y' and ans != 'n':
+                        ans_recog = False
+                        print('Answer not recognized', end='')
+                        if count < 3:
+                            print(', type it again [y/n]')
+                        else:
+                            print()
+                    elif ans == 'y':
+                        authorized = True
+            else:
+                    authorized = True
+            if authorized:
+                rmtree("output/" + config + "/Lambda"+str(Lambda))
         except FileNotFoundError:
             all_lambdas = find_all_availables()
             raise ValueError("A folder with the given lambda it doesn't exist"+

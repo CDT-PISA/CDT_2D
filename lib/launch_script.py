@@ -243,15 +243,22 @@ def main():
             
     if(node() != 'Paperopoli'):
         import smtplib
+        from email.message import EmailMessage
+        
+        with open('state.json', 'r') as state_file:
+            state = json.load(state_file)
+            
+        msg = EmailMessage()
+        msg.set_content(json.dumps(state, indent=4)[1:-1])
+        msg['Subject'] = "Lambda" + Lambda_str + " ha finito il run " + run_num
+        msg['From'] = "cdt2d.email@gmail.com"
+        msg['To'] = "candido.ale@gmail.com"
         
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         # quando uno c'ha sbatta sarebbe carino trovare il modo di criptare
         # la password
         server.login("cdt2d.email", "ciao_ciao")
-        server.sendmail(
-          "cdt2d.email@gmail.com",
-          "candido.ale@gmail.com",
-          "Il run" + run_num + " per lambda = " + Lambda_str + " e' finito")
+        server.sendmail(msg)
         server.quit()
 
 if __name__ == "__main__":

@@ -3,17 +3,22 @@ My own implementation of CDT in 1+1 dimension
 
 ## TODO:
 
-- Aggiustare `~` con il path alla home su `grid`
+**Marconi**
 - Aggiustare `modules` su `marconi` con Giuseppe
+	- `module load python`, piazzarlo da qualche parte (magari in `.bashrc`)
+- Copiare script SBATCH
+- inviare un email anche quando entra (launch_script controlla di essere su Marconi e nel caso manda una mail)
+- comandi appositi per *invadere* un nodo (48 simulazioni)
+- cmake usi `icc` con le flag per skylake
+	- forse devo far fare cose a proposito a make_script
+
+**GRID**
+- Installare python3, ipython, matplotlib sul mio user
+- Aggiustare `~` con il path alla home su `grid`
 
 #### Simulazione
 
-- **MEMORY LEAKS**
 - aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
-- riferimenti circolari di `shared_ptr`
-	- testare se sono un problema
-	- ~~mettere a `nullptr` prima di rimuovere~~
-	- testare con i `nullptr` sul long run
 
 *DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
 
@@ -32,6 +37,10 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 			- --> guida all'interfaccia (Python)
 - scrivere la funzione di termalizzazione
 	- prima finire i test sul funzionamento del resto
+- **reset di log step**
+	- inserire un comando che resetti
+		- di default  a un valore non enorme, ma nemmeno quello iniziale
+		- inserire l'opzione per specificare il valore a cui resettare (come esponente di una potenza di 2)
 
 *Le modifiche elencate fin qui devono essere presenti **prima di** rilasciare la **versione 1.0**.*
 Quelle dopo possono anche aspettare, perché non danno problemi di compatibilità con l'output dei run, ma sono solo migliorie alla simulazione/script, che possono proseguire i risultati ottenuti fino a quel momento.
@@ -51,12 +60,12 @@ queste quelle davvero opzionali:
 		- per ora sono gestite in modo sensato ma è tutto silenziato
 		- la cosa importante da aggiungere sarebbe il feedback all'utente
 	- specificando che ovviamente quelle in corso non le tocca
-- aggiungere richiesta di conferma per eliminare cartelle
+- aggiungere richiesta di conferma per *eliminare le simulazioni*
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)
 
-- comando per ricaricare i launch_script
-	- forse inserirlo sotto `run`, forse indipendente, e forse entrambi
+- se non esiste la simulazione `plot`
+
 - aggiungere funzione per vedere il numero di **binari** in ogni cartella
 	- in modo da cancellarli a mano
 		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
@@ -66,14 +75,19 @@ queste quelle davvero opzionali:
 - stesso di cui sopra per i **checkpoint**
 - visualizzazione della **dimensione delle cartelle**
 
-- reset di log step
-	- inserire un comando che di default resetti a un valore non enorme, ma nemmeno quello iniziale
-	- inserire l'opzione per specificare il valore a cui resettare (come esponente di una potenza di 2)
+- UPLOAD e DOWNLOAD di simulazioni
+	- con Drive/Dropbox (`rclone`)
+	- o via ssh (`scp`)
 - localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
-- aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
+- aggiungere in setup.sh
+	- la modifica di 'home/project/CDT_2D/' in '$PWD'
+	- fa richiesta di un indirizzo email per ricezione e lo mette al posto di "candido.ale@gmail.com"
+		- quando cdt2demail avrà davvero una password se ne dovrà fornire uno anche per la spedizione
+		- però a quel punto si potrà anche inserire la password (perché sarà criptata), e si potrà scegliere di usare lo stesso indirizzo come mittente e destinatario
 - pensare a cosa farsene dell'output (`nohup.out`)
 
-- ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun (pezzi di json ad esempio)
+- ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun
+	- pezzi di json ad esempio (cioè lo aggiorno)
 - migliorare `--plot`
 	- prende come argomenti `volumes` o `profiles`
 	- implementare `profiles`
@@ -130,6 +144,8 @@ queste quelle davvero opzionali:
 		- ~~cancella i dati successivi~~
 	- ~~se fallisce tutto il processo:~~
 		- ~~implementare la funzione `recovery`, che fa quello che dovrebbe essere fatto in fondo a launch_script~~
+- ~~comando per ricaricare i launch_script~~
+	- ~~forse inserirlo sotto `run`, forse __indipendente__, e forse entrambi~~
 - ~~subparser (*implementato in altro modo* --> *... e invece no*) per `-d`~~:
 	- ~~modificare `cdt2d -d/--data` in `cdt2d -r/--run` o `cdt2d -l/--launch`?~~
 	- ~~aggiungere `--linear-history` come flag nel subparser (e `--log-history`, che in realtà è il default)~~

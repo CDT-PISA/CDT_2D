@@ -33,7 +33,7 @@ def stop(lambdas_old, lambdas_new, config):
     # si fa con un argomento config che viene da args.is_data
     import pickle
     
-    lambdas_run, sim_info = find_running()
+    lambdas_run, _ = find_running()
     lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
         
     try:
@@ -61,6 +61,31 @@ def stop(lambdas_old, lambdas_new, config):
     
     with open('output/' + config + '/pstop.pickle','wb') as stop_file:
             pickle.dump(lambdas_stopped, stop_file)
+            
+def plot(lambdas_old, lambdas_new, config):
+    from matplotlib.pyplot import subplots, show
+    from numpy import loadtxt
+    
+    indices, volumes = loadtxt('output/' + config + '/Lambda' + str(lambdas_old[0]) + 
+                               '/history/volumes.txt', unpack=True)
+    
+    fig, ax = subplots()
+    ax.plot(indices, volumes, color='xkcd:carmine')
+    
+    def on_key(event):
+        if event.key == 'f5':
+            ind_aux, vol_aux = loadtxt('output/' + config + '/Lambda' +
+                                       str(lambdas_old[0]) + '/history/volumes.txt', 
+                                       unpack=True, skiprows=on_key.skip)
+            
+            if type(vol_aux) != float and len(vol_aux) > 5:
+                on_key.skip += len(vol_aux)
+                ax.plot(ind_aux, vol_aux, color='xkcd:carmine')
+                fig.canvas.draw()
+    on_key.skip = len(volumes)
+
+    fig.canvas.mpl_connect('key_press_event', on_key)
+    show()
     
 def recovery(lambdas_old, lambdas_new, config):
     from lib.utils import recovery_history
@@ -90,31 +115,26 @@ def therm(lambdas_old, config, is_therm):
             
         with open(filename, 'w') as state_file:
             json.dump(state, state_file, indent=4)
-        
-def plot(lambdas_old, lambdas_new, config):
-    from matplotlib.pyplot import subplots, show
-    from numpy import loadtxt
-    
-    indices, volumes = loadtxt('output/' + config + '/Lambda' + str(lambdas_old[0]) + 
-                               '/history/volumes.txt', unpack=True)
-    
-    fig, ax = subplots()
-    ax.plot(indices, volumes, color='xkcd:carmine')
-    
-    def on_key(event):
-        if event.key == 'f5':
-            ind_aux, vol_aux = loadtxt('output/' + config + '/Lambda' +
-                                       str(lambdas_old[0]) + '/history/volumes.txt', 
-                                       unpack=True, skiprows=on_key.skip)
             
-            if type(vol_aux) != float and len(vol_aux) > 5:
-                on_key.skip += len(vol_aux)
-                ax.plot(ind_aux, vol_aux, color='xkcd:carmine')
-                fig.canvas.draw()
-    on_key.skip = len(volumes)
-
-    fig.canvas.mpl_connect('key_press_event', on_key)
-    show()
+def up_launch(lambdas_old, lambdas_new, config, both, make):
+    from os import getcwd
+    from shutil import copyfile
+    
+    proj_dir = getcwd()
+    
+    lambdas_run, _ = find_running()
+    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+        
+    for l in lambdas_old:
+        if l not in lambdas_run:
+            chdir('output/' + config + '/Lambda' + str(l))
+            if both or make:
+                make_script_name = 'make_' + str(l) + '.py'  
+                copyfile('../../../lib/make_script.py', make_script_name)
+            if both or not make:
+                launch_script_name = 'launch_' + str(l) + '.py' 
+                copyfile('../../../lib/launch_script.py', launch_script_name) 
+            chdir(proj_dir) 
     
 def lambdas_recast(lambda_list, is_range=False, is_all=False, 
                    config='test', cmd=show):
@@ -282,9 +302,27 @@ def main():
     clear_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     
+    # plot command
+    
+    plot_sub = subparsers.add_parser('plot', help='plot')
+    plot_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='lambdas')
+    plot_sub.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    plot_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    plot_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    
+    # utilities subparser
+    
+    utils = subparsers.add_parser('utils', help='utilities')
+    utils_sub = utils.add_subparsers(dest='utils')
+    
     # recovery command
     
-    recovery_sub = subparsers.add_parser('recovery', help='recovery')
+    recovery_sub = utils_sub.add_parser('recovery', help='recovery')
     recovery_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
                          help='lambdas')
     lambdas = recovery_sub.add_mutually_exclusive_group()
@@ -300,7 +338,7 @@ def main():
     
     # info command
     
-    info_sub = subparsers.add_parser('info', help='info')
+    info_sub = utils_sub.add_parser('info', help='info on a sim')
     info_sub.add_argument('lambdas', metavar='L', nargs=1, type=float, 
                          help='lambdas')
     info_sub.add_argument('-@', dest='is_data', action='store_true', 
@@ -311,7 +349,7 @@ def main():
     
     # thermalization command
     
-    therm_sub = subparsers.add_parser('therm', help='therm')
+    therm_sub = utils_sub.add_parser('set-therm', help='set thermalisation')
     therm_sub.add_argument('lambdas', metavar='L', nargs='+', type=float, 
                          help='lambdas')
     therm_sub.add_argument('-@', dest='is_data', action='store_true', 
@@ -322,18 +360,27 @@ def main():
     therm_sub.add_argument('-t', '--is-therm', default='True', 
                            choices=['True', 'False'], help='thermalization')
     
-    # plot command
+    # thermalization command
     
-    plot_sub = subparsers.add_parser('plot', help='plot')
-    plot_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+    launch_sub = utils_sub.add_parser('up-launch', 
+                                     help='update launch/make_script')
+    launch_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
                          help='lambdas')
-    plot_sub.add_argument('--range', dest='is_range', action='store_true', 
+    lambdas = launch_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
-    plot_sub.add_argument('-@', dest='is_data', action='store_true', 
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    launch_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
-    plot_sub.add_argument('-c', '--config', choices=configs, default='test',
+    launch_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    script = launch_sub.add_mutually_exclusive_group()
+    script.add_argument('-m', '--make', action='store_true',
+                        help='update make_script instead')
+    script.add_argument('-b', '--both', action='store_true',
+                        help='update both launch_script and make_script')
     
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
@@ -373,14 +420,16 @@ def main():
     elif args.command == 'clear':
         clear(lambdas_old, lambdas_new, args.config)
     
-    elif args.command == 'recovery':
-        recovery(lambdas_old, lambdas_new, args.config)
-        
-    elif args.command == 'info':
-        info(lambdas_old, args.config)
-    
-    elif args.command == 'therm':
-        therm(lambdas_old, args.config, args.is_therm)
+    elif args.command == 'utils':
+        if args.utils == 'recovery':
+            recovery(lambdas_old, lambdas_new, args.config)
+        elif args.utils == 'info':
+            info(lambdas_old, args.config)
+        elif args.utils == 'set-therm':
+            therm(lambdas_old, args.config, args.is_therm)
+        elif args.utils == 'up-launch':
+            up_launch(lambdas_old, lambdas_new, args.config, 
+                      args.both, args.make)
     
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)
