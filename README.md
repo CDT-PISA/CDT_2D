@@ -45,30 +45,7 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
-- migliorare `--stop`
-	- ~~aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)~~
-	- ~~decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio) *irrilevante*~~
-
-- reset di log step
-	- inserire un comando che di default resetti a un valore non enorme, ma nemmeno quello iniziale
-	- inserire l'opzione per specificare il valore a cui resettare (come esponente di una potenza di 2)
-- risolvere il problema di `state` su ssh (che poi è un problema anche per `run` e `stop`)
-- localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
-- aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
-- pensare a cosa farsene dell'output (`nohup.out`)
-- migliorare `--plot`
-	- prende come argomenti `volumes` o `profiles`
-	- implementare `profiles`
-	- aggiungere l'opzione `-color` (quando sarà disponibili il subparser)
-		- specificando `choices`
-	- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
-- aggiungere funzione per vedere il numero di **binari** in ogni cartella
-	- in modo da cancellarli a mano
-		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
-		- poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)
-		- magari ogni 5 X stampo una V per contare meglio
-	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
-- stesso di cui sopra per i **checkpoint**
+- *richieste e prompt per qualunque cosa*
 - aggiungere gestione delle misure esistenti, in corso e nuove:
 	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
 		- per ora sono gestite in modo sensato ma è tutto silenziato
@@ -77,6 +54,32 @@ queste quelle davvero opzionali:
 - aggiungere richiesta di conferma per eliminare cartelle
 	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
 	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)
+
+- comando per ricaricare i launch_script
+	- forse inserirlo sotto `run`, forse indipendente, e forse entrambi
+- aggiungere funzione per vedere il numero di **binari** in ogni cartella
+	- in modo da cancellarli a mano
+		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
+		- poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)
+		- magari ogni 5 X stampo una V per contare meglio
+	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
+- stesso di cui sopra per i **checkpoint**
+- visualizzazione della **dimensione delle cartelle**
+
+- reset di log step
+	- inserire un comando che di default resetti a un valore non enorme, ma nemmeno quello iniziale
+	- inserire l'opzione per specificare il valore a cui resettare (come esponente di una potenza di 2)
+- localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
+- aggiungere in setup.sh il supporto per modificare la 'home/project/CDT_2D/' in '$PWD'
+- pensare a cosa farsene dell'output (`nohup.out`)
+
+- ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun (pezzi di json ad esempio)
+- migliorare `--plot`
+	- prende come argomenti `volumes` o `profiles`
+	- implementare `profiles`
+	- aggiungere l'opzione `-color` (quando sarà disponibili il subparser)
+		- specificando `choices`
+	- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
@@ -100,6 +103,7 @@ queste quelle davvero opzionali:
 - ~~migliorare `state.json`~~
 	- ~~aggiungere checkpoint da cui si parte~~
 	- ~~aggiungere numero di iterazioni?~~
+- ~~risolvere il problema di `state` su ssh (che poi è un problema anche per `run` e `stop`)~~
 - ~~data: $ per prendere dati~~
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
@@ -111,6 +115,9 @@ queste quelle davvero opzionali:
 		- ~~cerca ogni tot iterazioni se esiste 'stop' e nella sua cartella e se sì esce dal while e chiude normalmente~~
 - ~~assicurarsi che un processo quando viene stoppato si rimuova dalla lista di quelli stoppati prima di finire~~
 	- ~~altrimenti al run successivo non sarà più killabile~~
+- ~~migliorare `--stop`~~
+	- ~~aggiungere supporto per le altre piattaforme (**controllare se funziona su Pierino**)~~
+	- ~~decidere se ha senso fare i check ogni tot iterazioni (attualmente 2e5) oppure ogni tot tempo (forse meglio) *irrilevante*~~
 - ~~comando `--info` che stampi le informazioni relative a un Lambda, tipo quelle contenute nel json~~
 - ~~aggiungere i plot, almeno uno stupido~~
 	- ~~opzione `-p/--plot`~~

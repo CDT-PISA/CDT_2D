@@ -92,10 +92,10 @@ def end_parser(end_condition):
             end_condition *= 60*60
             
         if end_condition < 600:
-            end_partial = str(int(end_condition) + 1) + 's'
+            end_partial = str(int(end_condition)) + 's'
         elif end_condition < 1e4:
-            end_partial = str(int(end_condition // 5) + 1) + 's'
-        elif end_condition < 2e4:
+            end_partial = str(int(end_condition // 5)) + 's'
+        else:
             end_partial = '1h'
             
     elif last_char.isdigit or end_condition[-1] in ['k', 'M', 'G']:
@@ -112,11 +112,11 @@ def end_parser(end_condition):
                 end_condition *= int(1e9)
                 
         if end_condition < 6e7:
-            end_partial = end_condition + 10
+            end_partial = end_condition
         elif end_condition < 1e9:
-            end_partial = end_condition // 5 + 10
-        elif end_condition < 2e9:
-            end_partial = 1e5 * 3600 + 10
+            end_partial = end_condition // 5
+        else:
+            end_partial = 1e5 * 3600
             
         end_partial = str(int(end_partial))
     else:
@@ -162,9 +162,6 @@ def main():
     # END CONDITION MANIPULATION
     # needed for thermalization loop
     arguments[3], end_condition, end_type = end_parser(arguments[3])
-    
-    # @todo: da rimuovere quando risolverò il leak
-    arguments[3] = '5m'
     
     if not arguments[6] == '0':
         arguments[3] == end_condition

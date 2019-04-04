@@ -6,98 +6,27 @@
 """
 """
 
-from platform import node
-from os import chdir, popen, system, scandir
-from os.path import expanduser
-from numpy import linspace
-from lib.utils import find_all_availables, find_running, \
-                      recovery_history, clear_data, sim_info
-import lib.data as data_cdt
+from os import chdir, scandir
+from lib.utils import find_running
     
 def data(lambdas_old, lambdas_new, config, linear_history, time, steps):
-    data_cdt.launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
+    from lib.data import launch
+    launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
 
 def show(lambdas_old, lambdas_new):
-    data_cdt.show(lambdas_old, lambdas_new)
+    from lib.data import show
+    show(lambdas_old, lambdas_new)
     
 def clear(lambdas_old, lambdas_new, config):
+    from lib.utils import clear_data
+    
     clear_data(lambdas_old, config)
     if len(lambdas_new) > 0:
         print("Following lambdas not found: ", lambdas_new)
 
 def state(configs, full_show=False):
-    # @todo: add support for the other platforms
-    # @todo: for clusters: add 'pending' state
-    import pickle
-    from os import environ
-    
-    if not type(configs) == list:
-        configs = [configs]
-    
-    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-    else:
-        ps_out = []
-        print("This platform is still not supported")
-    
-    empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
-    if len(ps_out) > 1 and not empty:
-        print('   LAMBDA\t   TIME\t     STATUS\t CONFIG', end='')
-        if not full_show:
-            print()
-        else:
-            print('\t   RUN_ID    PID')
-        
-        lambdas_run_all, sim_all = find_running()
-        
-        d = {}
-        for config in configs:
-            lambdas_run_list = []
-            sim_list = []
-            for i in range(0, len(sim_all)):
-                if lambdas_run_all[i][1] == config:
-                    lambdas_run_list += [lambdas_run_all[i]]
-                    sim_list += [sim_all[i]]
-            d[config] = lambdas_run_list, sim_list
-    
-    for config in configs:
-        try:
-            with open('output/' + config + '/pstop.pickle','rb') as stop_file:
-                lambdas_stopped = pickle.load(stop_file)
-        except FileNotFoundError:
-            lambdas_stopped = []
-        
-        if len(ps_out) > 1 and not empty:
-            
-            lambdas_run_list, sim_list = d[config]
-            
-            for i in range(0,len(sim_list)):
-                lambdas_run = lambdas_run_list[i]
-                sim = sim_list[i]
-                Lambda = lambdas_run[0]
-                l_conf = lambdas_run[1]
-                if Lambda in lambdas_stopped:
-                    state = 'killed'
-                else:
-                    state = 'running'
-                print(str(Lambda).rjust(9), '\t', sim[0], '  ', state, '\t',
-                      l_conf, end='')
-                if not full_show:
-                    print()
-                else:
-                    print(' ', sim[1].rjust(10), '  ', sim[2])
-                        
-            lambdas_run = [x[0] for x in lambdas_run_list if x[1] == config]
-            l_aux = []
-            for Lambda in lambdas_stopped:
-                if Lambda in lambdas_run:
-                    l_aux += [Lambda]
-            lambdas_stopped = l_aux
-        else:
-            lambdas_stopped = []
-        
-        with open('output/' + config + '/pstop.pickle','wb') as stop_file:
-                pickle.dump(lambdas_stopped, stop_file)
+    from lib.utils import show_state
+    show_state(configs, full_show)
               
 def stop(lambdas_old, lambdas_new, config):
     # @todo: distinguere fra processi 'data' e 'test'
@@ -122,6 +51,7 @@ def stop(lambdas_old, lambdas_new, config):
     for Lambda in lambdas_run:
         if Lambda in lambdas_old and not Lambda in lambdas_stopped:
             lambdas_stopped += [Lambda]
+            from os import system
             from time import time
             from datetime import datetime
             sf = '%d-%m-%Y %H:%M:%S'
@@ -133,11 +63,15 @@ def stop(lambdas_old, lambdas_new, config):
             pickle.dump(lambdas_stopped, stop_file)
     
 def recovery(lambdas_old, lambdas_new, config):
+    from lib.utils import recovery_history
+    
     for Lambda in lambdas_old:
         chdir('output/' + config + '/Lambda' + str(Lambda))
         recovery_history()
         
 def info(lambdas_old, config):
+    from lib.utils import sim_info
+    
     if len(lambdas_old) == 0:
         print("Lambda non trovato") # da migliorare
     elif len(lambdas_old) == 1:
@@ -184,8 +118,8 @@ def plot(lambdas_old, lambdas_new, config):
     
 def lambdas_recast(lambda_list, is_range=False, is_all=False, 
                    config='test', cmd=show):
-    # @todo: quando sarà implementato a subparser '--show'
-    # avrà is_all = True di default
+    from lib.utils import find_all_availables
+    
     if len(lambda_list) == 0 and cmd == 'show':
         is_all = True
         
@@ -202,7 +136,8 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False,
                 extremes = lambda_list
                 lambdas_old = [x for x in all_lambdas \
                                if x >= extremes[0] and x <= extremes[1]]
-            elif len(lambda_list) == 3:
+            elif len(lambda_list) == 3:                
+                from numpy import linspace
                 lambdas = list(linspace(*lambda_list))
             else:
                 raise ValueError('Testo da scrivere (#arg è quello di un range!)')
@@ -217,6 +152,8 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False,
     
 import sys
 import argparse
+from os.path import expanduser
+from platform import node
 
 if(node() == 'Paperopoli'):
     import argcomplete
@@ -406,9 +343,9 @@ def main():
         args.config = 'data'
     
     if not hasattr(args, 'lambdas'):
-        lambdas = []  
+        lambdas = []
     else:
-       lambdas = args.lambdas 
+        lambdas = args.lambdas 
     if not hasattr(args, 'is_all'):
         args.is_all = False
     if not hasattr(args, 'is_range'):

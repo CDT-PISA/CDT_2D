@@ -81,6 +81,86 @@ def find_running():
     
     return lambdas_run, sim_info
 
+def show_state(configs, full_show=False):
+    # @todo: add support for the other platforms
+    # @todo: for clusters: add 'pending' state
+    import pickle
+    from os import environ
+    from datetime import datetime
+    from time import time
+    
+    if not type(configs) == list:
+        configs = [configs]
+    
+    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
+    else:
+        ps_out = []
+        print("This platform is still not supported")
+    
+    empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
+    if len(ps_out) > 1 and not empty:
+        print('   LAMBDA\t   TIME\t     STATUS\t CONFIG', end='')
+        if not full_show:
+            print()
+        else:
+            print('\t   RUN_ID    PID')
+        
+        lambdas_run_all, sim_all = find_running()
+        
+        d = {}
+        for config in configs:
+            lambdas_run_list = []
+            sim_list = []
+            for i in range(0, len(sim_all)):
+                if lambdas_run_all[i][1] == config:
+                    lambdas_run_list += [lambdas_run_all[i]]
+                    sim_list += [sim_all[i]]
+            d[config] = lambdas_run_list, sim_list
+    
+    for config in configs:
+        try:
+            with open('output/' + config + '/pstop.pickle','rb') as stop_file:
+                lambdas_stopped = pickle.load(stop_file)
+        except FileNotFoundError:
+            lambdas_stopped = []
+        
+        if len(ps_out) > 1 and not empty:
+            
+            lambdas_run_list, sim_list = d[config]
+            
+            for i in range(0,len(sim_list)):
+                lambdas_run = lambdas_run_list[i]
+                sim = sim_list[i]
+                Lambda = lambdas_run[0]
+                l_conf = lambdas_run[1]
+                if Lambda in lambdas_stopped:
+                    state = 'killed'
+                else:
+                    state = 'running'
+                print(str(Lambda).rjust(9), '\t', sim[0], '  ', state, '\t',
+                      l_conf, end='')
+                if not full_show:
+                    print()
+                else:
+                    print(' ', sim[1].rjust(10), '  ', sim[2])
+                        
+            lambdas_run = [x[0] for x in lambdas_run_list if x[1] == config]
+            l_aux = []
+            for Lambda in lambdas_stopped:
+                if Lambda in lambdas_run:
+                    l_aux += [Lambda]
+            lambdas_stopped = l_aux
+        else:
+            lambdas_stopped = []
+        
+        with open('output/' + config + '/pstop.pickle','wb') as stop_file:
+                pickle.dump(lambdas_stopped, stop_file)
+        
+    if len(ps_out) > 1 and not empty:
+        clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
+        print('\n [CLOCK: ' + clock + ']')
+
 def sim_info(Lambda, config):
     chdir('output/' + config + '/Lambda' + str(Lambda))
     
