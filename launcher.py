@@ -6,181 +6,111 @@
 """
 """
 
-from os import chdir, scandir
-from lib.utils import find_running
-    
-def data(lambdas_old, lambdas_new, config, linear_history, time, steps):
-    from lib.data import launch
-    launch(lambdas_old, lambdas_new, config, linear_history, time, steps)
+__all__ = []
+__version__ = '0.2'
+__author__ = 'Alessandro Candido'
 
-def show(lambdas_old, lambdas_new):
-    from lib.data import show
-    show(lambdas_old, lambdas_new)
-    
-def clear(lambdas_old, lambdas_new, config):
-    from lib.utils import clear_data
-    
-    clear_data(lambdas_old, config)
-    if len(lambdas_new) > 0:
-        print("Following lambdas not found: ", lambdas_new)
+# Useful on running
+
+def data(lambdas_old, lambdas_new, config, linear_history, time, steps, force):
+    from lib.data import launch
+    launch(lambdas_old, lambdas_new, config, linear_history, time, steps, force)
 
 def state(configs, full_show=False):
-    from lib.utils import show_state
+    from lib.data import show_state
     show_state(configs, full_show)
-              
-def stop(lambdas_old, lambdas_new, config):
-    # @todo: distinguere fra processi 'data' e 'test'
-    # si fa con un argomento config che viene da args.is_data
-    import pickle
+
+def stop(lambdas_old, lambdas_new, config, is_all):
+    from lib.data import stop
     
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
-        
-    try:
-        with open('output/' + config + '/pstop.pickle','rb') as stop_file:
-            lambdas_stopped = pickle.load(stop_file)
-    except FileNotFoundError:
-        lambdas_stopped = []
-        
-    l_aux = []
-    for Lambda in lambdas_stopped:
-        if Lambda in lambdas_run:
-            l_aux += [Lambda]
-    lambdas_stopped = l_aux
-            
-    for Lambda in lambdas_run:
-        if Lambda in lambdas_old and not Lambda in lambdas_stopped:
-            lambdas_stopped += [Lambda]
-            from os import system
-            from time import time
-            from datetime import datetime
-            sf = '%d-%m-%Y %H:%M:%S'
-            system('echo ' + datetime.fromtimestamp(time()).strftime(sf) +
-                   ' > output/' + config + '/Lambda' + str(Lambda) + '/stop')
-            # forse '.stop' anzichè 'stop'
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    stop(lambdas_old, config, is_all)
     
-    with open('output/' + config + '/pstop.pickle','wb') as stop_file:
-            pickle.dump(lambdas_stopped, stop_file)
+# Useful offline
+    
+def show(lambdas_old, lambdas_new, config):
+    from lib.data import show
+    show(lambdas_old, config)
             
 def plot(lambdas_old, lambdas_new, config):
-    from matplotlib.pyplot import subplots, show
-    from numpy import loadtxt
+    from lib.data import plot
     
-    indices, volumes = loadtxt('output/' + config + '/Lambda' + str(lambdas_old[0]) + 
-                               '/history/volumes.txt', unpack=True)
-    
-    fig, ax = subplots()
-    ax.plot(indices, volumes, color='xkcd:carmine')
-    
-    def on_key(event):
-        if event.key == 'f5':
-            ind_aux, vol_aux = loadtxt('output/' + config + '/Lambda' +
-                                       str(lambdas_old[0]) + '/history/volumes.txt', 
-                                       unpack=True, skiprows=on_key.skip)
-            
-            if type(vol_aux) != float and len(vol_aux) > 5:
-                on_key.skip += len(vol_aux)
-                ax.plot(ind_aux, vol_aux, color='xkcd:carmine')
-                fig.canvas.draw()
-    on_key.skip = len(volumes)
-
-    fig.canvas.mpl_connect('key_press_event', on_key)
-    show()
-    
-def recovery(lambdas_old, lambdas_new, config):
-    from lib.utils import recovery_history
-    
-    for Lambda in lambdas_old:
-        chdir('output/' + config + '/Lambda' + str(Lambda))
-        recovery_history()
-        
-def info(lambdas_old, config):
-    from lib.utils import sim_info
-    
-    if len(lambdas_old) == 0:
-        print("Lambda non trovato") # da migliorare
-    elif len(lambdas_old) == 1:
-        sim_info(lambdas_old[0], config)
-    else:
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    if len(lambdas_old) > 0:
         print()
-        
-def therm(lambdas_old, config, is_therm):
-    import json
+    plot(lambdas_old, config)
+
+# Utilities
     
-    for Lambda in lambdas_old:
-        filename = 'output/' + config + '/Lambda' + str(Lambda) + '/state.json'
-        with open(filename, 'r') as state_file:
-            state = json.load(state_file)
-            state['is_thermalized'] = eval(is_therm)
-            
-        with open(filename, 'w') as state_file:
-            json.dump(state, state_file, indent=4)
-            
-def up_launch(lambdas_old, lambdas_new, config, both, make):
-    from os import getcwd
-    from shutil import copyfile
+def clear(lambdas_old, lambdas_new, config, force):
+    from lib.data import clear_data
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    clear_data(lambdas_old, config, force)
+
+def recovery(lambdas_old, lambdas_new, config, force):
+    from os import getcwd, chdir
+    from lib.data import recovery_history
+    from lib.utils import authorization_request
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_news)
+    if len(lambdas_old) > 0:
+        print()
     
     proj_dir = getcwd()
     
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
-        
-    for l in lambdas_old:
-        if l not in lambdas_run:
-            chdir('output/' + config + '/Lambda' + str(l))
-            if both or make:
-                make_script_name = 'make_' + str(l) + '.py'  
-                copyfile('../../../lib/make_script.py', make_script_name)
-            if both or not make:
-                launch_script_name = 'launch_' + str(l) + '.py' 
-                copyfile('../../../lib/launch_script.py', launch_script_name) 
-            chdir(proj_dir) 
-    
-def lambdas_recast(lambda_list, is_range=False, is_all=False, 
-                   config='test', cmd=show):
-    from lib.utils import find_all_availables
-    
-    if len(lambda_list) == 0 and cmd == 'show':
-        is_all = True
-        
-    lambdas = []
-    lambdas_old = []
-    lambdas_new = []
-    all_lambdas = find_all_availables(config)
-    
-    if is_all:
-        lambdas_old = all_lambdas
-    else:
-        if is_range:
-            if len(lambda_list) == 2:
-                extremes = lambda_list
-                lambdas_old = [x for x in all_lambdas \
-                               if x >= extremes[0] and x <= extremes[1]]
-            elif len(lambda_list) == 3:                
-                from numpy import linspace
-                lambdas = list(linspace(*lambda_list))
-            else:
-                raise ValueError('Testo da scrivere (#arg è quello di un range!)')
+    for Lambda in lambdas_old:
+        if not config == 'test' and not force:
+            what_to_do = "to recovery simulation data"
+            authorized = authorization_request(what_to_do, Lambda)
         else:
-            lambdas = lambda_list
+            authorized = True
+        if authorized:
+            chdir('output/' + config + '/Lambda' + str(Lambda))
+            recovery_history()
+            chdir(proj_dir) 
+        
+def info(lambdas_old, config):
+    from lib.data import sim_info
+    
+    if len(lambdas_old) == 0:
+        print("λ not found") # da migliorare
+    elif len(lambdas_old) == 1:
+        sim_info(lambdas_old[0], config)
+        
+def therm(lambdas_old, lambdas_new, config, is_therm, force):
+    from lib.data import therm
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    if len(lambdas_old) > 0:
+        print()
+    therm(lambdas_old, config, is_therm, force)
             
-    if len(lambdas) > 0:
-        lambdas_old = [x for x in lambdas if x in all_lambdas]
-        lambdas_new = [x for x in lambdas if x not in lambdas_old]
-            
-    return lambdas_old, lambdas_new
+def up_launch(lambdas_old, lambdas_new, config, both, make, force):
+    from lib.data import up_launch
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    if len(lambdas_old) > 0:
+        print()
+    up_launch(lambdas_old, config, both, make, force)
     
 import sys
 import argparse
-from os.path import expanduser
+from os import chdir, scandir
+from os.path import dirname, realpath
 from platform import node
 
 if(node() == 'Paperopoli'):
     import argcomplete
 
 def main():
-
-    chdir(expanduser('~/projects/CDT_2D'))
+    chdir(dirname(realpath(__file__)))
     
     parser = argparse.ArgumentParser(description='Manage CDT_2D simulations.')
     
@@ -198,14 +128,15 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = False
     
-    parser.add_argument('--version', action='version', version='CDT_2D 0.2')
+    parser.add_argument('--version', action='version', version='CDT_2D ' +
+                        'Pure Gravity: ' + __version__)
     configs = [x.name for x in scandir('output') if x.is_dir()]
     
     # run command
     
     run_sub = subparsers.add_parser('run', help='run')
     run_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     run_sub.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
     run_sub.add_argument('-@', dest='is_data', action='store_true', 
@@ -213,6 +144,7 @@ def main():
                         (the '-' in front is not needed)")
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    run_sub.add_argument('-f', '--force', action='store_true', help='force')
     run_sub.add_argument('--linear-history', default='0',
                         help="it takes an integer argument, that if set greater \
                         then zero let data points be saved at regular intervals, \
@@ -251,14 +183,14 @@ def main():
                         (the '-' in front is not needed)")
     state_sub.add_argument('-c', '--config', choices=configs, default=configs,
                            ifcall='test', action=ConfigAction, help='config')
-    state_sub.add_argument('-f', '--full-show', action='store_true',
-                           help='full-show')
+    state_sub.add_argument('-f', '--full-show', choices=['1','2'], default='0',
+                           ifcall='1', action=ConfigAction, help='full-show')
     
     # stop command
     
     stop_sub = subparsers.add_parser('stop', help='stop')
     stop_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     lambdas = stop_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
@@ -274,7 +206,7 @@ def main():
     
     show_sub = subparsers.add_parser('show', help='show')
     show_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     lambdas = show_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
@@ -286,27 +218,11 @@ def main():
     show_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     
-    # clear command
-    
-    clear_sub = subparsers.add_parser('clear', help='clear')
-    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
-    lambdas = clear_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true', 
-                         help='range')
-    lambdas.add_argument('-°', dest='is_all', action='store_true', 
-                                    help="all (the '-' in front is not needed)")
-    clear_sub.add_argument('-@', dest='is_data', action='store_true', 
-                        help="data configuration flag \
-                        (the '-' in front is not needed)")
-    clear_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
-    
     # plot command
     
     plot_sub = subparsers.add_parser('plot', help='plot')
     plot_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     plot_sub.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
     plot_sub.add_argument('-@', dest='is_data', action='store_true', 
@@ -317,14 +233,32 @@ def main():
     
     # utilities subparser
     
-    utils = subparsers.add_parser('utils', help='utilities')
-    utils_sub = utils.add_subparsers(dest='utils')
+    tools = subparsers.add_parser('tools', help='tools for simulation\
+                                  management')
+    tools_sub = tools.add_subparsers(dest='tools')
+    
+    # clear command
+    
+    clear_sub = tools_sub.add_parser('clear', help='clear')
+    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='λ values')
+    lambdas = clear_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    clear_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    clear_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    clear_sub.add_argument('-f', '--force', action='store_true', help='force')
     
     # recovery command
     
-    recovery_sub = utils_sub.add_parser('recovery', help='recovery')
+    recovery_sub = tools_sub.add_parser('recovery', help='recovery')
     recovery_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     lambdas = recovery_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
@@ -335,12 +269,13 @@ def main():
                         (the '-' in front is not needed)")
     recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    recovery_sub.add_argument('-f', '--force', action='store_true', help='force')
     
     # info command
     
-    info_sub = utils_sub.add_parser('info', help='info on a sim')
+    info_sub = tools_sub.add_parser('info', help='info on a sim')
     info_sub.add_argument('lambdas', metavar='L', nargs=1, type=float, 
-                         help='lambdas')
+                         help='λ values')
     info_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
@@ -349,23 +284,24 @@ def main():
     
     # thermalization command
     
-    therm_sub = utils_sub.add_parser('set-therm', help='set thermalisation')
+    therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation')
     therm_sub.add_argument('lambdas', metavar='L', nargs='+', type=float, 
-                         help='lambdas')
+                         help='λ values')
     therm_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
     therm_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    therm_sub.add_argument('-f', '--force', action='store_true', help='force')
     therm_sub.add_argument('-t', '--is-therm', default='True', 
                            choices=['True', 'False'], help='thermalization')
     
     # thermalization command
     
-    launch_sub = utils_sub.add_parser('up-launch', 
+    launch_sub = tools_sub.add_parser('up-launch', 
                                      help='update launch/make_script')
     launch_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='lambdas')
+                         help='λ values')
     lambdas = launch_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
@@ -376,6 +312,7 @@ def main():
                         (the '-' in front is not needed)")
     launch_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    launch_sub.add_argument('-f', '--force', action='store_true', help='force')
     script = launch_sub.add_mutually_exclusive_group()
     script.add_argument('-m', '--make', action='store_true',
                         help='update make_script instead')
@@ -399,37 +336,38 @@ def main():
         args.is_range = False
     
     if not args.command == 'state':
+        from lib.utils import lambdas_recast
         lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range, 
                                                   args.is_all, args.config,
                                                   args.command)
         
     if args.command == 'run':
         data(lambdas_old, lambdas_new, args.config, args.linear_history,
-             args.time, args.steps)
+             args.time, args.steps, args.force)
         
     elif args.command == 'state':
 #        print(args)
         state(args.config, args.full_show)
     
     elif args.command == 'stop':
-        stop(lambdas_old, lambdas_new, args.config)
+        stop(lambdas_old, lambdas_new, args.config, args.is_all)
         
     elif args.command == 'show':
-        show(lambdas_old, lambdas_new)
-        
-    elif args.command == 'clear':
-        clear(lambdas_old, lambdas_new, args.config)
+        show(lambdas_old, lambdas_new, args.config)
     
-    elif args.command == 'utils':
-        if args.utils == 'recovery':
-            recovery(lambdas_old, lambdas_new, args.config)
-        elif args.utils == 'info':
+    elif args.command == 'tools':
+        if args.tools == 'clear':
+            clear(lambdas_old, lambdas_new, args.config, args.force)
+        elif args.tools == 'recovery':
+            recovery(lambdas_old, lambdas_new, args.config, args.force)
+        elif args.tools == 'info':
             info(lambdas_old, args.config)
-        elif args.utils == 'set-therm':
-            therm(lambdas_old, args.config, args.is_therm)
-        elif args.utils == 'up-launch':
+        elif args.tools == 'set-therm':
+            therm(lambdas_old, lambdas_new, args.config, args.is_therm,
+                  args.force)
+        elif args.tools == 'up-launch':
             up_launch(lambdas_old, lambdas_new, args.config, 
-                      args.both, args.make)
+                      args.both, args.make, args.force)
     
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)

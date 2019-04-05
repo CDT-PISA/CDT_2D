@@ -4,13 +4,46 @@
 """
 Collection of useful functions for CDT_2D project
 """
-from os import scandir, chdir, popen
-from re import search, split
+from os import scandir, popen
+from re import search
 from platform import node
-from shutil import rmtree
 from math import floor, log10
 
-def find_all_availables(config="data", dir_prefix="Lambda"):
+def lambdas_recast(lambda_list, is_range=False, is_all=False, 
+                   config='test', cmd=''):
+    from lib.utils import find_all_availables
+    
+    if len(lambda_list) == 0 and cmd == 'show':
+        is_all = True
+        
+    lambdas = []
+    lambdas_old = []
+    lambdas_new = []
+    all_lambdas = find_all_availables(config)
+    
+    if is_all:
+        lambdas_old = all_lambdas
+    else:
+        if is_range:
+            if len(lambda_list) == 2:
+                extremes = lambda_list
+                lambdas_old = [x for x in all_lambdas \
+                               if x >= extremes[0] and x <= extremes[1]]
+            elif len(lambda_list) == 3:                
+                from numpy import linspace
+                lambdas = list(linspace(*lambda_list))
+            else:
+                raise ValueError('Testo da scrivere (#arg è quello di un range!)')
+        else:
+            lambdas = lambda_list
+            
+    if len(lambdas) > 0:
+        lambdas_old = [x for x in lambdas if x in all_lambdas]
+        lambdas_new = [x for x in lambdas if x not in lambdas_old]
+            
+    return list(set(lambdas_old)), list(set(lambdas_new))
+
+def find_all_availables(config='data', dir_prefix='Lambda'):
     """Find all lambdas for which a simulation has been already run
 
     Parameters
@@ -59,7 +92,7 @@ def find_running():
                 PID = pinfos[1]
                 PPID = pinfos[2]
                 lambdas_run += [[Lambda]]
-                sim_info += [[start_time, run_id, PID]]
+                sim_info += [[start_time, run_id, PID, PPID]]
                 PPID_list += [PPID]
                 
         for line in ps_out[1:]:
@@ -81,167 +114,34 @@ def find_running():
     
     return lambdas_run, sim_info
 
-def show_state(configs, full_show=False):
-    # @todo: add support for the other platforms
-    # @todo: for clusters: add 'pending' state
-    import pickle
-    from os import environ
-    from datetime import datetime
-    from time import time
+def authorization_request(what_to_do='', Lambda=None):
+    import readline
     
-    if not type(configs) == list:
-        configs = [configs]
-    
-    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-    else:
-        ps_out = []
-        print("This platform is still not supported")
-    
-    empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
-    if len(ps_out) > 1 and not empty:
-        print('   LAMBDA\t   TIME\t     STATUS\t CONFIG', end='')
-        if not full_show:
+    if not Lambda == None:
+        print("(λ = " + str(Lambda) + ") ", end='')
+    print("Do you really want " + what_to_do + "? [y/n]")
+    authorized = False
+    ans_recog = False
+    count = 0
+    while not ans_recog and count < 3:
+        count += 1
+        try:
+            ans = input('--> ')
+        except EOFError:
             print()
-        else:
-            print('\t   RUN_ID    PID')
-        
-        lambdas_run_all, sim_all = find_running()
-        
-        d = {}
-        for config in configs:
-            lambdas_run_list = []
-            sim_list = []
-            for i in range(0, len(sim_all)):
-                if lambdas_run_all[i][1] == config:
-                    lambdas_run_list += [lambdas_run_all[i]]
-                    sim_list += [sim_all[i]]
-            d[config] = lambdas_run_list, sim_list
-    
-    for config in configs:
-        try:
-            with open('output/' + config + '/pstop.pickle','rb') as stop_file:
-                lambdas_stopped = pickle.load(stop_file)
-        except FileNotFoundError:
-            lambdas_stopped = []
-        
-        if len(ps_out) > 1 and not empty:
-            
-            lambdas_run_list, sim_list = d[config]
-            
-            for i in range(0,len(sim_list)):
-                lambdas_run = lambdas_run_list[i]
-                sim = sim_list[i]
-                Lambda = lambdas_run[0]
-                l_conf = lambdas_run[1]
-                if Lambda in lambdas_stopped:
-                    state = 'killed'
-                else:
-                    state = 'running'
-                print(str(Lambda).rjust(9), '\t', sim[0], '  ', state, '\t',
-                      l_conf, end='')
-                if not full_show:
-                    print()
-                else:
-                    print(' ', sim[1].rjust(10), '  ', sim[2])
-                        
-            lambdas_run = [x[0] for x in lambdas_run_list if x[1] == config]
-            l_aux = []
-            for Lambda in lambdas_stopped:
-                if Lambda in lambdas_run:
-                    l_aux += [Lambda]
-            lambdas_stopped = l_aux
-        else:
-            lambdas_stopped = []
-        
-        with open('output/' + config + '/pstop.pickle','wb') as stop_file:
-                pickle.dump(lambdas_stopped, stop_file)
-        
-    if len(ps_out) > 1 and not empty:
-        clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
-        print('\n [CLOCK: ' + clock + ']')
-
-def sim_info(Lambda, config):
-    chdir('output/' + config + '/Lambda' + str(Lambda))
-    
-    import json
-    
-    with open('state.json', 'r') as state_file:
-            state = json.load(state_file)
-            
-    print(json.dumps(state, indent=4)[1:-1])
-    
-
-def recovery_history():
-    """
-    assume di essere chiamata nella cartella corretta
-    
-    @todo: aggiungere check, se fallisce risponde che è nel posto sbagliato
-    e non fa nulla
-    """
-    import json
-    
-    with open('state.json', 'r') as state_file:
-            state = json.load(state_file)
-    succesful = state['last_run_succesful']
-    run_num = state['run_done']
-    iter_done = state['iter_done']
-    
-    checkpoints = [x.name for x in scandir("checkpoint") \
-                   if split('_|\.|run', x.name)[1] == str(run_num)]
-    checkpoints.sort()
-    if not succesful:
-        if checkpoints[-1][-4:] == '.tmp':
-            from numpy import loadtxt, savetxt
-            vol_file = loadtxt('history/volumes.txt', dtype=int)
-            pro_file = loadtxt('history/profiles.txt', dtype=int)
-            vol_file = vol_file[vol_file[:,0] < iter_done]
-            pro_file = pro_file[pro_file[:,0] < iter_done]
-            savetxt('history/volumes.txt', vol_file, fmt='%d',
-                    header='iteration[0] - volume[1]\n')
-            savetxt('history/profiles.txt', pro_file, fmt='%d',
-                    header='iteration[0] - profile[1:]\n')
-
-def clear_data(lambdas, config='test'):
-    """Remove data for a given value of lambda
-
-    Parameters
-    ----------
-    Lambda : float
-        the parameter of the simulation whose data you want to remove
-    """
-    from inspect import cleandoc
-    
-    for Lambda in lambdas:
-        try:
-            if not config == 'test':
-                import readline
-                print(cleandoc("""Do you really want to remove simulation
-                      folder for Lambda = """) + str(Lambda) + " ? [y/n]")
-                authorized = False
-                ans_recog = False
-                count = 0
-                while not ans_recog and count < 3:
-                    count += 1
-                    ans = input('--> ')
-                    ans_recog = True
-                    if ans != 'y' and ans != 'n':
-                        ans_recog = False
-                        print('Answer not recognized', end='')
-                        if count < 3:
-                            print(', type it again [y/n]')
-                        else:
-                            print()
-                    elif ans == 'y':
-                        authorized = True
+            ans = 'n'
+        ans_recog = True
+        if ans != 'y' and ans != 'n':
+            ans_recog = False
+            print('Answer not recognized', end='')
+            if count < 3:
+                print(', type it again [y/n]')
             else:
-                    authorized = True
-            if authorized:
-                rmtree("output/" + config + "/Lambda"+str(Lambda))
-        except FileNotFoundError:
-            all_lambdas = find_all_availables()
-            raise ValueError("A folder with the given lambda it doesn't exist"+
-                             "\n\t\t\t all_lambdas: " + str(all_lambdas))
+                print()
+        elif ans == 'y':
+            authorized = True
+            
+    return authorized
 
 s = {-9: 'n',
      -6: 'u',

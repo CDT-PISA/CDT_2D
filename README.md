@@ -7,14 +7,12 @@ My own implementation of CDT in 1+1 dimension
 - Aggiustare `modules` su `marconi` con Giuseppe
 	- `module load python`, piazzarlo da qualche parte (magari in `.bashrc`)
 - Copiare script SBATCH
-- inviare un email anche quando entra (launch_script controlla di essere su Marconi e nel caso manda una mail)
 - comandi appositi per *invadere* un nodo (48 simulazioni)
 - cmake usi `icc` con le flag per skylake
 	- forse devo far fare cose a proposito a make_script
 
 **GRID**
 - Installare python3, ipython, matplotlib sul mio user
-- Aggiustare `~` con il path alla home su `grid`
 
 #### Simulazione
 
@@ -36,7 +34,6 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 			- --> guida alla simulazione (C++)
 			- --> guida all'interfaccia (Python)
 - scrivere la funzione di termalizzazione
-	- prima finire i test sul funzionamento del resto
 - **reset di log step**
 	- inserire un comando che resetti
 		- di default  a un valore non enorme, ma nemmeno quello iniziale
@@ -54,19 +51,7 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
-- *richieste e prompt per qualunque cosa*
-- aggiungere gestione delle misure esistenti, in corso e nuove:
-	- quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma
-		- per ora sono gestite in modo sensato ma è tutto silenziato
-		- la cosa importante da aggiungere sarebbe il feedback all'utente
-	- specificando che ovviamente quelle in corso non le tocca
-- aggiungere richiesta di conferma per *eliminare le simulazioni*
-	- prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?
-	- aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)
-
-- se non esiste la simulazione `plot`
-
-- aggiungere funzione per vedere il numero di **binari** in ogni cartella
+- aggiungere funzione per vedere la dimensione dei **binari** in ogni cartella
 	- in modo da cancellarli a mano
 		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
 		- poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)
@@ -74,6 +59,10 @@ queste quelle davvero opzionali:
 	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
 - stesso di cui sopra per i **checkpoint**
 - visualizzazione della **dimensione delle cartelle**
+	- magari un opzione di show
+
+- update programmati: quando lancio un update se la simulazione è running si prende il PPID e lancia un update quando muore il python corrispondente
+	- se faccio nuovamente update prima che abbia completato sostituisce l'update vecchio col nuovo
 
 - UPLOAD e DOWNLOAD di simulazioni
 	- con Drive/Dropbox (`rclone`)
@@ -89,11 +78,14 @@ queste quelle davvero opzionali:
 - ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun
 	- pezzi di json ad esempio (cioè lo aggiorno)
 - migliorare `--plot`
-	- prende come argomenti `volumes` o `profiles`
-	- implementare `profiles`
-	- aggiungere l'opzione `-color` (quando sarà disponibili il subparser)
-		- specificando `choices`
+	- implementare `profiles` come subparser
+	- aggiungere l'opzione `-color`
+		- specificando `choices` (cioè il ciclo standard che ci metterò)
+		- oppure specificando un numero, che lo shift da cui partire
+	- implementare `fit` come subparser
+		- leggere Ambjorn per trovare la funzione da fittare
 	- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
+	- plot animati (`matplotlib.animation`)
 - `argomplete` e gli alias
 	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
 	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
@@ -137,6 +129,9 @@ queste quelle davvero opzionali:
 	- ~~opzione `-p/--plot`~~
 	- ~~implementare intanto `volumes`~~
 	- ~~plot interattivi~~
+- ~~F5 SU PLOT MULTIPLI~~
+	- ~~colori ciclici per plot multipli~~
+- ~~se non esiste la simulazione, `plot` da errore, bisogna rimediare (devono rispondere che non c'è senza Traceback)~~
 - ~~gestione run *falliti*~~
 	- ~~se la simulazione C++ fallisce, in fondo a launch_script:~~
 		- ~~sceglie qual'è l'ultimo checkpoint utile~~
@@ -179,6 +174,19 @@ queste quelle davvero opzionali:
 	- ~~se termalizzato già al run precedente setta `--linear-history` (o equivalente) di default~~
 		- ~~lo fa subito all'inizio di `launch_script`~~
 	- ~~salvare l'informazione su quali run vengono fatti con `--linear-history` e da che iterazione parte ogni run~~
+- ~~aggiungere gestione delle misure esistenti, in corso e nuove:~~
+	- ~~quando chiedi di lanciarle ti prompta indietro lo specchietto e ti chiede conferma~~
+		- ~~per ora sono gestite in modo sensato ma è tutto silenziato~~
+		- ~~la cosa importante da aggiungere sarebbe il feedback all'utente~~
+	- ~~specificando che ovviamente quelle in corso non le tocca~~
+- ~~aggiungere richiesta di conferma per *eliminare le simulazioni*~~
+	- ~~prima stampa tutti i lambda e poi ti chiede: sei davvero sicuro?~~
+	- ~~aggiungere opzione `-f` per evitare interazione (magari che funzioni genericamente per ogni comando, esempio: anche quando --data dovrebbe chiederti come agire per i processi attivi o comunque promptarti, con `-f` evita)~~
+- ~~aggiungere in `state -f` (li va a prendere dal json)~~
+	- ~~'start_time' (del run) e il tempo per cui è stata lanciata~~
+	- ~~se 'linear-history' è attivata~~
+	- ~~aggiungere `state -f 2` (ti va vedere altre info ulteriori)~~
+		- ~~dice quanto è piena la cartella~~
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.

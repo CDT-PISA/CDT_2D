@@ -146,18 +146,45 @@ def main():
     Lambda_str = argv[2]
     arguments = argv[1:]
     
+    if(node() == 'gridui3.pi.infn.it' or node()[0:4] == 'r000'):
+        import smtplib
+        from email.message import EmailMessage
+        
+        if int(run_num) > 1:
+            with open('state.json', 'r') as state_file:
+                state = json.load(state_file)
+        else:
+            state = {'Lambda': float(Lambda_str), 'run_done': 0}
+            
+        msg = EmailMessage()
+        msg.set_content(json.dumps(state, indent=4)[1:-1])
+        msg['Subject'] = "Lambda" + Lambda_str + " inizia il run " + run_num
+        msg['From'] = "cdt2d.email@gmail.com"
+        msg['To'] = "candido.ale@gmail.com"
+        
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        # quando uno c'ha sbatta sarebbe carino trovare il modo di criptare
+        # la password
+        server.login("cdt2d.email", "ciao_ciao")
+        server.sendmail(msg)
+        server.quit()
+        
+    # IMPORT FROM LIB
+    from sys import path
+    from os.path import realpath
+    path += [realpath('../../..')] # CDT_2D project_folder
+    from lib.analysis import is_thermalized
+    
     if int(run_num) > 1:
         with open('state.json', 'r') as state_file:
             state = json.load(state_file)
             
         if state['is_thermalized'] and arguments[6] == '0':
             arguments[6] = '1M'
-    
-    # IMPORT FROM LIB
-    from sys import path
-    from os.path import expanduser
-    path += [expanduser('~/projects/CDT_2D/lib')]
-    from analysis import is_thermalized
+    else:
+        state = {'Lambda': float(Lambda_str), 'run_done': 0, 
+                 'is_thermalized': False, 'last_checkpoint': None,
+                 'iter_done': 0}
     
     # END CONDITION MANIPULATION
     # needed for thermalization loop
@@ -169,10 +196,13 @@ def main():
     # is necessary to recompile each run because on the grid the launch node
     # could be different from run_node
     exe_name = "CDT_2D-Lambda" + Lambda_str + "_run" + run_num
-        
 
     start_record = time()
     start_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
+    state['start_time'] = start_time
+    state['linear-history'] = not (arguments[6] == '0')
+    with open('state.json', 'w') as state_file:
+        json.dump(state, state_file, indent=4)
     
     run_id = str(run_num)
     log_header(run_id)
@@ -207,19 +237,9 @@ def main():
                 end_run = iter_done > end_condition
         
     end_time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y %H:%M:%S')
-    
-    if int(run_num) > 1:
-        with open('state.json', 'r') as state_file:
-            state = json.load(state_file)
-        remove('state.json')
-    else:
-        state = {'Lambda': float(Lambda_str), 'run_done': 0, 
-                 'is_thermalized': is_thermalized(), 'last_run_succesful': True, 
-                 'last_checkpoint': None, 'iter_done': 0}
 
     with open('state.json', 'w') as state_file:
         state['last_run_succesful'] = succesful
-        state['start_time'] = start_time
         state['end_time'] = end_time
         state['run_done'] += 1
         state['iter_done'] = int(iter_done)
