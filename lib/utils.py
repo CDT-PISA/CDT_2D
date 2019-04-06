@@ -40,8 +40,13 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False,
     if len(lambdas) > 0:
         lambdas_old = [x for x in lambdas if x in all_lambdas]
         lambdas_new = [x for x in lambdas if x not in lambdas_old]
-            
-    return list(set(lambdas_old)), list(set(lambdas_new))
+           
+    lambdas_old = list(set(lambdas_old))
+    if len(lambdas_old) > 0: lambdas_old.sort()
+    lambdas_new = list(set(lambdas_new))
+    if len(lambdas_new) > 0: lambdas_new.sort()
+    
+    return lambdas_old, lambdas_new
 
 def find_all_availables(config='data', dir_prefix='Lambda'):
     """Find all lambdas for which a simulation has been already run

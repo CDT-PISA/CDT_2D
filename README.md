@@ -51,23 +51,21 @@ In realtà queste possono essere implementate dopo la v1.0, ma è necessario far
 
 queste quelle davvero opzionali:
 
-- aggiungere funzione per vedere la dimensione dei **binari** in ogni cartella
-	- in modo da cancellarli a mano
-		- la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari
-		- poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)
-		- magari ogni 5 X stampo una V per contare meglio
-	- inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)
-- stesso di cui sopra per i **checkpoint**
-- visualizzazione della **dimensione delle cartelle**
-	- magari un opzione di show
+- riparare `recovery`:
+	- la 0.693 ha un problema (a un certo punto va all'indietro, e avendo fatto un run3 microscopico e un run2 enorme è chiaramente il run3 che è ripartito da un checkpoint precedente all'ultimo)
+	- dovrebbe essere riparabile con `recovery` ma non sta funzionando
 
 - update programmati: quando lancio un update se la simulazione è running si prende il PPID e lancia un update quando muore il python corrispondente
 	- se faccio nuovamente update prima che abbia completato sostituisce l'update vecchio col nuovo
 
+- json di progetto con configurazioni globali settate dall'utente (email, rclone remote)
+
 - UPLOAD e DOWNLOAD di simulazioni
 	- con Drive/Dropbox (`rclone`)
+		- `setup.sh` deve chiedere di fornire una configurazione valida di rclone a cui agganciarsi
+		- per evitare casini è meglio che lo indichi semplicemente all'utente (senza far partire lui rclone, che potrebbe anche non essere installato)
+			- se l'utente non configura rclone il campo nel json di progetto rimane al default, e i comandi UPLOAD e DOWNLOAD rimangono disattivati
 	- o via ssh (`scp`)
-- localizzare gli import che servono in uno o pochi casi in modo da non importare quando non serve
 - aggiungere in setup.sh
 	- la modifica di 'home/project/CDT_2D/' in '$PWD'
 	- fa richiesta di un indirizzo email per ricezione e lo mette al posto di "candido.ale@gmail.com"
@@ -92,7 +90,23 @@ queste quelle davvero opzionali:
 	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
 - aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 
-### Done
+## Versions
+Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
+Quando sarà pronta e 'bella' per prendere dati rilascerò la versione 1.0, nel frattempo sviluppo anche le seguenti.
+
+Quando comincerò a sviluppare le cose seguenti lo farò in dei nuovi `branch`, quando saranno pronti verranno reinseriti in `master` come 2.0 e 3.0.
+
+Ogni nuova versione viene rilasciata con un `tag`, e sarebbe bello che per ogni tag fosse anche pronta la documentazione.
+
+### Termalizzazione
+
+### Campi di materia
+
+Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporre un volume fissato, rinunciando a $\lambda$.
+
+**COPIARE QUELLO CHE SI E' DETTO CON GIUSEPPE E D'ELIA E FINIRE DI CONTROLLARE COME IMPLEMENTARE BILANCIO DETTAGLIATO**
+
+## Done
 
 ~~ALIAS SU GRID: `cdt2d='python3 ~\projects\CDT_2D\launcher.py`~~
 
@@ -102,6 +116,18 @@ queste quelle davvero opzionali:
 - ~~aggiungere lancio di processi su grid (e magari anche la configurazione sul mio computer: se rileva il mio pc è comunque in grado di lanciarlo)~~
 - ~~aggiungere cazzi con log2 16,2^14,... nel codice C++~~
 - ~~supporto grid~~
+- ~~`show -d/--disk-usage` con `choices={'b','bin','c','checkpoint'}`, di default invece stampa la dimensione delle cartelle~~
+	- ~~aggiungere funzione per vedere la dimensione dei **binari** in ogni cartella~~
+		- ~~in modo da cancellarli a mano~~
+			- ~~la funzione fa una lista in verticale dei Lambda, e stampa accanto a ognuno tante x quanti i binari~~
+			- ~~poiché le Lambda hanno lunghezza variabile devono essere allineate a destra con la più lunga (nessun troncamento)~~
+			- ~~magari ogni 5 X stampo una V per contare meglio~~
+		- ~~inserire un limite automatico oltre il quale cancella da solo quelli più vecchi (tipo 10, all'undicesimo cancella il più vecchio)~~
+		- ~~`du -hd 2 */bin`~~
+	- ~~stesso di cui sopra per i **checkpoint**~~
+		- `du -hd 2 */checkpoint`
+	- ~~visualizzazione della **dimensione delle cartelle**~~
+		- ~~magari un opzione di show (`du -hd 1` in `config`, e `prettyprint`)~~
 - ~~aggiungere state~~
 - ~~migliorare `--state` (vedi `launcher.py`)~~
 	- ~~opzione nel subparser (quando ne avrà uno): mostra il PID del processo per consentire l'hard kill~~
@@ -156,11 +182,11 @@ queste quelle davvero opzionali:
 - ~~aggiungere le opzioni `config`~~
 	- ~~attualmente tutte le nuove funzioni sono implementate solo in `test`~~
 	- ~~rimpiazzare `data.py`~~
-- ~~exit_condition: iterazioni o tempo~~
-		---> ~~c'è da mettere anche un limite gigante in volume~~
-				~~per evitare che quelle che divergono esplodano, così~~
-				~~posso liberamente imporre anche limiti di tempo non~~
-				~~piccoli e uguali per tutti~~
+- ~~exit_condition: iterazioni o tempo~~  
+	- --> ~~c'è da mettere anche un limite gigante in volume~~
+		- ~~per evitare che quelle che divergono esplodano, così~~
+		- ~~posso liberamente imporre anche limiti di tempo non~~
+		- ~~piccoli e uguali per tutti~~
 - ~~TERMALIZZAZIONE~~  
 	~~progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):~~
 	- :smile:
@@ -187,20 +213,3 @@ queste quelle davvero opzionali:
 	- ~~se 'linear-history' è attivata~~
 	- ~~aggiungere `state -f 2` (ti va vedere altre info ulteriori)~~
 		- ~~dice quanto è piena la cartella~~
-
-## Versions
-Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
-Quando sarà pronta e 'bella' per prendere dati rilascerò la versione 1.0, nel frattempo sviluppo anche le seguenti.
-
-Quando comincerò a sviluppare le cose seguenti lo farò in dei nuovi `branch`, quando saranno pronti verranno reinseriti in `master` come 2.0 e 3.0.
-
-Ogni nuova versione viene rilasciata con un `tag`, e sarebbe bello che per ogni tag fosse anche pronta la documentazione.
-
-### Termalizzazione
-
-### Campi di materia
-
-Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporre un volume fissato, rinunciando a $\lambda$.
-
-**COPIARE QUELLO CHE SI E' DETTO CON GIUSEPPE E D'ELIA E FINIRE DI CONTROLLARE COME IMPLEMENTARE BILANCIO DETTAGLIATO**
-

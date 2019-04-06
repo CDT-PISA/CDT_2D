@@ -302,7 +302,7 @@ def stop(lambdas_old, config, is_all):
         print("Simulations for following λ were not running: ",
               lambdas_notstop)
 
-def show(lambdas_old, config):
+def show(lambdas_old, config, disk_usage=''):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -334,22 +334,81 @@ def show(lambdas_old, config):
                       subsequent_indent=' '*4):
             print(x)
         
-        hist_lambda = histogram(lambdas_old,20)
-        highest = max(hist_lambda[0])
+        if disk_usage == '':
+            hist_lambda = histogram(lambdas_old,20)
+            highest = max(hist_lambda[0])
+            
+            print()
+            for h in range(0,highest):
+                for x in hist_lambda[0]:
+                    if(x >= highest - h):
+                        print(' X ', end='')
+                    else:
+                        print('   ', end='')
+                print("")
+            
+            l_min = eng_not(min(lambdas_old))
+            l_med = eng_not(median(lambdas_old))
+            l_max = eng_not(max(lambdas_old))
+            print(l_min, ' '*23, l_med, ' '*23, l_max)
         
-        print()
-        for h in range(0,highest):
-            for x in hist_lambda[0]:
-                if(x >= highest - h):
-                    print(' X ', end='')
-                else:
-                    print('   ', end='')
-            print("")
-        
-        l_min = eng_not(min(lambdas_old))
-        l_med = eng_not(median(lambdas_old))
-        l_max = eng_not(max(lambdas_old))
-        print(l_min, ' '*23, l_med, ' '*23, l_max)
+        elif disk_usage=='disk':
+            from os import popen, chdir
+            
+            chdir('output/' + config)
+            
+            x = popen('du -hd 1').read().split('\n')
+            y = popen('du -hd 2 */checkpoint').read().split('\n')
+            z = popen('du -hd 2 */bin').read().split('\n')
+            a = popen('du -hd 2 */history').read().split('\n')
+                
+            dim = []
+            for i in range(len(x)-2): 
+                w = x[i].split('\t./Lambda') 
+                v = y[i].split()
+                u = z[i].split()
+                t = a[i].split()
+                dim += [[w[1], w[0], v[0], u[0], t[0]]]
+            dim.sort(key = lambda x : x[0])
+                
+            print('\n', ' '*3, '┌', '─'*49, '╮', sep='')
+            print(' '*3, '│ LAMBDA  │  SIZE  │  CHECK  │  BIN.  │  HISTORY  │',
+                  sep='')
+            print(' '*3, '╰', '─'*9, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
+                   '┼', '─'*11, '┘', sep='')
+            for l in dim:
+                print(l[0].rjust(11), ' │ ', l[1].ljust(4), ' │  ', 
+                      l[2].ljust(4), ' │ ', l[3].ljust(4), ' │  ',
+                      l[4].ljust(4), '  ')
+            print()        
+            print('The overall disk used is: ', x[-2].split()[0])
+            
+        elif disk_usage=='num':
+            from os import popen, chdir
+            
+            chdir('output/' + config)
+            
+            x = popen('du -hd 1').read().split('\n')
+                
+            dim = []
+            for i in range(len(x)-2): 
+                w = x[i].split('\t./Lambda') 
+                v = str(int(popen('ls -1q Lambda' + w[1] + 
+                          '/checkpoint/ | wc -l').read()))
+                u = str(int(popen('ls -1q Lambda' + w[1] +
+                                  '/bin/ | wc -l').read()))
+                dim += [[w[1], w[0], v, u]]
+            dim.sort(key = lambda x : x[0])
+                
+            print('\n', ' '*3, '┌', '─'*37, '╮', sep='')
+            print(' '*3, '│ LAMBDA  │  SIZE  │  CHECK  │  BIN.  │',
+                  sep='')
+            print(' '*3, '╰', '─'*9, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
+                  '┘', sep='')
+            for l in dim:
+                print(l[0].rjust(11), ' │ ', l[1].ljust(4), ' │ ', 
+                      l[2].rjust(4), '  │ ', l[3].rjust(4))
+            print()        
 
 def plot(lambdas_old, config):
     from matplotlib.pyplot import figure, show

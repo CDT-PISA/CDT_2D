@@ -29,9 +29,9 @@ def stop(lambdas_old, lambdas_new, config, is_all):
     
 # Useful offline
     
-def show(lambdas_old, lambdas_new, config):
+def show(lambdas_old, config, disk_usage):
     from lib.data import show
-    show(lambdas_old, config)
+    show(lambdas_old, config, disk_usage)
             
 def plot(lambdas_old, lambdas_new, config):
     from lib.data import plot
@@ -140,36 +140,36 @@ def main():
     run_sub.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
     run_sub.add_argument('-@', dest='is_data', action='store_true', 
-                        help="data configuration flag \
-                        (the '-' in front is not needed)")
+                         help="data configuration flag \
+                         (the '-' in front is not needed)")
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
+                          help='config')
     run_sub.add_argument('-f', '--force', action='store_true', help='force')
     run_sub.add_argument('--linear-history', default='0',
-                        help="it takes an integer argument, that if set greater \
-                        then zero let data points be saved at regular intervals, \
-                        instead of at increasing ones (units: {k,M,G}) \
-                        | ex: --linear-history 2k")
+                        help="it takes an integer argument, that if set \
+                        greater then zero let data points be saved at regular \
+                        intervals, instead of at increasing ones (units: \
+                        {k,M,G}) | ex: --linear-history 2k")
     #run_sub.add_argument('--log-history', dest='linear_history', 
     #               action='store_false', 
     #               help="if set data points are saved at increasing intervals")
     end_conditions = run_sub.add_mutually_exclusive_group()
     end_conditions.add_argument('--time', default='30m', 
-                                help='if set it specifies the duration of the run \
-                                (default: 30 minutes, units: {s,m,h}) | \
+                                help='if set it specifies the duration of the \
+                                run (default: 30 minutes, units: {s,m,h}) | \
                                 ex: --time 2h')
     end_conditions.add_argument('--steps', default='0',
-                                help='if set it specifies the length of the run \
-                                in MC steps (is not the default, units: {k,M,G}) \
+                                help='if set it specifies the length of the \
+                                run in MC steps (is not the default, units: \
                                 | ex: --steps 200M')
     
     # state command
-    class ConfigAction(argparse.Action):
+    class ToggleChoiceAction(argparse.Action):
         def __init__(self, option_strings, dest, ifcall, nargs=None, **kwargs):
             if nargs is not None:
                 raise ValueError("nargs not allowed")
-            super(ConfigAction, self).__init__(option_strings, dest, nargs='?',
-                 **kwargs)
+            super(ToggleChoiceAction, self).__init__(option_strings, dest,
+                 nargs='?', **kwargs)
             self.ifcall = ifcall
         def __call__(self, parser, namespace, values, option_string=None):
             if values == None:
@@ -182,9 +182,11 @@ def main():
                         help="data configuration flag \
                         (the '-' in front is not needed)")
     state_sub.add_argument('-c', '--config', choices=configs, default=configs,
-                           ifcall='test', action=ConfigAction, help='config')
+                           ifcall='test', action=ToggleChoiceAction, 
+                           help='config')
     state_sub.add_argument('-f', '--full-show', choices=['1','2'], default='0',
-                           ifcall='1', action=ConfigAction, help='full-show')
+                           ifcall='1', action=ToggleChoiceAction, 
+                           help='full-show')
     
     # stop command
     
@@ -195,7 +197,7 @@ def main():
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true', 
-                                    help="all (the '-' in front is not needed)")
+                         help="all (the '-' in front is not needed)")
     stop_sub.add_argument('-@', dest='is_data', action='store_true', 
                         help="data configuration flag \
                         (the '-' in front is not needed)")
@@ -217,6 +219,10 @@ def main():
                         (the '-' in front is not needed)")
     show_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
+    show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
+                          action='store_const', help='show disk usage')
+    show_sub.add_argument('-n', '--number', dest='disk_usage', const='num',
+                          action='store_const', help='show number of files')
     
     # plot command
     
@@ -353,7 +359,7 @@ def main():
         stop(lambdas_old, lambdas_new, args.config, args.is_all)
         
     elif args.command == 'show':
-        show(lambdas_old, lambdas_new, args.config)
+        show(lambdas_old, args.config, args.disk_usage)
     
     elif args.command == 'tools':
         if args.tools == 'clear':
