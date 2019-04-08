@@ -632,15 +632,17 @@ def remove(lambdas_old, config, force, cbin, check):
         return
     
     if len(lambdas_old) > 0:
+        print()
         print("In what follows: \nuse numbers '> 0' to specify last run you " + 
               "want to remove, \n'< 0' to specify distance from last " + 
-              "present.\n\nOnly λ with more than one run present are shown.\n")
+              "present, 0 to skip." + 
+              "\n\nOnly λ with more than one run present are shown.\n")
         
     for l in lambdas_old:
         files = popen('ls -1 Lambda' + str(l) + '/' + what).read().split('\n')
         runs = []
         for x in files[:-1]:
-            y = split('run|_', x)
+            y = split('run|_|\.', x)
             if what == 'bin':
                 runs += [int(y[-1])]
             elif what == 'checkpoint':
@@ -653,7 +655,7 @@ def remove(lambdas_old, config, force, cbin, check):
         print('(λ = ' + str(l) + ') The last ' + what + 's are from the run ' + 
               str(max(runs)) + '.')
         print('Until what run do you want to remove ' + what + 's?' + 
-              ' (default: -1)')
+              ' (default: 0)')
         valid = False
         count = 0
         while not valid and count < 3:
@@ -666,13 +668,13 @@ def remove(lambdas_old, config, force, cbin, check):
                 
             valid = True
             if ans == '':
-                ans = -1
+                ans = 0
             elif ans == 'q' or ans == 'quit':
                 ans = 'q'
             else:
                 try:
                     ans = int(ans)
-                    if ans == 0 or abs(ans) >= max(runs):
+                    if abs(ans) >= max(runs):
                         raise ValueError
                 except ValueError:
                     valid = False
@@ -683,8 +685,11 @@ def remove(lambdas_old, config, force, cbin, check):
                         ans = 0
                         print(' (nothing done)')
         if ans == 0:
+            if count < 3:
+                print('Nothing done for λ = ' + str(l) + '\n')
             continue
         elif ans == 'q':
+            print('Nothing done for λ = ' + str(l) + '\n')
             break
         elif ans > 0:
             last = ans

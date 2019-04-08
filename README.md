@@ -65,6 +65,8 @@ Raccolta di feature nuove non strettamente necessarie:
 
 - colori per evidenziare in `show` i valori critici
 	- `\x1b[6;32;18m \x1b[0m`
+- aggiungere in `launch_script` l'email presa da `config.json`
+- mettere in `show` anche il numero di run
 - ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun
 	- pezzi di json ad esempio (cioè lo aggiorno)
 - `argcomplete` e gli alias
