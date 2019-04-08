@@ -67,6 +67,8 @@ Raccolta di feature nuove non strettamente necessarie:
 	- `\x1b[6;32;18m \x1b[0m`
 - aggiungere in `launch_script` l'email presa da `config.json`
 - mettere in `show` anche il numero di run
+- scrivere in `state -f 2` il tempo per cui deve durare la simulazione
+- in `tools remote` stampare la lista delle cose che si stanno caricando o scaricando prima di partire a farlo
 - ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun
 	- pezzi di json ad esempio (cioè lo aggiorno)
 - `argcomplete` e gli alias

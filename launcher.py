@@ -41,19 +41,19 @@ def plot(lambdas_old, lambdas_new, config):
     if len(lambdas_old) > 0:
         print()
     plot(lambdas_old, config)
-
-# Utilities
     
-def clear(lambdas_old, lambdas_new, config, force):
-    from lib.data import clear_data
+def fit(lambdas_old, lambdas_new, config, force):
+    from lib.analysis import fit
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
-    clear_data(lambdas_old, config, force)
+    fit(lambdas_old, config, force)
+
+# Utilities
 
 def recovery(lambdas_old, lambdas_new, config, force, very_forced):
     from os import getcwd, chdir
-    from lib.data import recovery_history
+    from lib.tools import recovery_history
     from lib.utils import authorization_request
     
     if len(lambdas_new) > 0:
@@ -75,7 +75,7 @@ def recovery(lambdas_old, lambdas_new, config, force, very_forced):
             chdir(proj_dir) 
         
 def info(lambdas_old, config):
-    from lib.data import sim_info
+    from lib.tools import sim_info
     
     if len(lambdas_old) == 0:
         print("λ not found") # da migliorare
@@ -83,7 +83,7 @@ def info(lambdas_old, config):
         sim_info(lambdas_old[0], config)
         
 def therm(lambdas_old, lambdas_new, config, is_therm, force):
-    from lib.data import therm
+    from lib.tools import therm
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
@@ -92,7 +92,7 @@ def therm(lambdas_old, lambdas_new, config, is_therm, force):
     therm(lambdas_old, config, is_therm, force)
             
 def up_launch(lambdas_old, lambdas_new, config, both, make, force):
-    from lib.data import up_launch
+    from lib.tools import up_launch
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
@@ -101,7 +101,7 @@ def up_launch(lambdas_old, lambdas_new, config, both, make, force):
     up_launch(lambdas_old, config, both, make, force)
     
 def remove(lambdas_old, lambdas_new, config, force, cbin, check):
-    from lib.data import remove
+    from lib.tools import remove
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
@@ -112,7 +112,7 @@ def remove(lambdas_old, lambdas_new, config, force, cbin, check):
 def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
     from os import popen
     import json
-    from lib.data import remote
+    from lib.tools import remote
     
     try:
         config_file = open('config.json', 'r')
@@ -140,21 +140,28 @@ def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
     remote(lambdas_old, lambdas_new, config, upload, download, force, rshow)
     
 def config(email, remote, path, show):
-    from lib.data import config
+    from lib.tools import config
     
     # @todo: scrivere in qualche help di usare `tools remote` senza argomenti
     # per testare la validità del path inserito
     config(email, remote, path, show)
     
 def new_conf(name):
-    from lib.data import new_conf
+    from lib.tools import new_conf
     
     new_conf(name[0])
     
 def reset_conf(name, delete=False):
-    from lib.data import reset_conf
+    from lib.tools import reset_conf
     
     reset_conf(name, delete)
+
+def clear(lambdas_old, lambdas_new, config, force):
+    from lib.tools import clear_data
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+    clear_data(lambdas_old, config, force)
     
 import sys
 import argparse
@@ -293,28 +300,28 @@ def main():
     plot_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     
+    # fit command
+    
+    fit_sub = subparsers.add_parser('fit', help='fit')
+    fit_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='λ values')
+    lambdas = fit_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    fit_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    fit_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    fit_sub.add_argument('-f', '--force', action='store_true', help='force')
+    
     # utilities subparser
     
     tools = subparsers.add_parser('tools', help='tools for simulation\
                                   management')
     tools_sub = tools.add_subparsers(dest='tools')
-    
-    # clear command
-    
-    clear_sub = tools_sub.add_parser('clear', help='clear')
-    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
-                         help='λ values')
-    lambdas = clear_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true', 
-                         help='range')
-    lambdas.add_argument('-°', dest='is_all', action='store_true', 
-                                    help="all (the '-' in front is not needed)")
-    clear_sub.add_argument('-@', dest='is_data', action='store_true', 
-                        help="data configuration flag \
-                        (the '-' in front is not needed)")
-    clear_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
-    clear_sub.add_argument('-f', '--force', action='store_true', help='force')
     
     # recovery command
     
@@ -456,6 +463,23 @@ def main():
     reset_conf_sub.add_argument('-d', '--delete', action='store_true',
                                 help='defintely delete config')
     
+    # clear command
+    
+    clear_sub = tools_sub.add_parser('clear', help='clear')
+    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='λ values')
+    lambdas = clear_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    clear_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    clear_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    clear_sub.add_argument('-f', '--force', action='store_true', help='force')
+    
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
@@ -494,11 +518,12 @@ def main():
         
     elif args.command == 'show':
         show(lambdas_old, args.config, args.disk_usage)
+        
+    elif args.command == 'fit':
+        fit(lambdas_old, lambdas_new, args.config, args.force)
     
     elif args.command == 'tools':
-        if args.tools == 'clear':
-            clear(lambdas_old, lambdas_new, args.config, args.force)
-        elif args.tools == 'recovery':
+        if args.tools == 'recovery':
             recovery(lambdas_old, lambdas_new, args.config, args.force,
                      args.FORCE)
         elif args.tools == 'info':
@@ -521,6 +546,8 @@ def main():
             new_conf(args.name)
         elif args.tools == 'reset':
             reset_conf(args.name, args.delete)
+        elif args.tools == 'clear':
+            clear(lambdas_old, lambdas_new, args.config, args.force)
         
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)

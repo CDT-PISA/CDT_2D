@@ -67,7 +67,10 @@ def analyze_output(outdir):
     
     # per imshow devo assicurarmi che siano equispaziati!
     
-#    si potrebbe pensare di stampare almeno un paio di profili spaziali insieme, magari non vicini (entrambi nella parte finale, così che siano ben termalizzati, ma non vicini in modo che siano il meno possibile correlati) per analizzare l'andamento dell'evoluzione
+#    si potrebbe pensare di stampare almeno un paio di profili spaziali insieme,
+#    magari non vicini (entrambi nella parte finale, così che siano ben termalizzati,
+#    ma non vicini in modo che siano il meno possibile correlati) per analizzare
+#    l'andamento dell'evoluzione
 #    ma in realtà forse no: si vede già dal secondo plot
 #
 #    figure(1)
@@ -81,3 +84,131 @@ def analyze_output(outdir):
 
 def is_thermalized():
     return False
+
+def select_from_plot(Lambda, indices, volumes, i):
+    from matplotlib.pyplot import figure, show, figtext
+    
+    imin = indices[0]
+    imax = indices[-1]
+    vmin = min(volumes)
+    vmax = max(volumes)
+    
+    color_cycle = ['xkcd:carmine', 'xkcd:teal', 'xkcd:peach', 'xkcd:mustard',
+                   'xkcd:cerulean']
+    
+    n_col = len(color_cycle)
+    
+    fig = figure()
+    ax = fig.add_subplot(111)
+    canvas = fig.canvas
+    
+    fig.set_size_inches(7, 5)
+    ax.plot(indices, volumes, color=color_cycle[i % n_col])
+    ax.set_title('λ = ' + str(Lambda))
+    figtext(.5,.03,' '*10 + 
+            'press enter to convalid current selection', ha='center')
+    fig.canvas.draw()
+    
+    def on_click(event):
+        if event.inaxes is not None:
+            x = event.xdata
+            y = event.ydata
+            inarea = x > imin and x < imax and y > vmin and y < vmax
+            if inarea:
+                on_click.x = x
+                if on_click.i > 0:
+                    on_click.m[0].remove()
+                on_click.m = ax.plot(x, y, 'o', mec='w')
+                event.canvas.draw()
+                on_click.i += 1
+    on_click.i = 0
+    on_click.m = None
+    on_click.x = 0
+        
+    def on_motion(event):
+        if event.inaxes is not None:
+            x = event.xdata
+            y = event.ydata
+            inarea = x > imin and x < imax and y > vmin and y < vmax
+            if inarea:
+                m = ax.plot(x, y, 'wo', mec='k')
+                n = ax.plot(x, vmin, 'k|', ms=20)
+                event.canvas.draw()
+                m[0].remove()
+                n[0].remove()
+        
+    def on_key(event):
+        if event.key == 'enter':
+            close()
+    
+    canvas.mpl_connect('button_release_event', on_click)
+    canvas.mpl_connect('motion_notify_event', on_motion)
+    canvas.mpl_connect('key_press_event', on_key)
+    show()
+    
+    return on_click.x
+            
+
+def fit(lambdas_old, config, force):
+    import readline
+    from numpy import loadtxt
+    
+    i = -1
+    for Lambda in lambdas_old:
+        i += 1
+        
+        vol_file = ('output/' + config + '/Lambda' + str(Lambda) +
+                   '/history/volumes.txt')
+        indices, volumes = loadtxt(vol_file, unpack=True)
+#        imin = indices[0]
+#        imax = indices[-1]
+        vmin = min(volumes)
+        vmax = max(volumes)
+        
+        print("Select the x cut ('p' for plot or type it, or just ENTER to use"
+                                 + " a previous choice)")
+        valid = False
+        count = 0
+        while not valid and count < 3:
+            count += 1
+            try:
+                choice = input('--> ')
+            except EOFError:
+                choice = ''
+                print()
+                
+            valid = True
+            if choice == 'q' or choice == 'quit':
+                choice = 'q'
+            elif choice == 'p':
+                choice = 'plot'
+            elif choice == '':
+                choice = 'stored'
+            else:
+                try:
+                    choice = int(choice)
+                    if choice < vmin or choice >= vmax:
+                        raise ValueError
+                except ValueError:
+                    valid = False
+                    print('Answer not valid', end='')
+                    if count < 3:
+                        print(', type it a valid one')
+                    else:
+                        choice = 'q'
+                        print(' (nothing done)')
+        
+        if choice == 'q':
+            print('Nothing done, restart from the beginning')
+            return        
+        elif choice == 'plot':
+            cut = select_from_plot(Lambda, indices, volumes, i)
+        elif choice == 'stored':
+            print("Me lo vado a prendere nel json")
+            old_found = False
+            if not old_found:
+                cut = select_from_plot(Lambda, indices, volumes, i)
+                
+        print('E ora lo conservo nel json')
+        volumes = volumes[indices < cut]
+        print(len(volumes)/len(indices))
