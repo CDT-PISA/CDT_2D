@@ -51,15 +51,15 @@ def clear(lambdas_old, lambdas_new, config, force):
         print("Following λ not found: ", lambdas_new)
     clear_data(lambdas_old, config, force)
 
-def recovery(lambdas_old, lambdas_new, config, force):
+def recovery(lambdas_old, lambdas_new, config, force, very_forced):
     from os import getcwd, chdir
     from lib.data import recovery_history
     from lib.utils import authorization_request
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_news)
-    if len(lambdas_old) > 0:
-        print()
+        if len(lambdas_old) > 0:
+            print()
     
     proj_dir = getcwd()
     
@@ -71,7 +71,7 @@ def recovery(lambdas_old, lambdas_new, config, force):
             authorized = True
         if authorized:
             chdir('output/' + config + '/Lambda' + str(Lambda))
-            recovery_history()
+            recovery_history(very_forced)
             chdir(proj_dir) 
         
 def info(lambdas_old, config):
@@ -87,8 +87,8 @@ def therm(lambdas_old, lambdas_new, config, is_therm, force):
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
-    if len(lambdas_old) > 0:
-        print()
+        if len(lambdas_old) > 0:
+            print()
     therm(lambdas_old, config, is_therm, force)
             
 def up_launch(lambdas_old, lambdas_new, config, both, make, force):
@@ -96,9 +96,65 @@ def up_launch(lambdas_old, lambdas_new, config, both, make, force):
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
-    if len(lambdas_old) > 0:
-        print()
+        if len(lambdas_old) > 0:
+            print()
     up_launch(lambdas_old, config, both, make, force)
+    
+def remove(lambdas_old, lambdas_new, config, force, cbin, check):
+    from lib.data import remove
+    
+    if len(lambdas_new) > 0:
+        print("Following λ not found: ", lambdas_new)
+        if len(lambdas_old) > 0:
+            print()
+    remove(lambdas_old, config, force, cbin, check)
+    
+def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
+    from os import popen
+    import json
+    from lib.data import remote
+    
+    try:
+        config_file = open('config.json', 'r')
+        proj_configs = json.load(config_file)
+        exist = True
+    except FileNotFoundError:
+        exist = False
+    
+    rclone_remote = proj_configs['rclone_remote']
+    remote_path = proj_configs['rclone_path']
+    if not exist or rclone_remote == None:
+        print("No valid remote found.")
+        return
+    
+    # @todo: scrivere nell'help che serve che nel remote ci si almeno il
+    # path valido
+    print('checking remote...')
+    path_content = popen('rclone lsd ' + rclone_remote + ':' +
+                         remote_path).read()
+    if not 'CDT_2D' in path_content:
+        print('No valid remote found (is also possible that only the ' + 
+              'specified path is wrong).')
+        return
+    
+    remote(lambdas_old, lambdas_new, config, upload, download, force, rshow)
+    
+def config(email, remote, path, show):
+    from lib.data import config
+    
+    # @todo: scrivere in qualche help di usare `tools remote` senza argomenti
+    # per testare la validità del path inserito
+    config(email, remote, path, show)
+    
+def new_conf(name):
+    from lib.data import new_conf
+    
+    new_conf(name[0])
+    
+def reset_conf(name, delete=False):
+    from lib.data import reset_conf
+    
+    reset_conf(name, delete)
     
 import sys
 import argparse
@@ -276,6 +332,8 @@ def main():
     recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     recovery_sub.add_argument('-f', '--force', action='store_true', help='force')
+    recovery_sub.add_argument('-F', '--FORCE', action='store_true', 
+                              help='very forced')
     
     # info command
     
@@ -325,21 +383,98 @@ def main():
     script.add_argument('-b', '--both', action='store_true',
                         help='update both launch_script and make_script')
     
+    # autoremove command
+    
+    remove_sub = tools_sub.add_parser('autoremove', help='autoremove')
+    remove_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='λ values')
+    lambdas = remove_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    remove_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    remove_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    remove_sub.add_argument('-f', '--force', action='store_true', help='force')
+    what = remove_sub.add_mutually_exclusive_group()
+    what.add_argument('--bin', ifcall='0', action=ToggleChoiceAction, 
+                      help='remove older bins')
+    what.add_argument('--check', ifcall='0', action=ToggleChoiceAction, 
+                      help='remove older checkpoints')
+    
+    # upload/download command
+    
+    remote_sub = tools_sub.add_parser('remote', 
+                                     help='upload/download sim dirs')
+    remote_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
+                         help='λ values')
+    lambdas = remote_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', dest='is_range', action='store_true', 
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true', 
+                                    help="all (the '-' in front is not needed)")
+    remote_sub.add_argument('-@', dest='is_data', action='store_true', 
+                        help="data configuration flag \
+                        (the '-' in front is not needed)")
+    remote_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           help='config')
+    remote_sub.add_argument('-f', '--force', action='store_true', help='force')
+    load = remote_sub.add_mutually_exclusive_group()
+    load.add_argument('-u', '--upload', action='store_true',
+                        help='update make_script instead')
+    load.add_argument('-d', '--download', action='store_true',
+                        help='update both launch_script and make_script')
+    load.add_argument('-s', '--show', action='store_true',
+                        help='show list of sims on remote')
+    
+    # config command
+    
+    config_sub = tools_sub.add_parser('config', help='edit project\'s \
+                                      configuration file')
+    configs_arg = config_sub.add_mutually_exclusive_group()
+    configs_arg.add_argument('-e', '--email', action=ToggleChoiceAction, 
+                         default=None, ifcall='-', help='set receiver email')
+    configs_arg.add_argument('-r', '--remote', action=ToggleChoiceAction, 
+                         default=None, ifcall='-', help='set rclone remote')
+    configs_arg.add_argument('-p', '--path', action=ToggleChoiceAction, 
+                         default=None, ifcall='-', help='set rclone path')
+    config_sub.add_argument('-s', '--show', action='store_true',
+                         help='show config_file')
+    
+    # new configuration command
+    
+    new_conf_sub = tools_sub.add_parser('new-conf', help='create new config')
+    new_conf_sub.add_argument('name', nargs=1, type=str)
+    
+    # reset configuration command
+    
+    reset_conf_sub = tools_sub.add_parser('reset', help='reset or delete config')
+    reset_conf_sub.add_argument('name', choices=configs)
+    reset_conf_sub.add_argument('-d', '--delete', action='store_true',
+                                help='defintely delete config')
+    
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
-    
-    if args.is_data:
-        args.config = 'data'
     
     if not hasattr(args, 'lambdas'):
         lambdas = []
     else:
         lambdas = args.lambdas 
+    if not hasattr(args, 'is_data'):
+        args.is_data = False
+    if not hasattr(args, 'config'):
+        args.config = 'test'
     if not hasattr(args, 'is_all'):
         args.is_all = False
     if not hasattr(args, 'is_range'):
         args.is_range = False
+        
+    if args.is_data:
+        args.config = 'data'
     
     if not args.command == 'state':
         from lib.utils import lambdas_recast
@@ -352,7 +487,6 @@ def main():
              args.time, args.steps, args.force)
         
     elif args.command == 'state':
-#        print(args)
         state(args.config, args.full_show)
     
     elif args.command == 'stop':
@@ -365,7 +499,8 @@ def main():
         if args.tools == 'clear':
             clear(lambdas_old, lambdas_new, args.config, args.force)
         elif args.tools == 'recovery':
-            recovery(lambdas_old, lambdas_new, args.config, args.force)
+            recovery(lambdas_old, lambdas_new, args.config, args.force,
+                     args.FORCE)
         elif args.tools == 'info':
             info(lambdas_old, args.config)
         elif args.tools == 'set-therm':
@@ -374,7 +509,19 @@ def main():
         elif args.tools == 'up-launch':
             up_launch(lambdas_old, lambdas_new, args.config, 
                       args.both, args.make, args.force)
-    
+        if args.tools == 'autoremove':
+            remove(lambdas_old, lambdas_new, args.config, args.force,
+                       args.bin, args.check)
+        elif args.tools == 'remote':
+            remote(lambdas_old, lambdas_new, args.config, 
+                      args.upload, args.download, args.force, args.show)
+        elif args.tools == 'config':
+            config(args.email, args.remote, args.path, args.show)
+        elif args.tools == 'new-conf':
+            new_conf(args.name)
+        elif args.tools == 'reset':
+            reset_conf(args.name, args.delete)
+        
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)
             

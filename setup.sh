@@ -108,3 +108,32 @@ mkdir build output output/test output/data
 cd build
 cmake ..
 
+# set configs
+cd ..
+if [ -e "config.json" ]; then
+	rm config.json
+fi
+
+echo "{" >> config.json
+echo "Enter a valid email adress to receive notifications of run endings:"
+echo " ⎛if left empty no email will be sent,"
+echo " ⎝is adjustable after"
+echo -n "--> "
+read receiver_email
+if [ -z "$receiver_email" ]; then
+	receiver_email="null"
+fi
+echo "    \"receiver_email\": \"$receiver_email\"," >> config.json
+echo
+
+echo "Enter a valid remote for rclone:"
+echo " ⎛if left empty no upload/download will be possible,"
+echo " ⎝is adjustable after"
+echo -n "--> "
+read rclone_remote
+if [ -z "$rclone_remote" ]; then
+	rclone_remote="null"
+fi
+echo "    \"rclone_remote\": \"$rclone_remote\"" >> config.json
+echo "}" >> config.json
+

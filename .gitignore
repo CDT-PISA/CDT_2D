@@ -55,4 +55,5 @@ test/*
 
 # Other
 .directory
+config.json
 main_test.cpp

@@ -119,12 +119,14 @@ def find_running():
     
     return lambdas_run, sim_info
 
-def authorization_request(what_to_do='', Lambda=None):
+def authorization_request(what_to_do='', Lambda=None, extra_message=''):
     import readline
     
     if not Lambda == None:
         print("(λ = " + str(Lambda) + ") ", end='')
     print("Do you really want " + what_to_do + "? [y/n]")
+    if extra_message != '':
+        print(extra_message)
     authorized = False
     ans_recog = False
     count = 0
@@ -136,17 +138,39 @@ def authorization_request(what_to_do='', Lambda=None):
             print()
             ans = 'n'
         ans_recog = True
-        if ans != 'y' and ans != 'n':
+        if ans == 'y':
+            authorized = True
+        elif ans == 'q' or ans == 'quit':
+            authorized = 'quit'
+        elif ans != 'n':
             ans_recog = False
             print('Answer not recognized', end='')
             if count < 3:
                 print(', type it again [y/n]')
             else:
-                print()
-        elif ans == 'y':
-            authorized = True
+                print(' (nothing done)')
             
     return authorized
+
+def color_mem(s, size=False):
+    """ va a soglie:
+            - sopra i 30M colora il testo verde
+            - sopra i 60M colora il testo giallo
+            - sopra i 150M colora il testo rosso
+            - sopra i 400M colora lo sfondo rosso
+        se size==True raddoppia le soglie
+        se l'ultimo carattere è 'K' o un numero non fa nulla
+        se è M applica le soglie
+        se è diverso applica la soglia massima
+    """
+    return s
+
+def color_num(s):
+    return s
+
+def color_lambda(s, details):
+    # se qualcuno in details è colorato si colora del colore più grave
+    return s
 
 s = {-9: 'n',
      -6: 'u',

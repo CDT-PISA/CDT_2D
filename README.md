@@ -33,6 +33,7 @@ DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 		- guida al progetto
 			- --> guida alla simulazione (C++)
 			- --> guida all'interfaccia (Python)
+	- magari do dei nomi decenti nel codice
 - scrivere la funzione di termalizzazione
 - **reset di log step**
 	- inserire un comando che resetti
@@ -45,50 +46,44 @@ Quelle dopo possono anche aspettare, perché non danno problemi di compatibilit�
 ### New features
 Raccolta di feature nuove non strettamente necessarie:
 
-In realtà queste possono essere implementate dopo la v1.0, ma è necessario farle:
+- implementare `tools remove`
 
-- nomi sensati per gli oggetti negli script
+- implementare `fit` come subparser di `plot`
+	- leggere Ambjorn per trovare la funzione da fittare
+	- prende come argomento un range (non `°`, come plot), e per ogni lambda nel range:
+		- apre il plot, e ti fa selezionare il punto da cui tagliare
+			- prima come input (il plot solo come aiuto) e poi cliccando sul plot
+		- ti fa selezionare l'ampiezza del blocking (questo solo con input, o almeno sempre disponibile)
+			- rileggere blocking su D'Elia
+	- finisce plottando il fit e stampando su stdout e su file valori e matrice di covarianza
+		- quando chiudi il plot ti chiede se lo vuoi salvare
+	- conservare in `state.json` sia `fit_cutoff` (default 0, parte dall'inizio) che `blocking` (default 1, un passo alla volta)
+		- se già esistono, prima di stampare il plot si stampano loro e si chiede all'utente se vuole aggiornarle
+		- se dice di no si procede senza visualizzare il plot
+		- opzione -s, --skip per usare tutti i valori già fissati
+			- se non ci sono tutti stampa un messaggio di errore il prima possibile
 
-queste quelle davvero opzionali:
-
-- riparare `recovery`:
-	- la 0.693 ha un problema (a un certo punto va all'indietro, e avendo fatto un run3 microscopico e un run2 enorme è chiaramente il run3 che è ripartito da un checkpoint precedente all'ultimo)
-	- dovrebbe essere riparabile con `recovery` ma non sta funzionando
-
-- update programmati: quando lancio un update se la simulazione è running si prende il PPID e lancia un update quando muore il python corrispondente
-	- se faccio nuovamente update prima che abbia completato sostituisce l'update vecchio col nuovo
-
-- json di progetto con configurazioni globali settate dall'utente (email, rclone remote)
-
-- UPLOAD e DOWNLOAD di simulazioni
-	- con Drive/Dropbox (`rclone`)
-		- `setup.sh` deve chiedere di fornire una configurazione valida di rclone a cui agganciarsi
-		- per evitare casini è meglio che lo indichi semplicemente all'utente (senza far partire lui rclone, che potrebbe anche non essere installato)
-			- se l'utente non configura rclone il campo nel json di progetto rimane al default, e i comandi UPLOAD e DOWNLOAD rimangono disattivati
-	- o via ssh (`scp`)
-- aggiungere in setup.sh
-	- la modifica di 'home/project/CDT_2D/' in '$PWD'
-	- fa richiesta di un indirizzo email per ricezione e lo mette al posto di "candido.ale@gmail.com"
-		- quando cdt2demail avrà davvero una password se ne dovrà fornire uno anche per la spedizione
-		- però a quel punto si potrà anche inserire la password (perché sarà criptata), e si potrà scegliere di usare lo stesso indirizzo come mittente e destinatario
-- pensare a cosa farsene dell'output (`nohup.out`)
-
+- colori per evidenziare in `show` i valori critici
+	- `\x1b[6;32;18m \x1b[0m`
 - ragionare se ha senso salvare info più frequentemente, tipo ad ogni sottorun
 	- pezzi di json ad esempio (cioè lo aggiorno)
+- `argcomplete` e gli alias
+	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
+	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
+	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
+- aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
 - migliorare `--plot`
 	- implementare `profiles` come subparser
 	- aggiungere l'opzione `-color`
 		- specificando `choices` (cioè il ciclo standard che ci metterò)
 		- oppure specificando un numero, che lo shift da cui partire
-	- implementare `fit` come subparser
-		- leggere Ambjorn per trovare la funzione da fittare
 	- gestire i plot (cioè ripensare `analysis.py`) alla luce dei salvataggi logaritmici
 	- plot animati (`matplotlib.animation`)
-- `argomplete` e gli alias
-	- [make-completion-wrapper.sh](https://ubuntuforums.org/showthread.php?t=733397)
-	- [Issue sul progetto](https://github.com/kislyuk/argcomplete/issues/222)
-	- usare per migliorare `--clear` e `--stop`: suggerisce i Lambda delle simulazioni opportune
-- aggungere warning nell'autocomplete per comandi assurdi (esempio: `-s` con `--linear-history`)
+- update programmati: quando lancio un update se la simulazione è running si prende il PPID e lancia un update quando muore il python corrispondente
+	- se faccio nuovamente update prima che abbia completato sostituisce l'update vecchio col nuovo
+- migliorare `tools config`
+	- quando cdt2demail avrà davvero una password se ne dovrà fornire un email anche per la spedizione
+	- però a quel punto si potrà anche inserire la password (perché sarà criptata), e si potrà scegliere di usare lo stesso indirizzo come mittente e destinatario
 
 ## Versions
 Non appena il bug sui salvataggi è risolto diventerà utilizzabile e sarà la versione 0.1, ma finché non saranno pronte tutte le feature davvero utili alla presa dati non verrà rilasciata la prima versione.
@@ -136,6 +131,11 @@ Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporr
 	- ~~aggiungere checkpoint da cui si parte~~
 	- ~~aggiungere numero di iterazioni?~~
 - ~~risolvere il problema di `state` su ssh (che poi è un problema anche per `run` e `stop`)~~
+- ~~json di progetto con configurazioni globali settate dall'utente (email, rclone remote)~~
+	- ~~all'inizio viene settato dal setup.h~~
+		- ~~chiede all'utente i valori da inserire~~
+	- ~~modificabile in seguito con un comando `tools config`~~
+		- ~~`--email` e `--rclone`, belli espliciti~~
 - ~~data: $ per prendere dati~~
 		---> la configurazione test dev'essere uguale a quella dati
 				magari si aggiorna più liberamente, per cui ha senso
@@ -187,6 +187,11 @@ Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporr
 		- ~~per evitare che quelle che divergono esplodano, così~~
 		- ~~posso liberamente imporre anche limiti di tempo non~~
 		- ~~piccoli e uguali per tutti~~
+- ~~aggiungere `remote` (UPLOAD e DOWNLOAD di simulazioni)~~
+	- ~~con Drive/Dropbox (`rclone`)~~
+		- ~~`setup.sh` deve chiedere di fornire una configurazione valida di rclone a cui agganciarsi~~
+		- ~~per evitare casini è meglio che lo indichi semplicemente all'utente (senza far partire lui rclone, che potrebbe anche non essere installato)~~
+			- ~~se l'utente non configura rclone il campo nel json di progetto rimane al default, e i comandi UPLOAD e DOWNLOAD rimangono disattivati~~
 - ~~TERMALIZZAZIONE~~  
 	~~progetto (per il momento lo realizzo semplice, così almeno lo posso lanciare subito automatico):~~
 	- :smile:
