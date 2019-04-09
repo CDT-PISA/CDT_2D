@@ -42,12 +42,12 @@ def plot(lambdas_old, lambdas_new, config):
         print()
     plot(lambdas_old, config)
     
-def fit(lambdas_old, lambdas_new, config, force):
+def fit(lambdas_old, lambdas_new, config, skip):
     from lib.analysis import fit
     
     if len(lambdas_new) > 0:
         print("Following λ not found: ", lambdas_new)
-    fit(lambdas_old, config, force)
+    fit(lambdas_old, config, skip)
 
 # Utilities
 
@@ -208,7 +208,8 @@ def main():
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
                           help='config')
     run_sub.add_argument('-f', '--force', action='store_true', help='force')
-    run_sub.add_argument('--linear-history', default='0',
+    run_sub.add_argument('--lin', '--linear-history', dest='linear_history', 
+                        default='0',
                         help="it takes an integer argument, that if set \
                         greater then zero let data points be saved at regular \
                         intervals, instead of at increasing ones (units: \
@@ -315,7 +316,7 @@ def main():
                         (the '-' in front is not needed)")
     fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
-    fit_sub.add_argument('-f', '--force', action='store_true', help='force')
+    fit_sub.add_argument('-s', '--skip', action='store_true', help='skip')
     
     # utilities subparser
     
@@ -520,7 +521,7 @@ def main():
         show(lambdas_old, args.config, args.disk_usage)
         
     elif args.command == 'fit':
-        fit(lambdas_old, lambdas_new, args.config, args.force)
+        fit(lambdas_old, lambdas_new, args.config, args.skip)
     
     elif args.command == 'tools':
         if args.tools == 'recovery':

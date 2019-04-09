@@ -60,19 +60,45 @@ def sim_info(Lambda, config):
     
 def therm(lambdas_old, config, is_therm, force):
     import json
-    from lib.utils import authorization_request
+    from lib.utils import find_running, authorization_request
     
-    for Lambda in lambdas_old:
+    lambdas_run, _ = find_running()
+    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+    
+    lambdas_av = [l for l in lambdas_old if l not in lambdas_run]
+    lambdas_not_av = [l for l in lambdas_old if l in lambdas_run]
+    
+    if len(lambdas_not_av) > 0:
+        print("Simulations for following λ were already running: ", 
+              lambdas_not_av)
+        if len(lambdas_av) > 0:
+            print()
+    
+    for Lambda in lambdas_av:
         if not config == 'test' and not force:
             what_to_do = "to set thermalization flag `" + str(is_therm) + "`"
             authorized = authorization_request(what_to_do, Lambda)
         else:
             authorized = True
         if authorized:
-            filename = 'output/' + config + '/Lambda' + str(Lambda) + '/state.json'
+            filename = ('output/' + config + '/Lambda' + str(Lambda) +
+                        '/state.json')
             with open(filename, 'r') as state_file:
                 state = json.load(state_file)
                 state['is_thermalized'] = eval(is_therm)
+                if state['is_thermalized']:
+                    state['therm_from'] = state['iter_done']
+                elif 'therm_from' in state.keys():
+                    state.pop('therm_from')
+                    
+            if state['is_thermalized']:
+                neg = ''
+            else:
+                neg = 'un'
+                
+            print('Thermalization ' + neg + 'setted for λ = ' + str(Lambda))
+            if state['is_thermalized']:
+                print('Iteration before therm: ' + str(state['iter_done']))
                 
             with open(filename, 'w') as state_file:
                 json.dump(state, state_file, indent=4)

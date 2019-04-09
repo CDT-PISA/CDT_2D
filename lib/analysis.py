@@ -85,11 +85,11 @@ def analyze_output(outdir):
 def is_thermalized():
     return False
 
-def select_from_plot(Lambda, indices, volumes, i):
+def select_from_plot(Lambda, indices, volumes, i=0, dot=None):
     from matplotlib.pyplot import figure, show, figtext
     
-    imin = indices[0]
-    imax = indices[-1]
+    imin = min(indices)
+    imax = max(indices)
     vmin = min(volumes)
     vmax = max(volumes)
     
@@ -107,26 +107,42 @@ def select_from_plot(Lambda, indices, volumes, i):
     ax.set_title('λ = ' + str(Lambda))
     figtext(.5,.03,' '*10 + 
             'press enter to convalid current selection', ha='center')
+    if not dot == None:
+        ax.plot(*dot, 'o', mec='w')
+    
     fig.canvas.draw()
     
+    def on_press(event):
+        on_press.p = True
+    on_press.p = False
+    
     def on_click(event):
+        on_press.p = False
         if event.inaxes is not None:
             x = event.xdata
             y = event.ydata
             inarea = x > imin and x < imax and y > vmin and y < vmax
-            if inarea:
+            if inarea and not on_motion.drag:
                 on_click.x = x
+                on_click.y = y
                 if on_click.i > 0:
                     on_click.m[0].remove()
                 on_click.m = ax.plot(x, y, 'o', mec='w')
                 event.canvas.draw()
                 on_click.i += 1
+        on_motion.drag = False
     on_click.i = 0
     on_click.m = None
-    on_click.x = 0
+    on_click.x = None
+    on_click.y = None
         
     def on_motion(event):
-        if event.inaxes is not None:
+        if on_press.p == True:
+            on_motion.drag = True
+            hide_drag = not event.canvas.manager.toolbar._active == None
+        else:
+            hide_drag = False
+        if event.inaxes is not None and not hide_drag:
             x = event.xdata
             y = event.ydata
             inarea = x > imin and x < imax and y > vmin and y < vmax
@@ -136,79 +152,268 @@ def select_from_plot(Lambda, indices, volumes, i):
                 event.canvas.draw()
                 m[0].remove()
                 n[0].remove()
+        else:
+            event.canvas.draw()
+    on_motion.drag = False
         
     def on_key(event):
         if event.key == 'enter':
             close()
+            if on_click.x == None:
+                on_click.x = -1
+        if event.key == 'q':
+            on_click.x = None
+            on_click.y = None
+            close()
+            
     
+    canvas.mpl_connect('button_press_event', on_press)
     canvas.mpl_connect('button_release_event', on_click)
     canvas.mpl_connect('motion_notify_event', on_motion)
     canvas.mpl_connect('key_press_event', on_key)
     show()
     
-    return on_click.x
+    return on_click.x, on_click.y
             
 
-def fit(lambdas_old, config, force):
-    import readline
-    from numpy import loadtxt
+def fit(lambdas_old, config, skip):
+    from os import chdir, getcwd
+    import json
+    from numpy import array, linspace
+    from matplotlib.pyplot import figure, show
+    from scipy.optimize import curve_fit
     
-    i = -1
-    for Lambda in lambdas_old:
-        i += 1
+    proj_dir = getcwd()
+    volumes = []
+    errors = []
+    if skip == False:
+        import readline
+        from numpy import loadtxt
         
-        vol_file = ('output/' + config + '/Lambda' + str(Lambda) +
-                   '/history/volumes.txt')
-        indices, volumes = loadtxt(vol_file, unpack=True)
-#        imin = indices[0]
-#        imax = indices[-1]
-        vmin = min(volumes)
-        vmax = max(volumes)
-        
-        print("Select the x cut ('p' for plot or type it, or just ENTER to use"
-                                 + " a previous choice)")
-        valid = False
-        count = 0
-        while not valid and count < 3:
-            count += 1
-            try:
-                choice = input('--> ')
-            except EOFError:
-                choice = ''
-                print()
-                
-            valid = True
-            if choice == 'q' or choice == 'quit':
-                choice = 'q'
-            elif choice == 'p':
-                choice = 'plot'
-            elif choice == '':
-                choice = 'stored'
-            else:
+        i = -1
+        for Lambda in lambdas_old:
+            i += 1
+            chdir('output/' + config + '/Lambda' + str(Lambda))
+            
+            vol_file = ('history/volumes.txt')
+            indices, volumes = loadtxt(vol_file, unpack=True)
+            imin = indices[0]
+            imax = indices[-1]
+            vmin = min(volumes)
+            vmax = max(volumes)
+            
+            print("[ λ = " + str(Lambda) + " ]")
+            print("Select the x cut ('p' for plot or type it, or just ENTER"
+                                     + " to use a previous choice)")
+            valid = False
+            count = 0
+            while not valid and count < 3:
+                count += 1
                 try:
-                    choice = int(choice)
-                    if choice < vmin or choice >= vmax:
-                        raise ValueError
-                except ValueError:
-                    valid = False
-                    print('Answer not valid', end='')
-                    if count < 3:
-                        print(', type it a valid one')
-                    else:
-                        choice = 'q'
-                        print(' (nothing done)')
-        
-        if choice == 'q':
-            print('Nothing done, restart from the beginning')
-            return        
-        elif choice == 'plot':
-            cut = select_from_plot(Lambda, indices, volumes, i)
-        elif choice == 'stored':
-            print("Me lo vado a prendere nel json")
-            old_found = False
-            if not old_found:
-                cut = select_from_plot(Lambda, indices, volumes, i)
+                    choice = input('--> ')
+                except EOFError:
+                    choice = ''
+                    print()
+                    
+                valid = True
+                if choice == 'q' or choice == 'quit':
+                    choice = 'q'
+                elif choice == 'p':
+                    choice = 'plot'
+                elif choice == '':
+                    choice = 'stored'
+                else:
+                    try:
+                        choice = int(choice)
+                        if choice < imin or choice >= imax:
+                            raise ValueError
+                    except ValueError:
+                        valid = False
+                        print('Answer not valid', end='')
+                        if count < 3:
+                            print(', type it a valid one')
+                        else:
+                            choice = 'q'
+                            print(' (nothing done)')
+            
+            with open('state.json', 'r') as state_file:
+                state = json.load(state_file)
+            
+            if choice == 'q':
+                print('Nothing done, restart from the beginning')
+                return
+            elif type(choice) == int:
+                cut = choice
+            elif choice == 'plot':
+                cut, height = select_from_plot(Lambda, indices, volumes, i)
+                if cut == None:
+                    print('Nothing done, restart from the beginning')
+                    return
+                elif cut == -1:
+                    print('Using the default one.')
+                    choice = 'stored'
+            if choice == 'stored':
+                try:
+                    cut = state['cut']
+                    height = (vmax + vmin) / 2
+                except KeyError:
+                    print('Default cut not found, select it on the plot.')
+                    cut, height = select_from_plot(Lambda, indices, volumes, i)
+                    
+            state['cut'] = cut
+            volumes_cut = volumes[indices > cut]
+            indices_cut = indices[indices > cut]
+            
+            dot = (cut, height)
+            
+            def blocked_mean_std(indices, volumes, block_size):
+                from numpy import mean, std
+                from math import sqrt
                 
-        print('E ora lo conservo nel json')
-        volumes = volumes[indices < cut]
-        print(len(volumes)/len(indices))
+                bs = block_size
+                buffer_start = indices[0]
+                buffer = []
+                block_means = []
+                for i in range(0,len(indices)):
+                    if (indices[i] - buffer_start) > bs:
+                        block_means += [mean(buffer)]
+                        buffer = []
+                        buffer_start = indices[i]
+                    buffer += [volumes[i]]
+                
+                vol = mean(block_means)
+                err = std(block_means) / sqrt(len(block_means) - 1)
+                
+                return vol, err
+            
+            print("Select the x blocking ('p' for plot, 'b' for blocks' " +
+                  "plot or type it, or just ENTER to use a previous choice)")
+            valid = False
+            count = 0
+            while not valid and count < 3:
+                count += 1
+                try:
+                    choice = input('--> ')
+                except EOFError:
+                    choice = ''
+                    print()
+                    
+                valid = True
+                if choice == 'q' or choice == 'quit':
+                    choice = 'q'
+                elif choice == 'p':
+                    choice = 'plot'
+                elif choice == 'b':
+                    choice = 'blocks plot'
+                elif choice == '':
+                    choice = 'stored'
+                else:
+                    try:
+                        choice = int(choice)
+                        if choice < 1 or choice >= (imax - cut):
+                            raise ValueError
+                    except ValueError:
+                        valid = False
+                        print('Answer not valid', end='')
+                        if count < 3:
+                            print(', type it a valid one')
+                        else:
+                            choice = 'q'
+                            print(' (nothing done)')
+            
+            if choice == 'q':
+                print('Nothing done, restart from the beginning')
+                return        
+            elif choice == 'plot':
+                x_sel, _ = select_from_plot(Lambda, indices, volumes, i, dot)
+                if x_sel == None:
+                    print('Nothing done, restart from the beginning')
+                    return
+                elif x_sel == -1:
+                    print('Using the default one.')
+                    choice = 'stored'
+                block = x_sel - cut
+            if choice == 'stored':
+                try:
+                    block = state['block']
+                except KeyError:
+                    print('Default block size not found, ' + 
+                          'select it on the plot.')
+                    choice = 'blocks plot'
+            if choice == 'blocks plot':
+                from math import log
+                
+                block_sizes = [2**k for k in 
+                               range(0, int(log(imax - cut, 2)) - 5)]
+                stdevs = []
+                for bs in block_sizes:
+                    _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
+                    stdevs += [stdev]
+                    
+                block, _ = select_from_plot(Lambda, block_sizes, stdevs, i)
+                if block == None or block == -1:
+                    print('Nothing done, restart from the beginning')
+                    return
+                block = int(block)
+                
+            state['block'] = block
+            
+            vol, err = blocked_mean_std(indices_cut, volumes_cut, block)
+            
+            state['asymptotic mean volume'] = (vol,err)
+            volumes += [vol]
+            errors += [err]
+            
+            with open('state.json', 'w') as state_file:
+                json.dump(state, state_file, indent=4)
+                
+            chdir(proj_dir)
+    else:
+        for Lambda in lambdas_old:
+            chdir('output/' + config + '/Lambda' + str(Lambda))
+            
+            with open('state.json', 'r') as state_file:
+                    state = json.load(state_file)    
+            
+            try:
+                volumes += [state['asymptotic mean volume'][0]]
+                errors += [state['asymptotic mean volume'][1]]
+            except KeyError:
+                print('')
+                print('Nothing done, restart from the beginning')
+                return
+            
+            chdir(proj_dir)
+          
+    from numpy import sqrt, log, zeros, diag
+            
+    lambdas = array(lambdas_old)
+    volumes = array(volumes)
+    errors = array(errors)
+            
+    fig = figure()
+    ax = fig.add_subplot(111)
+    
+    ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
+    
+    def volume(l, l_c, alpha, A):
+        return A*(l - l_c)**(-alpha)
+    
+    par, cov = curve_fit(volume, lambdas_old, volumes, p0=(0.69315, 2.4, 61))
+    
+    names = ['λ_c', 'alpha', 'factor']#, 'shift']
+    print(dict(zip(names, par)))
+    print(dict(zip(names,sqrt(diag(cov)))))
+    
+    n = len(par)
+    corr = zeros((n, n))
+    for i in range(0, n):
+        for j in range(0, n):
+            corr[i,j] = cov[i,j]/sqrt(cov[i,i]*cov[j,j])
+    
+    print(corr)
+    
+    l_inter = linspace(min(lambdas), max(lambdas), 1000)
+    ax.plot(l_inter, volume(l_inter, *par))
+    
+    show()
