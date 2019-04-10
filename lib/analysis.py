@@ -344,7 +344,7 @@ def fit(lambdas_old, config, skip):
                 from math import log
                 
                 block_sizes = [2**k for k in 
-                               range(0, int(log(imax - cut, 2)) - 5)]
+                               range(0, int(log(imax - cut, 2)) - 3)]
                 stdevs = []
                 for bs in block_sizes:
                     _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
@@ -394,6 +394,7 @@ def fit(lambdas_old, config, skip):
     fig = figure()
     ax = fig.add_subplot(111)
     
+    print(errors.shape)
     ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
     
     def volume(l, l_c, alpha, A):
