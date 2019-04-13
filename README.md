@@ -65,6 +65,7 @@ Raccolta di feature nuove non strettamente necessarie:
 
 - colori per evidenziare in `show` i valori critici
 	- `\x1b[6;32;18m \x1b[0m`
+	- [tabella su stackoverflow](https://stackoverflow.com/questions/287871/print-in-terminal-with-colors?page=1&tab=votes#tab-top)
 - aggiungere in `launch_script` l'email presa da `config.json`
 - mettere in `show` anche il numero di run
 - scrivere in `state -f 2` il tempo per cui deve durare la simulazione

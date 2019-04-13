@@ -385,7 +385,7 @@ def fit(lambdas_old, config, skip):
             
             chdir(proj_dir)
           
-    from numpy import sqrt, log, zeros, diag
+    from numpy import sqrt, log, zeros, diag, vectorize
             
     lambdas = array(lambdas_old)
     volumes = array(volumes)
@@ -400,7 +400,14 @@ def fit(lambdas_old, config, skip):
     def volume(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
     
-    par, cov = curve_fit(volume, lambdas_old, volumes, p0=(0.69315, 2.4, 61))
+    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors,
+                         p0=(0.69315, 2.4, 61))
+    
+    residuals_sq = ((volumes - vectorize(volume)(lambdas, *par))/errors)**2
+    chi2 = residuals_sq.sum()
+    dof = len(lambdas) - len(par)
+    
+    print("χ² = ", chi2, dof)
     
     names = ['λ_c', 'alpha', 'factor']#, 'shift']
     print(dict(zip(names, par)))
