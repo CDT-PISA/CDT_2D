@@ -181,10 +181,12 @@ def main():
             
         if state['is_thermalized'] and arguments[6] == '0':
             arguments[6] = '1M'
+            
+        arguments[2] = state['timelength']
     else:
         state = {'Lambda': float(Lambda_str), 'run_done': 0, 
                  'is_thermalized': False, 'last_checkpoint': None,
-                 'iter_done': 0}
+                 'iter_done': 0, 'timelength': arguments[2]}
     
     # END CONDITION MANIPULATION
     # needed for thermalization loop

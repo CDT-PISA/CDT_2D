@@ -130,6 +130,9 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         else:
             end_condition = time
         
+        if type(time_length) == list:
+            time_length = time_length[0]
+        
         debug_flag = 'false'
         arguments = [run_num, Lambda, time_length, end_condition, debug_flag, 
                      last_check, linear_history]

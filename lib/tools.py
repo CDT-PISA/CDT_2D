@@ -382,6 +382,9 @@ def clear_data(lambdas, config='test', force=False):
     if len(lambdas_req_run) > 0 and len(lambdas_clearable) > 0:
         print()
     
+    if len(lambdas_clearable) == 0:
+        print("No λ found in the requested range.")
+    
     for Lambda in lambdas_clearable:
         try:
             if not config == 'test' and not force:

@@ -18,10 +18,9 @@ My own implementation of CDT in 1+1 dimension
 
 - aggiungere un generatore in scope globale così da poterlo inizializzare con un certo **seed**
 
-*DEBUG: Devo stampare sulle mosse le informazioni relative a ogni elemento in modo da poter cercare successivamente in stdout.txt le mosse in cui è stato coinvolto (magari stampando "t184" per i triangoli e "v76" per i vertici, in modo da poterli distinguere nell'output)*
-
 DEBUG: devo sostituire la flag di debug con le direttive del preprocessor
 (e capire come settare debug mode a livello del comando `gcc`)
+																			... ma anche no?
 
 #### Script
 
@@ -45,23 +44,6 @@ Quelle dopo possono anche aspettare, perché non danno problemi di compatibilit�
 
 ### New features
 Raccolta di feature nuove non strettamente necessarie:
-
-- implementare `tools remove`
-
-- implementare `fit` come subparser di `plot`
-	- leggere Ambjorn per trovare la funzione da fittare
-	- prende come argomento un range (non `°`, come plot), e per ogni lambda nel range:
-		- apre il plot, e ti fa selezionare il punto da cui tagliare
-			- prima come input (il plot solo come aiuto) e poi cliccando sul plot
-		- ti fa selezionare l'ampiezza del blocking (questo solo con input, o almeno sempre disponibile)
-			- rileggere blocking su D'Elia
-	- finisce plottando il fit e stampando su stdout e su file valori e matrice di covarianza
-		- quando chiudi il plot ti chiede se lo vuoi salvare
-	- conservare in `state.json` sia `fit_cutoff` (default 0, parte dall'inizio) che `blocking` (default 1, un passo alla volta)
-		- se già esistono, prima di stampare il plot si stampano loro e si chiede all'utente se vuole aggiornarle
-		- se dice di no si procede senza visualizzare il plot
-		- opzione -s, --skip per usare tutti i valori già fissati
-			- se non ci sono tutti stampa un messaggio di errore il prima possibile
 
 - colori per evidenziare in `show` i valori critici
 	- `\x1b[6;32;18m \x1b[0m`
@@ -223,3 +205,18 @@ Una volta che ci sarà un nuovo parametro da esplorare ($g_{YM}$) si può imporr
 	- ~~se 'linear-history' è attivata~~
 	- ~~aggiungere `state -f 2` (ti va vedere altre info ulteriori)~~
 		- ~~dice quanto è piena la cartella~~
+- ~~implementare `tools remove`~~
+- ~~implementare `fit` come subparser di `plot`~~
+	- ~~leggere Ambjorn per trovare la funzione da fittare~~
+	- ~~prende come argomento un range (non `°`, come plot), e per ogni lambda nel range:~~
+		- ~~apre il plot, e ti fa selezionare il punto da cui tagliare~~
+			- ~~prima come input (il plot solo come aiuto) e poi cliccando sul plot~~
+		- ~~ti fa selezionare l'ampiezza del blocking (questo solo con input, o almeno sempre disponibile)~~
+			- ~~rileggere blocking su D'Elia~~
+	- ~~finisce plottando il fit e stampando su stdout e su file valori e matrice di covarianza~~
+		- ~~quando chiudi il plot ti chiede se lo vuoi salvare~~
+	- ~~conservare in `state.json` sia `fit_cutoff` (default 0, parte dall'inizio) che `blocking` (default 1, un passo alla volta)~~
+		- ~~se già esistono, prima di stampare il plot si stampano loro e si chiede all'utente se vuole aggiornarle~~
+		- ~~se dice di no si procede senza visualizzare il plot~~
+		- ~~opzione -s, --skip per usare tutti i valori già fissati~~
+			- ~~se non ci sono tutti stampa un messaggio di errore il prima possibile~~
