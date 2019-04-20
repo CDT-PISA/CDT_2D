@@ -182,7 +182,12 @@ def main():
         if state['is_thermalized'] and arguments[6] == '0':
             arguments[6] = '1M'
             
-        arguments[2] = state['timelength']
+        try:
+            arguments[2] = state['timelength']
+        except KeyError:
+            arguments[2] = 80
+            # I'm putting the default because this case is present only for
+            # backward compatibility, and before the timelength was stuck to 80
     else:
         state = {'Lambda': float(Lambda_str), 'run_done': 0, 
                  'is_thermalized': False, 'last_checkpoint': None,
