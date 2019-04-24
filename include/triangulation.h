@@ -53,6 +53,12 @@ public: /// @todo deve essere private
     long num40p;
     
     /**
+    * @brief the list of edges in the triangulation
+    * 
+    */
+    vector<Label> list1;
+    
+    /**
     * @brief the list of triangles in the triangulation
     * 
     */
@@ -102,7 +108,7 @@ public: /// @todo deve essere private
     vector<Label> transition2112;    
     
 public:
-    // DI SERVIZIO (misurano gli step della simulazione)
+    // SERVICE'S (they count simulation's steps and iterations)
     
     int volume_step;
     int steps_done;

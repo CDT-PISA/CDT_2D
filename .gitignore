@@ -51,7 +51,8 @@ build/*
 doc/*
 lib/__pycache__/*
 output/*
-test/*
+test/build/*
+test/record/*
 
 # Other
 .directory

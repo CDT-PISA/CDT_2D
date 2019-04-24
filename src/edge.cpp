@@ -18,26 +18,76 @@
 
 #include "edge.h"
 
-// Vertex::Vertex(int list_position)
-// {   
-//     id = list_position;
-// }
-// 
-// Vertex::Vertex(int list_position, int Time, int coordination_number, Label triangle)
-// {   
-//     id = list_position;
-//     t_slice = Time;
-//     coord_num = coordination_number;
-//     near_t = triangle;
-// }
-// 
-// int Vertex::time(){ return t_slice; }
-// 
-// int Vertex::coordination(){ return coord_num; }
-// 
-// Label Vertex::adjacent_triangle(){ return near_t; }
-// 
-// // ##### FILE I/O #####
+Edge::Edge(const int& list_position)
+{   
+    id = list_position;
+}
+
+Edge::Edge(const int& list_position, const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type)
+{
+    id = list_position;
+    near_t = triangle;
+    type = e_type;
+    
+    for(int i=0;i<2;i++){
+        v[i] = vertices[i];
+    }    
+}
+
+GaugeElement Edge::gauge_element(){ return U; }
+
+Label Edge::adjacent_triangle(){ return near_t; }
+
+Label* Edge::vertices(){ return v; }
+
+bool Edge::is_space()
+{
+    if(type == EdgeType::_space)
+        return true;
+    else if(type == EdgeType::_time)
+        return false;
+    else
+        throw runtime_error("EdgeType not recognized");
+}
+
+bool Edge::is_time(){ return not is_space(); }
+
+
+// ##### FILE I/O #####
+
+void Edge::write(std::ostream& output)
+{
+    output.write((char*)&id, sizeof(id));
+    output.write((char*)&type, sizeof(type));
+    U.write(output);
+    
+    int pos = near_t->position();
+    output.write((char*)&pos, sizeof(pos));
+    
+    for(auto x : v){
+        int pos = x->position();
+        output.write((char*)&pos, sizeof(pos));
+    }
+}
+
+void Edge::read(std::istream& input, const vector<Label>& List0, const vector<Label>& List1, const vector<Label>& List2)
+{
+    input.read((char*)&id, sizeof(id));
+    input.read((char*)&type, sizeof(type));
+    U.read(input, List1);
+    
+    int pos = 0;
+    input.read((char*)&pos, sizeof(pos));
+    near_t = List2[pos];
+    
+    for(auto& x : v){
+        int pos = 0;
+        input.read((char*)&pos, sizeof(pos));
+        x = List0[pos];
+    }
+}
+
+
 // 
 // void Vertex::write(ostream& output)
 // {

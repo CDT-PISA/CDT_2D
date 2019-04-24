@@ -4,12 +4,13 @@
 
 #include "simplex.h"
 #include "label.h"
+#include "gaugeelement.h"
 #include <memory>
 #include <vector>
 #include <fstream>
 using namespace std;
 
-enum class TriangleType {_time, _space };
+enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
 {
@@ -18,31 +19,33 @@ private:
     /**
      * 
      */ 
-    Edge(int list_position);
+    Edge(const int& list_position);
     
     /**
      * @todo
      */
-    Edge(int list_position, int Time, Label triangle);
-
+    Edge(const int& list_position, const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type);
 
     
     // DATA
     
     /**
-    * @var time label of the slice
+    * @var labels of owned Vertices
     * 
     */
-    int t_slice;
+    Label v[2]={};
     
     /**
     * @var number of adjacent Triangles
     * 
     */
-    GaugeField U;
+    GaugeElement U;
     
     /**
     * @var label of a neighbouring Triangle
+    * 
+    * Space Edges: the near triangle is the one below
+    * Time Edges: the near triangle is the one on the left
     * 
     */
     Label near_t;
@@ -65,14 +68,14 @@ public:
     * 
     * @return t_slice
     */
-    int time();
+    GaugeElement gauge_element();
 
     /**
     * @brief interface method
     * 
     * @return coord_num
     */
-    int coordination();
+    Label* vertices();
 
     /**
     * @brief interface method
@@ -80,12 +83,16 @@ public:
     * @return near_t
     */
     Label adjacent_triangle();
+        
+    bool is_time();
+    
+    bool is_space();
     
     // ##### FILE I/O #####
     
     void write(ostream& output);
     
-    void read(istream& input, const vector<Label>& List2);
+    void read(istream& input, const vector<Label>& List0, const vector<Label>& List1, const vector<Label>& List2);
 
 };
 

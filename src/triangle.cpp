@@ -36,9 +36,6 @@ Triangle::Triangle(int list_position, Label vertices[3], Label adjacents_t[3], T
     }    
 }
 
-/**
- * @todo gestione errori
- */ 
 bool Triangle::is12()
 {
     if(type == TriangleType::_12)
@@ -68,7 +65,7 @@ bool Triangle::is_transition()
 */
 Label* Triangle::vertices(){ return v; }
 
-Label * Triangle::adjacent_triangles(){ return t; }
+Label* Triangle::adjacent_triangles(){ return t; }
 
 void Triangle::write(ostream& output)
 {
