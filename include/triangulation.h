@@ -8,6 +8,7 @@
 #include <fstream>
 #include "label.h"
 #include "triangle.h"
+#include "edge.h"
 #include "vertex.h"
 using namespace std;
 
@@ -147,7 +148,14 @@ public:
     * @param triangle
     * @return
     */
-    Label create_vertex(int Time, int coordination_number, Label adjacent_triangle);
+    Label create_vertex(const int& Time, const int& coordination_number, const Label& adjacent_triangle);
+    
+    /**
+    * @brief
+    * 
+    * @return
+    */
+    Label create_edge(const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type);
     
     /**
     * @brief
@@ -163,9 +171,11 @@ public:
     * @param adjacents_t 
     * @return Label
     */
-    Label create_triangle(Label vertices[3], Label adjacents_t[3], TriangleType type);
+    Label create_triangle(const Label (&vertices)[3], const Label (&edges)[3], const Label (&adjacents_t)[3], const TriangleType& type);
     
     void remove_vertex(Label v_lab);
+    
+    void remove_edge(Label e_lab);
     
     void remove_triangle(Label tri_lab);
     

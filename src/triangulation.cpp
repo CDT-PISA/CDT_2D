@@ -25,11 +25,6 @@
 #include <cmath>
 #include <string>
 #include "triangulation.h"
-/**
- * @todo Is a good practice to reinclude in the .cpp the header already included in the corresponding .h?
- */
-#include "vertex.h"
-#include "triangle.h"
 
 using namespace std;
 
@@ -55,6 +50,7 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
     num40 = 0;
     num40p = 0;
     list0.clear();
+    list1.clear();
     list2.clear();
     spatial_profile.clear();
     transition1221.clear();
@@ -87,6 +83,13 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         int tri_id2 = (j + 1)%3 + 3;
         list2[tri_id1].dync_triangle()->vertices()[1] = lab; /** @todo allegare disegni */
         list2[tri_id2].dync_triangle()->vertices()[0] = lab;
+    }
+    
+    for(int j=0;j<3;j++){   // initialize the 3 edges at time 1
+        Label vertices[] = {list0[(j + 2)%3], list0[j]};
+        Label lab(new Edge(list1.size(), vertices, list2[j+3], EdgeType::_space));
+        
+        list2[j+3].dync_triangle()->e[2] = lab;
     }
     
     /* at the end of these first steps the only things missed are:\n
@@ -153,6 +156,31 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
             tri_lab4->vertices()[2] = list0[3*(i - 1) + j];
         }
         
+        // EDGES
+        
+        for(int j=0;j<3;j++){
+            // space-like ones
+            Label vertices_s1[] = {list0[(j + 2)%3 + 3*(i-1)], list0[j + 3*i]};
+            Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3 + 6*i], EdgeType::_space));
+            
+            list2[j + 3 + 6*i].dync_triangle()->e[0] = lab_s1;
+            list2[j + 6*i].dync_triangle()->e[1] = lab_s1;
+            
+            Label vertices_s2[] = {list0[j + 3*(i-1)], list0[j + 3*i]};
+            Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 6*i], EdgeType::_space));
+            
+            list2[j + 6*i].dync_triangle()->e[0] = lab_s2;
+            list2[(j + 1)%3 + 3 + 6*i].dync_triangle()->e[1] = lab_s2;
+        }
+        for(int j=0;j<3;j++){
+            // time-like ones
+            Label vertices_t[] = {list0[(j + 2)%3 + 3*i], list0[j + 3*i]};
+            Label lab_t(new Edge(list1.size(), vertices_t, list2[j + 3 + 6*i], EdgeType::_time));
+            
+            list2[j + 3 + 6*i].dync_triangle()->e[2] = lab_t;
+            list2[j + 6*i].dync_triangle()->e[2] = list1[j + 9*(i - 1)]; // initialized on the previous slice
+        }
+        
         // TRIANGLE ADJACENCIES
         for(int j=0;j<3;j++){ /** @todo allegare disegni */
             Triangle* tri_labp = list2[j - 3 + 6*i].dync_triangle();    // triangle (1,2) in the previous strip
@@ -187,9 +215,28 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         
         tri_labp->adjacent_triangles()[2] = list2[j];
         
-    // ... and the types...
+        // ... and the types...
         tri_lab0->type = TriangleType::_21;
         tri_lab3->type = TriangleType::_12;
+    }
+    
+    // ... and some edges and their adjacencies ...
+    for(int j=0;j<3;j++){
+        // missing space-like ones
+        Label vertices_s1[] = {list0[(j + 2)%3 + 3*(TimeLength-1)], list0[j]};
+        Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3], EdgeType::_space));
+        
+        list2[j + 3].dync_triangle()->e[0] = lab_s1;
+        list2[j].dync_triangle()->e[1] = lab_s1;
+        
+        Label vertices_s2[] = {list0[j + 3*(TimeLength-1)], list0[j]};
+        Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j], EdgeType::_space));
+        
+        list2[j].dync_triangle()->e[0] = lab_s2;
+        list2[(j + 1)%3 + 3].dync_triangle()->e[1] = lab_s2;
+        
+        // missing time-like adjacencies
+        list2[j + 6].dync_triangle()->e[2] = list1[j];
     }
     
     // ... and vertices of (2,1)-triangles (ones at time 0)
@@ -212,7 +259,7 @@ Triangulation::Triangulation(string filename)
 
 // ##### SIMPLEX MANAGEMENT #####
  
-Label Triangulation::create_vertex(int Time, int coordination_number, Label adjacent_triangle)
+Label Triangulation::create_vertex(const int& Time, const int& coordination_number, const Label& adjacent_triangle)
 {
     int list_position=list0.size();
     Label lab(new Vertex(list_position, Time, coordination_number, adjacent_triangle));
@@ -249,16 +296,26 @@ Label Triangulation::create_triangle()
     return lab;
 }
 
-Label Triangulation::create_triangle(Label vertices[3], Label adjacents_t[3],TriangleType type)
+Label Triangulation::create_triangle(const Label (&vertices)[3], const Label (&edges)[3], const Label (&adjacents_t)[3], const TriangleType& type)
 {
     /** @todo gestire errore, almeno con un messaggio, se vertices e adjacents_t vengono scambiati
      * poiché sono dello stesso tipo il compilatore non da errore se li inverto, ma l'errore me lo becco a runtime
      */ 
     
     int list_position=list2.size();
-    Label lab(new Triangle(list_position,vertices,adjacents_t,type));
+    Label lab(new Triangle(list_position, vertices, edges, adjacents_t, type));
     
     list2.push_back(lab);
+    
+    return lab;
+}
+
+Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type)
+{    
+    int list_position=list1.size();
+    Label lab(new Edge(list_position, vertices, triangle, e_type));
+    
+    list1.push_back(lab);
     
     return lab;
 }
@@ -310,6 +367,28 @@ void Triangulation::remove_vertex(Label lab_v)
     }
 }
 
+void Triangulation::remove_edge(Label lab_e)
+{
+    try{
+        if(lab_e->id != list1.size() - 1){
+            list1[lab_e->id] = list1[list1.size() - 1];
+            list1[lab_e->id]->id = lab_e->id;
+        }
+        
+        Label lab(nullptr);
+        Edge* e_lab = lab_e.dync_edge();
+        for(int i=0; i<2; i++){
+            e_lab->v[i] = lab;
+        }
+        e_lab->near_t = lab;
+        
+        list1.pop_back();
+    }
+    catch(...){
+        throw;
+    }
+}
+
 /** 
  * @todo migliorare gestione degli errori 
  * @todo devo controllare che non ci siano triangoli adiacenti o vertici attaccati? 
@@ -331,6 +410,7 @@ void Triangulation::remove_triangle(Label lab_t)
         Triangle* tri_lab = lab_t.dync_triangle();
         for(int i=0; i<3; i++){
             tri_lab->v[i] = lab;
+            tri_lab->e[i] = lab;
             tri_lab->t[i] = lab;
         }
         
@@ -873,23 +953,31 @@ void Triangulation::move_24(bool debug_flag)
     
     Label t2_adjancencies[3];
     Label t3_adjancencies[3];
+    Label t2_edges[3];
+    Label t3_edges[3];
     Label t2_vertices[3];
     Label t3_vertices[3];
     t2_adjancencies[0] = tri_lab1->adjacent_triangles()[0];
     t2_adjancencies[1] = lab_t1;
     t2_adjancencies[2] = lab_t0;    // actually wrong, is lab_t3, but is still to be created
+    t2_edges[0] = ;
+    t2_edges[1] = ;
+    t2_edges[2] = ;
     t2_vertices[0] = lab_v4;
     t2_vertices[1] = lab_v1;
     t2_vertices[2] = lab_v3;
     t3_adjancencies[0] = tri_lab0->adjacent_triangles()[0];
     t3_adjancencies[1] = lab_t0;
     t3_adjancencies[2] = lab_t1;    // actually wrong, is lab_t3, but is still to be created
+    t3_edges[0] = ;
+    t3_edges[1] = ;
+    t3_edges[2] = ;
     t3_vertices[0] = lab_v4;
     t3_vertices[1] = lab_v1;
     t3_vertices[2] = lab_v2;
     
-    Label lab_t2 = create_triangle(t2_vertices,t2_adjancencies,TriangleType::_12);
-    Label lab_t3 = create_triangle(t3_vertices,t3_adjancencies,TriangleType::_21);
+    Label lab_t2 = create_triangle(t2_vertices, t2_edges, t2_adjancencies,TriangleType::_12);
+    Label lab_t3 = create_triangle(t3_vertices, t3_edges, t3_adjancencies,TriangleType::_21);
     Triangle* tri_lab2 = lab_t2.dync_triangle();
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     tri_lab2->adjacent_triangles()[2] = lab_t3;
@@ -1255,8 +1343,14 @@ void Triangulation::save(ofstream& output)
     int n_v = list0.size();
     output.write((char*)&n_v, sizeof(n_v));
     
+    int n_e = list1.size();
+    output.write((char*)&n_e, sizeof(n_e));
+    
     for(auto lab_v : list0)
         lab_v.dync_vertex()->write(output);
+    
+    for(auto lab_e : list1)
+        lab_e.dync_edge()->write(output);
         
     for(auto lab_tri : list2)
         lab_tri.dync_triangle()->write(output);
@@ -1286,6 +1380,7 @@ void Triangulation::load(string filename)
 void Triangulation::load(ifstream& input)
 {
     list0.clear();
+    list1.clear();
     list2.clear();
     
     input.read((char*)&volume_step, sizeof(volume_step));
@@ -1318,10 +1413,22 @@ void Triangulation::load(ifstream& input)
         lab.dync_vertex()->read(input, list2);
     }
     
-    // 3rd list: Triangle initialization
+    // 3nd list: initialized Edges
+    
+    int n_e = 0;
+    input.read((char*)&n_e, sizeof(n_e));
+    
+    for(int i=0; i<n_e; i++){        
+        Label lab(new Edge(i));
+        list1.push_back(lab);
+        
+        lab.dync_edge()->read(input, list0, list1, list2);
+    }
+    
+    // 4th list: Triangle initialization
     
     for(int i=0; i<n_tri; i++)
-        list2[i].dync_triangle()->read(input, list0, list2);
+        list2[i].dync_triangle()->read(input, list0, list1, list2);
     
     // further structures recostruction
     
