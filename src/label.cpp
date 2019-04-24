@@ -18,6 +18,7 @@
 
 #include "label.h"
 #include "vertex.h"
+#include "edge.h"
 #include "triangle.h"
 #include <memory>
 
@@ -81,6 +82,19 @@ Vertex* Label::dync_vertex()
 {
     if(Vertex* v_ptr = dynamic_cast<Vertex*>(&*sh_ptr_simplex)){
         return v_ptr;
+    }
+    else{
+        return nullptr;
+    }
+}
+
+/**
+* @todo migliorare il cast e completare con errore (throw nel ramo else)
+*/
+Edge* Label::dync_edge()
+{
+    if(Edge* e_ptr = dynamic_cast<Edge*>(&*sh_ptr_simplex)){
+        return e_ptr;
     }
     else{
         return nullptr;

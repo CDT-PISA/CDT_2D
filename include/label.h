@@ -8,6 +8,7 @@
 using namespace std;
 
 class Vertex;
+class Edge;
 class Triangle;
 
 class Label{
@@ -37,6 +38,7 @@ public:
     
     // Recast
     Vertex* dync_vertex();
+    Edge* dync_edge();
     Triangle* dync_triangle();
     
 };

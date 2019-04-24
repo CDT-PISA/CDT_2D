@@ -14,7 +14,7 @@ enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
 {
-private:    
+public:    
     
     /**
      * 
@@ -22,7 +22,7 @@ private:
     Edge(const int& list_position);
     
     /**
-     * @todo
+     *
      */
     Edge(const int& list_position, const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type);
 
@@ -32,6 +32,8 @@ private:
     /**
     * @var labels of owned Vertices
     * 
+    * Space Edges: v[0] is the one on the left
+    * Time Edges: v[0] is the one below
     */
     Label v[2]={};
     

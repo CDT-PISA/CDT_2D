@@ -25,7 +25,7 @@ private:
     * To limit the chances of outsider simplices I make it possible only to have "empty Triangle"s, but not "empty Vertex"s, because they are not needed.
     * 
     */
-    Triangle(int list_position);
+    Triangle(const int& list_position);
     
     /**
      * 
@@ -34,7 +34,7 @@ private:
      * @param vertices the three vertices of the Triangle
      * @param adjacents_t the three Triangles adjacent to this one
      */
-    Triangle(int list_position, Label vertices[3], Label adjacents_t[3], TriangleType t_type);
+    Triangle(const int &list_position, const Label (&vertices)[3], const Label (&edges)[3], const Label (&adjacents_t)[3], const TriangleType& t_type);
 
     /**
      * Destructor
@@ -49,6 +49,12 @@ private:
     * 
     */
     Label v[3]={};
+        
+    /**
+    * @var labels of adjacent Edges;
+    * 
+    */
+    Label e[3]={};
     
     /**
     * @var labels of adjacent Triangles;
@@ -74,6 +80,13 @@ public:
     /**
     * @brief method interface
     * 
+    * @return e[3]
+    */
+    Label* edges();
+    
+    /**
+    * @brief method interface
+    * 
     * @return t[3]
     */
     Label* adjacent_triangles();
@@ -88,7 +101,7 @@ public:
     
     void write(ostream& output);
     
-    void read(istream& input, const vector<Label>& List0, const vector<Label>& List2);
+    void read(istream& input, const vector<Label>& List0, const vector<Label>& List1, const vector<Label>& List2);
 };
 
 #endif // TRIANGLE_H
