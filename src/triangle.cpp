@@ -17,6 +17,8 @@
  */
 
 #include "triangle.h"
+#include "edge.h"
+#include "gaugeelement.h"
 
 using namespace std;
 
@@ -69,6 +71,16 @@ Label* Triangle::vertices(){ return v; }
 Label* Triangle::edges(){ return e; }
 
 Label* Triangle::adjacent_triangles(){ return t; }
+
+void Triangle::gauge_transform(GaugeElement G)
+{
+    e[0].dync_edge()->U *= G;
+    e[1].dync_edge()->U *= G.dagger();
+    if(this->is12())
+        e[2].dync_edge()->U *= G;
+    else
+        e[2].dync_edge()->U *= G.dagger();
+}
 
 void Triangle::write(ostream& output)
 {

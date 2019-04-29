@@ -17,6 +17,7 @@
  */
 
 #include "vertex.h"
+#include "gaugeelement.h"
 
 Vertex::Vertex(int list_position)
 {   
@@ -36,6 +37,15 @@ int Vertex::time(){ return t_slice; }
 int Vertex::coordination(){ return coord_num; }
 
 Label Vertex::adjacent_triangle(){ return near_t; }
+    
+// ##### GAUGE #####
+
+GaugeElement Vertex::looparound(Vertex edge_v[2])
+{
+    GaugeElement Loop;
+    
+    ///@todo
+}
 
 // ##### FILE I/O #####
 

@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <fstream>
+#include <complex>
 using namespace std;
 
 class GaugeElement
@@ -20,7 +21,7 @@ private:
     * @var representation of the gauge group element as an NxN matrix
     * 
     */
-    double mat[N][N];
+    complex<double> mat[N][N];
     
     /**
     * @var label of the base edge 
@@ -40,21 +41,21 @@ public:
     /**
      * 
      */
-    GaugeElement(const double (&matrix)[N][N]);
+    GaugeElement(const complex<double> (&matrix)[N][N]);
 
      /**
      * Destructor
      */
     ~GaugeElement(){}
     
-    // METHODS
+    // ##### METHODS #####
 
     /**
     * @brief interface method
     * 
     * @return gauge element representation
     */
-    double** matrix();
+    complex<double>** matrix();
     
     /**
     * @brief interface method
@@ -69,6 +70,22 @@ public:
     * @return base_edge
     */
     Label base();
+    
+    // ##### ALGEBRA #####
+    
+    GaugeElement operator+(const GaugeElement& V);
+    
+    GaugeElement operator-(const GaugeElement& V);
+    
+    GaugeElement operator*(const GaugeElement& V);
+    
+    GaugeElement operator+=(const GaugeElement& V);
+    
+    GaugeElement operator-=(const GaugeElement& V);
+    
+    GaugeElement operator*=(const GaugeElement& V);
+    
+    GaugeElement dagger();
     
     // ##### FILE I/O #####
     

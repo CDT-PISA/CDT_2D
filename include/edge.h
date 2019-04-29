@@ -10,6 +10,8 @@
 #include <fstream>
 using namespace std;
 
+class Triangle;
+
 enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
@@ -55,6 +57,7 @@ public:
     EdgeType type;
     
     friend class Triangulation;
+    friend class Triangle;
     friend class shared_ptr<Edge>;
     
 public:

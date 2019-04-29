@@ -30,7 +30,7 @@ GaugeElement::GaugeElement(){
     }
 }
 
-GaugeElement::GaugeElement(const double (&matrix)[N][N])
+GaugeElement::GaugeElement(const complex<double> (&matrix)[N][N])
 {
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++)
@@ -42,13 +42,13 @@ Label GaugeElement::base(){ return base_edge; }
 
 int GaugeElement::dimension(){ return N; }
 
-double** GaugeElement::matrix()
+complex<double>** GaugeElement::matrix()
 {
-    double** aux = 0;
-    aux = new double*[N];
+    complex<double>** aux = 0;
+    aux = new complex<double>*[N];
     
     for(int i=0; i<N; i++){
-        aux[i] = new double[N];
+        aux[i] = new complex<double>[N];
         
         for(int j=0; j<N; j++)
             aux[i][j] = mat[i][j];
@@ -56,6 +56,88 @@ double** GaugeElement::matrix()
     
     return aux;
 }
+
+// ##### ALGEBRA #####
+
+GaugeElement GaugeElement::operator+(const GaugeElement& V)
+{
+    GaugeElement U;
+    complex<double> U_mat[N][N];
+    
+    U.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++)
+            U_mat[i][j] = this->mat[i][j] + V.mat[i][j];
+    }
+
+    return U;
+}
+
+GaugeElement GaugeElement::operator-(const GaugeElement& V)
+{
+    GaugeElement U;
+    complex<double> U_mat[N][N];
+    
+    U.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++)
+            U_mat[i][j] = this->mat[i][j] - V.mat[i][j];
+    }
+
+    return U;
+}
+
+GaugeElement GaugeElement::operator*(const GaugeElement& V)
+{
+    GaugeElement U;
+    complex<double> U_mat[N][N];
+    
+    U.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++){
+            U_mat[i][j] = 0;
+            for(int k=0; k<N; k++)
+                U_mat[i][j] += this->mat[i][k]*V.mat[k][j];
+        }
+    }
+
+    return U;
+}
+
+GaugeElement GaugeElement::operator+=(const GaugeElement& V)
+{
+    return *this + V;
+}
+
+GaugeElement GaugeElement::operator-=(const GaugeElement& V)
+{
+    return *this - V;
+}
+
+GaugeElement GaugeElement::operator*=(const GaugeElement& V)
+{
+    return *this * V;
+}
+
+GaugeElement GaugeElement::dagger()
+{
+    GaugeElement U;
+    complex<double> U_mat[N][N];
+    
+    U.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++)
+            U_mat[i][j] = conj(this->mat[j][i]);
+    }
+
+    return U;    
+}
+
+// ##### FILE I/O #####
 
 void GaugeElement::write(std::ostream& output)
 {

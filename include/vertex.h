@@ -9,6 +9,8 @@
 #include <fstream>
 using namespace std;
 
+class GaugeElement;
+
 /**
  * @todo check docs
  * @todo how to link in Doxygen class data members? e.g. how to link t_slice in time() description?
@@ -90,6 +92,10 @@ public:
     * @return near_t
     */
     Label adjacent_triangle();
+    
+    // ##### GAUGE #####
+    
+    GaugeElement looparound(Vertex edge_v[2]);
     
     // ##### FILE I/O #####
     

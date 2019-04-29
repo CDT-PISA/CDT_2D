@@ -4,6 +4,7 @@
 
 #include "simplex.h"
 #include "label.h"
+#include "gaugeelement.h"
 #include <fstream>
 #include <stdexcept>
 #include <vector>
@@ -96,6 +97,10 @@ public:
     bool is21();
     
     bool is_transition();
+    
+    // ##### GAUGE #####
+    
+    void gauge_transform(GaugeElement G);
     
     // ##### FILE I/O #####
     

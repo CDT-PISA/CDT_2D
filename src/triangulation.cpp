@@ -524,6 +524,18 @@ void Triangulation::move_22_1(bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
+    
+    // ___ find edges ___
+    Label lab_e0 = tri_lab1->edges()[0]; //           3    
+    Label lab_e1 = tri_lab1->edges()[1]; //      * * * * * *  
+    Label lab_e2 = tri_lab0->edges()[0]; //      *        **  
+    Label lab_e3 = tri_lab1->edges()[2]; //      *  0   *  *  
+    Label lab_e4 = tri_lab0->edges()[2]; //    1 *    *    * 2
+    Edge* e_lab0 = lab_e0.dync_edge();   //      *  *      *  
+    Edge* e_lab1 = lab_e1.dync_edge();   //      **        *  
+    Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
+    Edge* e_lab3 = lab_e3.dync_edge();   //           4    
+    Edge* e_lab4 = lab_e4.dync_edge();   
         
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -536,6 +548,20 @@ void Triangulation::move_22_1(bool debug_flag)
     // ___ modify triangles' vertices ___
     tri_lab0->vertices()[2] = lab_v3;
     tri_lab1->vertices()[2] = lab_v1;
+    
+    // ___ modify triangles' edges ___
+    tri_lab1->edges()[0] = lab_e2;
+    tri_lab1->edges()[1] = lab_e0;
+    tri_lab0->edges()[0] = lab_e0;
+    tri_lab0->edges()[1] = lab_e1;
+    
+    // ___ modify edges' near_t ___
+    e_lab1->near_t = lab_t0;
+    e_lab2->near_t = lab_t1;
+    
+    // ___ modify edges' vertices ___
+    e_lab0->vertices()[0] = lab_v1;
+    e_lab0->vertices()[1] = lab_v3;
     
     // ___ modify vertices' near_t ___
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
@@ -738,7 +764,19 @@ void Triangulation::move_22_2(bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
-        
+    
+    // ___ find edges ___
+    Label lab_e0 = tri_lab0->edges()[0]; //           3    
+    Label lab_e1 = tri_lab0->edges()[1]; //      * * * * * *  
+    Label lab_e2 = tri_lab1->edges()[1]; //      **        *  
+    Label lab_e3 = tri_lab1->edges()[2]; //      *  *   0  *  
+    Label lab_e4 = tri_lab0->edges()[2]; //    1 *    *    * 2
+    Edge* e_lab0 = lab_e0.dync_edge();   //      *      *  *  
+    Edge* e_lab1 = lab_e1.dync_edge();   //      *        **  
+    Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
+    Edge* e_lab3 = lab_e3.dync_edge();   //           4    
+    Edge* e_lab4 = lab_e4.dync_edge();   
+
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
     tri_lab0->adjacent_triangles()[1] = lab_t2;
@@ -750,6 +788,20 @@ void Triangulation::move_22_2(bool debug_flag)
     // ___ modify triangles' vertices ___
     tri_lab0->vertices()[2] = lab_v0;
     tri_lab1->vertices()[2] = lab_v2;
+    
+    // ___ modify triangles' edges ___
+    tri_lab1->edges()[0] = lab_e0;
+    tri_lab1->edges()[1] = lab_e1;
+    tri_lab0->edges()[0] = lab_e2;
+    tri_lab0->edges()[1] = lab_e0;
+    
+    // ___ modify edges' near_t ___
+    e_lab1->near_t = lab_t1;
+    e_lab2->near_t = lab_t0;
+    
+    // ___ modify edges' vertices ___
+    e_lab0->vertices()[0] = lab_v0;
+    e_lab0->vertices()[1] = lab_v2;
     
     // ___ modify vertices' near_t ___
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
@@ -943,7 +995,19 @@ void Triangulation::move_24(bool debug_flag)
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
-    if(debug_flag){
+    Label lab_e0 = tri_lab0->edges()[2]; //         *        
+    Label lab_e1 = tri_lab0->edges()[1]; //        * *       
+    Label lab_e2 = tri_lab0->edges()[0]; //    1  *   *  2
+    Label lab_e3 = tri_lab1->edges()[1]; //      *     *     
+    Label lab_e4 = tri_lab1->edges()[2]; //     *       *    
+    Edge* e_lab0 = lab_e0.dync_edge();   //    * * * * * * 
+    Edge* e_lab1 = lab_e1.dync_edge();   //     *   0   *    
+    Edge* e_lab2 = lab_e2.dync_edge();   //      *     *     
+    Edge* e_lab3 = lab_e3.dync_edge();   //    3  *   *  4
+    Edge* e_lab4 = lab_e4.dync_edge();   //        * *       
+                                         //         *        
+    
+    if(debug_flag){                                     
         cout << " (time " << v_lab0->time() << ")" << endl;
     }
     
@@ -960,18 +1024,16 @@ void Triangulation::move_24(bool debug_flag)
     t2_adjancencies[0] = tri_lab1->adjacent_triangles()[0];
     t2_adjancencies[1] = lab_t1;
     t2_adjancencies[2] = lab_t0;    // actually wrong, is lab_t3, but is still to be created
-    t2_edges[0] = ;
-    t2_edges[1] = ;
-    t2_edges[2] = ;
+    for(int i=0; i<3; i++)
+        t2_edges[i] = lab_e0;       // actually wrong, but some edges are still to be created
     t2_vertices[0] = lab_v4;
     t2_vertices[1] = lab_v1;
     t2_vertices[2] = lab_v3;
     t3_adjancencies[0] = tri_lab0->adjacent_triangles()[0];
     t3_adjancencies[1] = lab_t0;
     t3_adjancencies[2] = lab_t1;    // actually wrong, is lab_t3, but is still to be created
-    t3_edges[0] = ;
-    t3_edges[1] = ;
-    t3_edges[2] = ;
+    for(int i=0; i<3; i++)
+        t3_edges[i] = lab_e0;       // actually wrong, but some edges are still to be created
     t3_vertices[0] = lab_v4;
     t3_vertices[1] = lab_v1;
     t3_vertices[2] = lab_v2;
@@ -982,6 +1044,22 @@ void Triangulation::move_24(bool debug_flag)
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     tri_lab2->adjacent_triangles()[2] = lab_t3;
     tri_lab3->adjacent_triangles()[2] = lab_t2;
+    
+    Label e5_vertices[2];                                              //           *          
+    Label e6_vertices[2];                                              //         * * *        
+    Label e7_vertices[2];                                              //   1   *   *   *   2  
+    e5_vertices[0] = lab_v3;                                           //     *     *7    *    
+    e5_vertices[1] = lab_v4;                                           //   *   0   *       *  
+    e6_vertices[0] = lab_v4;                                           //  * * * * * * * * * * 
+    e6_vertices[1] = lab_v1;                                           //   *       *   6   *  
+    e7_vertices[0] = lab_v4;                                           //     *    5*     *    
+    e7_vertices[1] = lab_v2;                                           //   3   *   *   *   4  
+    Label lab_e5 = create_edge(e5_vertices, lab_t1, EdgeType::_time);  //         * * *        
+    Label lab_e6 = create_edge(e6_vertices, lab_t2, EdgeType::_space); //           *          
+    Label lab_e7 = create_edge(e7_vertices, lab_t3, EdgeType::_time);              
+    Edge* e_lab5 = lab_e5.dync_edge();                        
+    Edge* e_lab6 = lab_e6.dync_edge();                        
+    Edge* e_lab7 = lab_e7.dync_edge();
     
     if(debug_flag){
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) v0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
@@ -998,11 +1076,28 @@ void Triangulation::move_24(bool debug_flag)
     tri_lab0->vertices()[1] = lab_v4;
     tri_lab1->vertices()[1] = lab_v4;
     
+    // ___ modify triangles' edges ___
+    tri_lab0->edges()[0] = lab_e7;
+    tri_lab1->edges()[0] = lab_e5;
+    tri_lab2->edges()[0] = lab_e4;
+    tri_lab2->edges()[1] = lab_e5;
+    tri_lab2->edges()[2] = lab_e6;
+    tri_lab3->edges()[0] = lab_e2;
+    tri_lab3->edges()[1] = lab_e7;
+    tri_lab3->edges()[2] = lab_e6;
+    
+    // ___ modify edges' near_t ___
+    e_lab2->near_t = lab_t3;
+    e_lab4->near_t = lab_t2;
+    
+    // ___ modify edges' vertices ___
+    e_lab0->vertices()[1] = lab_v4;
+    
     // ___ update already existing vertex properties ___
     // coordination number
     v_lab2->coord_num++;
     v_lab3->coord_num++;
-    
+
     // the adjacency of vertex 1
     /* (the other ones have still the same adjacencies of before, plus the new triangles, but not less) */
     v_lab1->near_t = lab_t3;
@@ -1068,7 +1163,7 @@ void Triangulation::move_24(bool debug_flag)
  *       5   *   *   *   4                  5  *   *  4   
  *         *  0  *  3  *                      *  0  *     
  *       *       *       *                   *       *    
- *   v0 * * * * v4* * * * * * v1   -->   v0 * * * * * * v1
+ *   v0 * * * * v4* * * * * v1    -->    v0 * * * * * * v1
  *       *       *       *                   *       *    
  *         *  1  *  2  *                      *  1  *     
  *       6   *   *   *   7                  6  *   *  7   
@@ -1142,6 +1237,24 @@ void Triangulation::move_42(bool debug_flag)
     Vertex* v_lab3 = lab_v3.dync_vertex();
     Vertex* v_lab4 = lab_v4.dync_vertex();
     
+        
+    Label lab_e0 = tri_lab0->edges()[2];  //            *             
+    Label lab_e1 = tri_lab1->edges()[0];  //          * * *           
+    Label lab_e2 = tri_lab2->edges()[2];  //    5   *   *   *   4  
+    Label lab_e3 = tri_lab0->edges()[0];  //      *     *3    *       
+    Label lab_e4 = tri_lab3->edges()[0];  //    *   0   *       *     
+    Label lab_e5 = tri_lab0->edges()[1];  //   * * * * * * * * * *  
+    Label lab_e6 = tri_lab1->edges()[1];  //    *       *   2   *     
+    Label lab_e7 = tri_lab2->edges()[0];  //      *    1*     *       
+    Edge* e_lab0 = lab_e0.dync_edge();    //    6   *   *   *   7  
+    Edge* e_lab1 = lab_e1.dync_edge();    //          * * *           
+    Edge* e_lab2 = lab_e2.dync_edge();    //            *             
+    Edge* e_lab3 = lab_e3.dync_edge();
+    Edge* e_lab4 = lab_e4.dync_edge();
+    Edge* e_lab5 = lab_e5.dync_edge();
+    Edge* e_lab6 = lab_e6.dync_edge();
+    Edge* e_lab7 = lab_e7.dync_edge();
+    
     /// @todo
     if(debug_flag){
         cout << " (time " << v_lab0->time() << ")" << endl;
@@ -1164,6 +1277,17 @@ void Triangulation::move_42(bool debug_flag)
     tri_lab2->adjacent_triangles()[0].dync_triangle()->adjacent_triangles()[1] = tri_lab2->adjacent_triangles()[1];
     /* there is no need to update also the vertices for these two because they are already connected to the right one, because it will be vertex 4 that will be removed, and vertex 1 (the one they are already connected to) will remain */
     
+    // ___ modify triangles' edges ___       //         *        
+    tri_lab0->edges()[0] = lab_e4;           //        * *       
+    tri_lab1->edges()[0] = lab_e7;           //    5  *   *  4  
+                                             //      *     *     
+    // ___ modify edges' near_t ___          //     *       *    
+    e_lab4->near_t = lab_t0;                 //    * * * * * *  
+    e_lab7->near_t = lab_t1;                 //     *   0   *    
+                                             //      *     *     
+    // ___ modify edges' vertices ___        //    6  *   *  7
+    e_lab0->vertices()[1] = lab_v1;          //        * *       
+                                             //         *        
     //vertices
     v_lab1->near_t = lab_t0;
     v_lab2->near_t = lab_t0;
@@ -1175,6 +1299,9 @@ void Triangulation::move_42(bool debug_flag)
     remove_triangle(lab_t2);
     remove_triangle(lab_t3);
     remove_vertex(lab_v4);
+    remove_edge(lab_e1);
+    remove_edge(lab_e2);
+    remove_edge(lab_e3);
     
     // ___ update list0 (pathologies) ___
     
