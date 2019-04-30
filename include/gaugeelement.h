@@ -87,6 +87,32 @@ public:
     
     GaugeElement dagger();
     
+    // scalars
+    
+    GaugeElement alpha_id(const double& alpha);
+    
+    GaugeElement operator=(const double& alpha);
+    
+    GaugeElement operator+(const double& alpha);
+    
+    GaugeElement operator-(const double& alpha);
+    
+    GaugeElement operator*(const double& alpha);
+    
+    GaugeElement operator/(const double& alpha);
+    
+    GaugeElement operator+=(const double& alpha);
+    
+    GaugeElement operator-=(const double& alpha);
+    
+    GaugeElement operator*=(const double& alpha);
+    
+    GaugeElement operator/=(const double& alpha);
+    
+    // auxiliary
+    
+    void unitarize();
+    
     // ##### FILE I/O #####
     
     void write(ostream& output);

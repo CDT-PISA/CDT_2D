@@ -137,6 +137,88 @@ GaugeElement GaugeElement::dagger()
     return U;    
 }
 
+// scalars
+
+GaugeElement GaugeElement::alpha_id(const double& alpha)
+{
+    GaugeElement alpha_id;
+    
+    alpha_id.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++){
+            if(i == j)
+                alpha_id.mat[i][j] = alpha; 
+            else
+                alpha_id.mat[i][j] = 0;
+        }
+    }
+    
+    return alpha_id;
+}
+
+GaugeElement GaugeElement::operator=(const double& alpha)
+{
+    return alpha_id(alpha);
+}
+
+GaugeElement GaugeElement::operator+(const double& alpha)
+{
+    return *this + alpha_id(alpha);
+}
+
+GaugeElement GaugeElement::operator-(const double& alpha)
+{
+    return *this + alpha_id(alpha);
+}
+
+GaugeElement GaugeElement::operator*(const double& alpha)
+{
+    return *this * alpha_id(alpha);
+}
+
+GaugeElement GaugeElement::operator/(const double& alpha)
+{
+    GaugeElement quotient;
+    
+    quotient.base_edge = this->base_edge;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++){
+            quotient.mat[i][j] /= alpha;
+        }
+    }
+    
+    return quotient;
+}
+
+GaugeElement GaugeElement::operator+=(const double& alpha)
+{
+    return *this + alpha;
+}
+
+GaugeElement GaugeElement::operator-=(const double& alpha)
+{
+    return *this - alpha;
+}
+
+GaugeElement GaugeElement::operator*=(const double& alpha)
+{
+    return *this * alpha;
+}
+
+GaugeElement GaugeElement::operator/=(const double& alpha)
+{
+    return *this / alpha;
+}
+
+// auxiliary
+
+void GaugeElement::unitarize()
+{
+    /// @todo
+}
+
 // ##### FILE I/O #####
 
 void GaugeElement::write(std::ostream& output)
