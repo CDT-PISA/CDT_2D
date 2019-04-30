@@ -17,10 +17,16 @@
  */
 
 #include "triangle.h"
+#include "vertex.h"
 #include "edge.h"
 #include "gaugeelement.h"
 
 using namespace std;
+
+Triangle::Triangle()
+{
+    id = -1;
+}
 
 Triangle::Triangle(const int& list_position)
 {
@@ -72,6 +78,27 @@ Label* Triangle::edges(){ return e; }
 
 Label* Triangle::adjacent_triangles(){ return t; }
 
+int Triangle::find_element(Label lab_Element, SimplexType type)
+{
+    int pos;
+    
+    if(type == SimplexType::_vertex)
+        for(pos=0; pos<3 && lab_Element!=v[pos]; pos++){}
+    else if(type == SimplexType::_edge)
+        for(pos=0; pos<3 && lab_Element!=e[pos]; pos++){}
+    else if(type == SimplexType::_triangle)
+        for(pos=0; pos<3 && lab_Element!=t[pos]; pos++){}
+    else
+        throw runtime_error("SimplexType not recognized");
+        
+    if(pos == 3)
+        throw runtime_error("Element not found in triangle " + to_string(this->id));
+    
+    return pos;
+}
+
+// ##### GAUGE #####
+
 void Triangle::gauge_transform(GaugeElement G)
 {
     e[0].dync_edge()->U *= G;
@@ -81,6 +108,8 @@ void Triangle::gauge_transform(GaugeElement G)
     else
         e[2].dync_edge()->U *= G.dagger();
 }
+
+// ##### FILE I/O #####
 
 void Triangle::write(ostream& output)
 {

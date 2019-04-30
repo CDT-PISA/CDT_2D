@@ -4,11 +4,14 @@
 
 #include "simplex.h"
 #include "label.h"
-#include "gaugeelement.h"
 #include <fstream>
 #include <stdexcept>
 #include <vector>
 using namespace std;
+
+class Vertex;
+class Edge;
+class GaugeElement;
 
 enum class TriangleType {_12, _21 };
 
@@ -18,6 +21,12 @@ enum class TriangleType {_12, _21 };
 class Triangle : public Simplex
 {
 private:
+    /**
+    * Auxiliary Triangle: not in list2
+    * 
+    */
+    Triangle();
+    
     /**
     * Default constructor
     * 
@@ -36,12 +45,6 @@ private:
      * @param adjacents_t the three Triangles adjacent to this one
      */
     Triangle(const int &list_position, const Label (&vertices)[3], const Label (&edges)[3], const Label (&adjacents_t)[3], const TriangleType& t_type);
-
-    /**
-     * Destructor
-     */
-    ~Triangle(){}
-    
     
     // DATA
     
@@ -68,8 +71,15 @@ private:
     TriangleType type;
     
     friend class Triangulation;
+    friend class Vertex;
+    friend class Edge;
     
 public:
+    
+    /**
+     * Destructor
+     */
+    ~Triangle(){}
     
     /**
     * @brief method interface
@@ -97,6 +107,8 @@ public:
     bool is21();
     
     bool is_transition();
+    
+    int find_element(Label lab_Element, SimplexType type);
     
     // ##### GAUGE #####
     

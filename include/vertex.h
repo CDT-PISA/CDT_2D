@@ -20,6 +20,12 @@ class Vertex : public Simplex
 private:    
     
     /**
+     * Auxiliary Vertex
+     * 
+     */ 
+    Vertex();
+    
+    /**
      * 
      */ 
     Vertex(int list_position);
@@ -95,7 +101,17 @@ public:
     
     // ##### GAUGE #####
     
-    GaugeElement looparound(Vertex edge_v[2]);
+    /**
+     * @param current current triangle in the loop
+     * @param previous_idx the index of previous triangle in the loop in the internal array of current
+     * 
+     * ATTENTION: is not a pure function, it modifies the previous_idx for future uses
+     */
+    Triangle next(Triangle current, int& previous_idx);
+    
+    GaugeElement looparound();
+    
+    GaugeElement looparound(Triangle edge_t[2]);
     
     // ##### FILE I/O #####
     

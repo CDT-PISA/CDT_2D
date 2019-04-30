@@ -16,7 +16,13 @@ enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
 {
-public:    
+private:    
+
+    /**
+     * Auxiliary Edge
+     * 
+     */ 
+    Edge();
     
     /**
      * 
@@ -92,6 +98,10 @@ public:
     bool is_time();
     
     bool is_space();
+    
+    // ##### GAUGE #####
+    
+    GaugeElement force();
     
     // ##### FILE I/O #####
     

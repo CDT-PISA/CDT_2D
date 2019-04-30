@@ -17,6 +17,7 @@
  */
 
 #include "simplex.h"
+#include "label.h"
 
 bool Simplex::operator==(const Simplex& other) const
 {
@@ -32,4 +33,3 @@ int Simplex::position()
 {
     return id;
 }
-

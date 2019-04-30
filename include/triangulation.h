@@ -7,10 +7,13 @@
 #include <string>
 #include <fstream>
 #include "label.h"
-#include "triangle.h"
-#include "edge.h"
-#include "vertex.h"
 using namespace std;
+
+class Vertex;
+class Edge;
+enum class EdgeType;
+class Triangle;
+enum class TriangleType;
 
 /**
  * @todo write docs

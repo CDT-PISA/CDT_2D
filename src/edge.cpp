@@ -17,6 +17,8 @@
  */
 
 #include "edge.h"
+#include "vertex.h"
+#include "triangle.h"
 
 Edge::Edge(const int& list_position)
 {   
@@ -52,6 +54,31 @@ bool Edge::is_space()
 
 bool Edge::is_time(){ return not is_space(); }
 
+// ##### GAUGE #####
+
+GaugeElement Edge::force()
+{
+    GaugeElement Force;
+    Force = 0;
+    Triangle edge_t[2];
+    
+    edge_t[0] = *near_t.dync_triangle();
+    
+    // find the vertex opposite to this edge in near_t
+    int i;
+    for(i=0; i<3; i++){
+        for(int j=0; j<2 && v[j]!=near_t.dync_triangle()->vertices()[i]; j++)
+        if(j == 2)
+            break;
+    }
+    edge_t[1] = *near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
+    
+    for(auto x: v){
+        Force += x.dync_vertex()->looparound();
+    }
+    
+    return Force;
+}
 
 // ##### FILE I/O #####
 
@@ -86,26 +113,3 @@ void Edge::read(std::istream& input, const vector<Label>& List0, const vector<La
         x = List0[pos];
     }
 }
-
-
-// 
-// void Vertex::write(ostream& output)
-// {
-//     output.write((char*)&id, sizeof(id));
-//     output.write((char*)&t_slice, sizeof(t_slice));
-//     output.write((char*)&coord_num, sizeof(coord_num));
-//     
-//     int pos = near_t->position();
-//     output.write((char*)&pos, sizeof(pos));
-// }
-// 
-// void Vertex::read(istream& input, const vector<Label>& List2)
-// {
-//     input.read((char*)&id, sizeof(id));
-//     input.read((char*)&t_slice, sizeof(t_slice));
-//     input.read((char*)&coord_num, sizeof(coord_num));
-//     
-//     int pos = 0;
-//     input.read((char*)&pos, sizeof(pos));
-//     near_t = List2[pos];
-// }

@@ -25,6 +25,10 @@
 #include <cmath>
 #include <string>
 #include "triangulation.h"
+#include "vertex.h"
+#include "edge.h"
+#include "triangle.h"
+#include "label.h"
 
 using namespace std;
 
@@ -249,6 +253,13 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         
         tri_lab3->vertices()[2] = list0[(TimeLength - 1)*3 + (j + 2)%3];
     }
+    
+    for(auto v: list0)
+        v.dync_vertex()->owner = this;
+    for(auto e: list1)
+        e.dync_edge()->owner = this;
+    for(auto t: list2)
+        t.dync_triangle()->owner = this;
 }
 
 /// @todo I NOMI alle variabili
@@ -264,6 +275,8 @@ Label Triangulation::create_vertex(const int& Time, const int& coordination_numb
     int list_position=list0.size();
     Label lab(new Vertex(list_position, Time, coordination_number, adjacent_triangle));
     Vertex* v_lab = lab.dync_vertex();
+    
+    v_lab->owner = this;
     
     list0.push_back(lab);
     
@@ -290,6 +303,9 @@ Label Triangulation::create_triangle()
 {
     int list_position = list2.size();
     Label lab(new Triangle(list_position));
+    Triangle* tri_lab = lab.dync_triangle();
+    
+    tri_lab->owner = this;
     
     list2.push_back(lab);
     
@@ -304,6 +320,9 @@ Label Triangulation::create_triangle(const Label (&vertices)[3], const Label (&e
     
     int list_position=list2.size();
     Label lab(new Triangle(list_position, vertices, edges, adjacents_t, type));
+    Triangle* tri_lab = lab.dync_triangle();
+    
+    tri_lab->owner = this;
     
     list2.push_back(lab);
     
@@ -314,6 +333,9 @@ Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triang
 {    
     int list_position=list1.size();
     Label lab(new Edge(list_position, vertices, triangle, e_type));
+    Edge* e_lab = lab.dync_edge();
+    
+    e_lab->owner = this;
     
     list1.push_back(lab);
     

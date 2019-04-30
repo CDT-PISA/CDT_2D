@@ -2,6 +2,11 @@
 #ifndef SIMPLEX_H
 #define SIMPLEX_H
 
+enum class SimplexType {_vertex, _edge, _triangle};
+
+class Triangulation;
+class Label;
+
 /**
  * @todo check docs
  */
@@ -18,6 +23,8 @@ protected:
     * il suo senso credo sia risalire al Label che lo possiede, in modo da includerlo in altre strutture (qui solo i triangoli)
     */
     int id;
+    
+    Triangulation* owner;
     
     friend class Triangulation;
     
