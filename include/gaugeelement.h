@@ -11,6 +11,7 @@ using namespace std;
 
 class GaugeElement
 {
+public:
     static const int N=1;
     
 private:
@@ -71,6 +72,14 @@ public:
     */
     Label base();
     
+    // ##### OPERATIONS #####
+    
+    double partition_function();
+    
+    void random_element();
+    
+    void heatbath(GaugeElement Force);
+    
     // ##### ALGEBRA #####
     
     GaugeElement operator+(const GaugeElement& V);
@@ -87,28 +96,31 @@ public:
     
     GaugeElement dagger();
     
+    complex<double> trace();
+    complex<double> tr();
+    
     // scalars
     
-    GaugeElement alpha_id(const double& alpha);
+    GaugeElement alpha_id(const complex<double>& alpha);
     
-    GaugeElement operator=(const double& alpha);
+    GaugeElement operator=(const complex<double>& alpha);
     
-    GaugeElement operator+(const double& alpha);
+    GaugeElement operator+(const complex<double>& alpha);
     
-    GaugeElement operator-(const double& alpha);
+    GaugeElement operator-(const complex<double>& alpha);
     
-    GaugeElement operator*(const double& alpha);
+    GaugeElement operator*(const complex<double>& alpha);
     
-    GaugeElement operator/(const double& alpha);
+    GaugeElement operator/(const complex<double>& alpha);
     
-    GaugeElement operator+=(const double& alpha);
+    GaugeElement operator+=(const complex<double>& alpha);
     
-    GaugeElement operator-=(const double& alpha);
+    GaugeElement operator-=(const complex<double>& alpha);
     
-    GaugeElement operator*=(const double& alpha);
+    GaugeElement operator*=(const complex<double>& alpha);
     
-    GaugeElement operator/=(const double& alpha);
-    
+    GaugeElement operator/=(const complex<double>& alpha);
+        
     // auxiliary
     
     void unitarize();
