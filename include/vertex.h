@@ -10,6 +10,7 @@
 using namespace std;
 
 class GaugeElement;
+class Edge;
 
 /**
  * @todo check docs
@@ -68,6 +69,7 @@ private:
     */
     
     friend class Triangulation;
+    friend class Edge;
     friend class shared_ptr<Vertex>;
     
 public:
@@ -109,9 +111,17 @@ public:
      */
     Triangle next(Triangle current, int& previous_idx);
     
+    /**
+     * @brief return a Plaquette
+     */
     GaugeElement looparound();
     
+    /**
+     * @brief return a Staple
+     */
     GaugeElement looparound(Triangle edge_t[2]);
+    
+    double action_contrib();
     
     // ##### FILE I/O #####
     

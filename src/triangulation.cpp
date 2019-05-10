@@ -23,12 +23,15 @@
 #include <stdexcept>
 #include <random>
 #include <cmath>
+#include <complex>
 #include <string>
+#include "randomgenerator.h"
 #include "triangulation.h"
 #include "vertex.h"
 #include "edge.h"
 #include "triangle.h"
 #include "label.h"
+#include "gaugeelement.h"
 
 using namespace std;
 
@@ -336,6 +339,7 @@ Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triang
     Edge* e_lab = lab.dync_edge();
     
     e_lab->owner = this;
+    e_lab->U = 1.;
     
     list1.push_back(lab);
     
@@ -471,12 +475,14 @@ void Triangulation::move_22_1(bool debug_flag)
     if(num_t == 0)
         return;
     
-    random_device rd;
-    mt19937_64 mt(rd());
-    uniform_int_distribution<int> transition(0, num_t - 1);
-    uniform_real_distribution<double> reject_trial(0.0,1.0);
+    RandomGen r;
+    int tr = r.next() * num_t;
+    if(tr == num_t) // this shouldn't happen never
+        tr = num_t -1;
     
-    int tr = transition(mt);
+//     uniform_int_distribution<int> transition(0, num_t - 1);
+//     uniform_real_distribution<double> reject_trial(0.0,1.0);
+//     int tr = transition(mt);
 //     static int tr = 3;
 //     tr++;
     if(debug_flag){
@@ -484,17 +490,6 @@ void Triangulation::move_22_1(bool debug_flag)
     }
     
     /**
-     * @todo cercare di capire l'errore "(SIGABRT) free(): double free detected in tcache 2"
-     * l'errore si presentava con universe(10) tr scritto nel commento sopra
-     * e soprattutto senza i lab_t e i lab_v, e al loro posto c'erano i tri_lab e v_lab
-     * POSSIBILE SOLUZIONE: tutto questo succede per colpa del triangolo x (da scoprire, nell'esempio credo sia l'11):
-     * - la prima volta viene assegnato come adiacenza ... = tri_labx (in questo modo il label diventa uno shared_ptr che non conosce gli altri shared_ptr, quindi anomalo e convinto di essere l'unico shared_ptr che punta quell'oggetto)
-     * - la seconda volta viene sovrascritto e quindi deleta l'oggetto (labx = tri_laby, con labx derivante da qualche array di label, tipo tri_labz->adjacent_triangles()[n])
-     * - la terza volta (intercambiabile con la seconda) un altro lato diventa uno shared_ptr solitario con ... = tri_lab_x
-     * - alla quarta succede quello che è successo alla seconda, solo che l'oggetto puntato già non esiste più e quindi quando prova a deletarlo non ci riesce e torna l'errore
-     * tutto questo è possibile che accada IN SOLE DUE MOSSE
-     * 
-     * 
      * @todo lab_t e lab_v sono un po' ridondanti, quindi per ora credo siano solo temporanei
      * - o sostituisco i tri_lab e uso sempre dync_triangle (stessa cosa per i vertex)
      * - o non uso i lab_t e al loro posto metto sempre list2[tri_lab->position()]
@@ -514,22 +509,9 @@ void Triangulation::move_22_1(bool debug_flag)
     }
     
     // ----- REJECT RATIO -----
-    int x = 1;
-    if(tri_lab2->is21())
-        x--;
-    if(tri_lab3->is12())
-        x--;
-    
-    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
-    
-    if(reject_trial(mt) > reject_ratio)
-        return; // if not rejected goes on, otherwise it returns with nothing done
-    
-    // ----- CELL "EVOLUTION" -----
     
     // ___ find vertices ___
-    /* it's sane to do it immediately, because first cell elements are recognized, and then modified
-     * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
+    /* it's anticipated, because vertices are needed in order to compute the gauge action variation
      */ 
     Label lab_v0 = tri_lab0->vertices()[0];
     Label lab_v1 = tri_lab0->vertices()[1];
@@ -547,6 +529,26 @@ void Triangulation::move_22_1(bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
     
+    int x = 1;
+    if(tri_lab2->is21())
+        x--;
+    if(tri_lab3->is12())
+        x--;
+    
+    double delta_Sg = 0;
+    delta_Sg += (v_lab0->action_contrib() / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab1->action_contrib() / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    
+    double reject_trial = r.next();
+    double reject_ratio = min(1.0, exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
+    
+    if(reject_trial > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    
     // ___ find edges ___
     Label lab_e0 = tri_lab1->edges()[0]; //           3    
     Label lab_e1 = tri_lab1->edges()[1]; //      * * * * * *  
@@ -558,6 +560,11 @@ void Triangulation::move_22_1(bool debug_flag)
     Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
     Edge* e_lab3 = lab_e3.dync_edge();   //           4    
     Edge* e_lab4 = lab_e4.dync_edge();   
+    
+    // ___ gauge transform on t0 in order to put e0 = 1 ___
+    // I'm gauge transforming on the right triangle, so e0 is its left edge
+    // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
+    tri_lab0->gauge_transform(e_lab0->gauge_element());
         
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -725,19 +732,23 @@ void Triangulation::move_22_1(bool debug_flag)
  */ 
 void Triangulation::move_22_2(bool debug_flag)
 {
-       
     long num_t = transition2112.size(); 
     
     // if I don't consider this case separately transition would have an Undefined Behaviour
     if(num_t == 0)
         return;
     
-    random_device rd;
-    mt19937_64 mt(rd());
-    uniform_int_distribution<int> transition(0, num_t - 1);
-    uniform_real_distribution<double> reject_trial(0.0,1.0);
+//     random_device rd;
+//     mt19937_64 mt(rd());
+//     uniform_int_distribution<int> transition(0, num_t - 1);
+//     uniform_real_distribution<double> reject_trial(0.0,1.0);
+//     
+//     int tr = transition(mt);
     
-    int tr = transition(mt);
+    RandomGen r;
+    int tr = r.next() * num_t;
+    if(tr == num_t) // this shouldn't happen never
+        tr = num_t - 1;
     if(debug_flag){
         cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
     }
@@ -754,22 +765,9 @@ void Triangulation::move_22_2(bool debug_flag)
     
     
     // ----- REJECT RATIO -----
-    int x = 1;
-    if(tri_lab2->is12())
-        x--;
-    if(tri_lab3->is21())
-        x--;
-    
-    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
-    
-    if(reject_trial(mt) > reject_ratio)
-        return; // if not rejected goes on, otherwise it returns with nothing done
-    
-    // ----- CELL "EVOLUTION" -----
     
     // ___ find vertices ___
-    /* it's sane to do it immediately, because first cell elements are recognized, and then modified
-     * it is possible to do a mixed version, with some elements identified immediately and some other later, but according to me is really more messy
+    /* it's anticipated, because vertices are needed in order to compute the gauge action variation
      */ 
     Label lab_v0 = tri_lab1->vertices()[0];
     Label lab_v1 = tri_lab1->vertices()[1];
@@ -787,6 +785,26 @@ void Triangulation::move_22_2(bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
     
+    int x = 1;
+    if(tri_lab2->is12())
+        x--;
+    if(tri_lab3->is21())
+        x--;
+    
+    double delta_Sg = 0;
+    delta_Sg -= (v_lab0->action_contrib() / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab1->action_contrib() / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    
+    double reject_trial = r.next();
+    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
+    
+    if(reject_trial > reject_ratio)
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    // ----- CELL "EVOLUTION" -----
+    
     // ___ find edges ___
     Label lab_e0 = tri_lab0->edges()[0]; //           3    
     Label lab_e1 = tri_lab0->edges()[1]; //      * * * * * *  
@@ -797,7 +815,12 @@ void Triangulation::move_22_2(bool debug_flag)
     Edge* e_lab1 = lab_e1.dync_edge();   //      *        **  
     Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
     Edge* e_lab3 = lab_e3.dync_edge();   //           4    
-    Edge* e_lab4 = lab_e4.dync_edge();   
+    Edge* e_lab4 = lab_e4.dync_edge();
+    
+    // ___ gauge transform on t1 in order to put e0 = 1 ___
+    // I'm gauge transforming on the right triangle, so e0 is its left edge
+    // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
+    tri_lab1->gauge_transform(e_lab0->gauge_element());
 
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -981,24 +1004,20 @@ void Triangulation::move_24(bool debug_flag)
     
     // I don't have to consider separately the case of volume = 0, because the minimal volume is > 0
     
-    random_device rd;
-    mt19937_64 mt(rd());
-    uniform_int_distribution<int> extracted_triangle(0, volume - 1);
-    uniform_real_distribution<double> reject_trial(0.0,1.0);
+//     random_device rd;
+//     mt19937_64 mt(rd());
+//     uniform_int_distribution<int> extracted_triangle(0, volume - 1);
+//     uniform_real_distribution<double> reject_trial(0.0,1.0);
+    
+    RandomGen r;
     
     // ----- REJECT RATIO -----
-    double reject_ratio = min(1.0,((exp(-2*lambda)*volume)/2)/(num40+1));
     
-    if(reject_trial(mt) > reject_ratio){
-        if(debug_flag){
-            cout << endl;
-        }
-        return; // if not rejected goes on, otherwise it returns with nothing done
-    }
     
-    // ----- CELL "EVOLUTION" -----
-    
-    int extr = extracted_triangle(mt);
+    int extr = r.next() * volume;
+    if(extr == volume) // this shouldn't happen never
+        extr = volume - 1;
+//     int extr = extracted_triangle(mt);
 //     int extr = ;
     
     // ___ cell recognition ___
@@ -1028,6 +1047,32 @@ void Triangulation::move_24(bool debug_flag)
     Edge* e_lab3 = lab_e3.dync_edge();   //    3  *   *  4
     Edge* e_lab4 = lab_e4.dync_edge();   //        * *       
                                          //         *        
+    
+    // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
+    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    
+    double delta_Sg_hat = 0;
+    delta_Sg_hat += (v_lab1->action_contrib() / v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += 1 / (pow(g_ym, 2) * 4);
+    
+    // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
+    Triangle edge0_t[2] = {*tri_lab1, *tri_lab0};
+    GaugeElement Staple = v_lab1->looparound(edge0_t);
+    GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
+    
+    double reject_trial = r.next();
+    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
+    
+    if(reject_trial > reject_ratio){
+        if(debug_flag){
+            cout << endl;
+        }
+        return; // if not rejected goes on, otherwise it returns with nothing done
+    }
+    
+    // ----- CELL "EVOLUTION" -----
     
     if(debug_flag){                                     
         cout << " (time " << v_lab0->time() << ")" << endl;
@@ -1088,6 +1133,13 @@ void Triangulation::move_24(bool debug_flag)
         cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
     }
+    
+    // ___ extraction of GaugeElement on link 6 ___
+    e_lab6->U.heatbath(Force);
+    /* the other links don't need to be extracted:
+     *  - the old one (0-4) have already the correct values
+     *  - the new one (5,7) are set to id by default (by create_edge function), and is correct 
+     */
     
     // ___ update adjancencies and vertices of the initial triangles ___
     tri_lab0->adjacent_triangles()[0] = lab_t3;
@@ -1210,32 +1262,6 @@ void Triangulation::move_42(bool debug_flag)
         }
         return;
     }
-        
-    random_device rd;
-    mt19937_64 mt(rd());
-    uniform_int_distribution<int> extracted_vertex(0, num40 + num40p - 1);
-    uniform_real_distribution<double> reject_trial(0.0,1.0);
-    
-    // ----- REJECT RATIO -----
-    int volume = list2.size();
-    double reject_ratio = min(1.0,(exp(2*lambda)*num40)/(volume/2-1));
-    
-    if(reject_trial(mt) > reject_ratio){
-        if(debug_flag){
-            cout << endl;
-        }
-        return; // if not rejected goes on, otherwise it returns with nothing done
-    }
-    
-    // ----- CELL "EVOLUTION" -----
-    int extr = extracted_vertex(mt);
-    
-    if(extr > num40 - 1)
-        return;
-    
-    if(debug_flag){
-        cout << extr;
-    }
     
     // ___ cell recognition ___
     
@@ -1285,7 +1311,69 @@ void Triangulation::move_42(bool debug_flag)
         cout << " [vertices' times] v0: " << v_lab0->time() << ", v1: " << v_lab1->time() << ", v4: " << v_lab4->time() << " \t\t[pretending v4] t0:" << tri_lab0->vertices()[1]->position() << " t1:" << tri_lab1->vertices()[1]->position() << " t2:" << tri_lab2->vertices()[0]->position() << " t3:" << tri_lab3->vertices()[0]->position() << endl;
         cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
+    }    
+    
+    // Gauge transforming on: 
+    //  - the left triangle with G.dagger(), G the gauge element on e1
+    //  - the upper triangle with G, the gauge element on e0
+    //  - the right triangle with G, the gauge element on e3
+    // this element (G) will be transform with G.dagger()
+    tri_lab1->gauge_transform(e_lab1->gauge_element().dagger());
+    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    tri_lab3->gauge_transform(e_lab3->gauge_element());
+    
+    // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
+    Triangle edge2_t[2] = {*tri_lab2, *tri_lab3};
+    Triangle edge0_t[2] = {*tri_lab1, *tri_lab0};
+    // the staple here it's searching for is the one of the cell with 2 triangles
+    // to reconstruct it is needed to sum together the two contributes from the staple of e0 and e2
+    // substracting the contributes of the inner loop (the square)
+    GaugeElement Staple2 = v_lab1->looparound(edge2_t);
+    GaugeElement Staple0 = v_lab0->looparound(edge0_t);
+    GaugeElement Staple = Staple0 + Staple2 + e_lab2->gauge_element() + e_lab2->gauge_element().dagger();
+    GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
+    
+    double delta_Sg_hat = 0;
+    delta_Sg_hat -= ((real(Force.tr()) / Force.N  - 1) / v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat -= (v_lab2->action_contrib() / (v_lab2->coordination() - 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat -= (v_lab3->action_contrib() / (v_lab3->coordination() - 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat -= 1 / (pow(g_ym, 2) * 4);
+    // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
+    // (because the "new" edges have id as gauge_element)
+    
+    //double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
+        
+//     random_device rd;
+//     mt19937_64 mt(rd());
+//     uniform_int_distribution<int> extracted_vertex(0, num40 + num40p - 1);
+//     uniform_real_distribution<double> reject_trial(0.0,1.0);
+
+    RandomGen r;
+    
+    // ----- REJECT RATIO -----
+    int volume = list2.size();
+    double reject_trial = r.next();
+    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (volume/2 - 1)) / Force.partition_function());
+    
+    if(reject_trial > reject_ratio){
+        if(debug_flag){
+            cout << endl;
+        }
+        return; // if not rejected goes on, otherwise it returns with nothing done
     }
+    
+    // ----- CELL "EVOLUTION" -----
+    int extr = r.next() * (num40 + num40p);
+    if(extr == (num40 + num40p)) // this shouldn't happen never
+        extr = (num40 + num40p) - 1;
+    
+    if(extr > num40 - 1)
+        return;
+    
+    if(debug_flag){
+        cout << extr;
+    }
+    
     
     // ___ update adjacencies of persisting simplexes ___
     
@@ -1379,6 +1467,21 @@ void Triangulation::move_42(bool debug_flag)
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
+void Triangulation::move_gauge(bool debug_flag)
+{
+    RandomGen r;
+    int e_num = r.next()*list1.size();
+    
+    Label lab_e = list1[e_num];
+    Edge* e_lab = lab_e.dync_edge();
+    
+    GaugeElement Force = e_lab->force();
+    
+    e_lab->U.heatbath(Force);
+    
+    // ----- END MOVE -----
+}
+
 // +++++ auxiliary functions (for moves) +++++
 
 Label Triangulation::move_24_find_t0(Label extr_lab)
@@ -1457,7 +1560,7 @@ void Triangulation::print_space_profile(char orientation)
     }
 }
 
-// ##### SIMULATION RESULTS #####
+// ##### OBSERVABLES #####
 
 /** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
 void Triangulation::print_space_profile(ofstream& output)
@@ -1466,6 +1569,35 @@ void Triangulation::print_space_profile(ofstream& output)
         output << x << " ";
     output << endl;
 }
+
+double Triangulation::total_gauge_action()
+{
+    double S = 0;
+    for(auto lab_v: list0){
+        GaugeElement plaq = lab_v.dync_vertex()->looparound();
+        
+        S += (2/pow(g_ym,2))*real(-(plaq - 1).tr());
+    }
+    
+    return S;
+}
+
+constexpr double pi() { return atan(1)*4; }
+
+double Triangulation::topological_charge()
+{
+    // currently implented only for U(1)
+    double charge = 0;
+    
+    for(auto lab_v: list0){
+        GaugeElement plaq = lab_v.dync_vertex()->looparound();
+        
+        charge += arg(plaq.tr()) / (4 * pi());
+    }
+    
+    return charge;
+}
+
 
 // ##### FILE I/O #####
 

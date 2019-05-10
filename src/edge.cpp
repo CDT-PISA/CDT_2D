@@ -19,6 +19,7 @@
 #include "edge.h"
 #include "vertex.h"
 #include "triangle.h"
+#include "triangulation.h"
 
 Edge::Edge(const int& list_position)
 {   
@@ -60,7 +61,9 @@ GaugeElement Edge::force()
 {
     GaugeElement Force;
     Force = 0;
+    Vertex* edge_v[2];
     Triangle edge_t[2];
+    Label lab_this = owner->list1[id];
     
     edge_t[0] = *near_t.dync_triangle();
     
@@ -73,8 +76,12 @@ GaugeElement Edge::force()
     }
     edge_t[1] = *near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
-    for(auto x: v){
-        Force += x.dync_vertex()->looparound();
+    for(int i=0; i<2; i++){
+        edge_v[i] = edge_t[i].v[edge_t[i].find_element(lab_this, SimplexType::_edge)].dync_vertex();
+    }
+    
+    for(auto x: edge_v){
+        Force += x->looparound(edge_t);
     }
     
     return Force;

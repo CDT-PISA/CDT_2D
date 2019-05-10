@@ -15,6 +15,8 @@ enum class EdgeType;
 class Triangle;
 enum class TriangleType;
 
+class GaugeElement;
+
 /**
  * @todo write docs
  * @todo function create_vertex, create_triangle (e create_empty_triangle, che può essere una funzione indipendente o la stessa funzione create_triangle overloadata senza argomenti): le funzioni ritornano id
@@ -26,6 +28,8 @@ public: /// @todo deve essere private
     // DATA
     
     double lambda;
+    
+    double g_ym;
     
     /**
      * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n
@@ -197,6 +201,8 @@ public:
     
     void move_42(bool debug_flag);
     
+    void move_gauge(bool debug_flag);
+    
     // auxiliary functions (for moves)
     
     /**
@@ -245,7 +251,7 @@ public:
     */
     void print_space_profile(char orientation);
     
-    // ##### SIMULATION RESULTS #####
+    // ##### OBSERVABLES #####
     
     /**
      * @todo dovrebbe poter scegliere il file anche una volta sola e poi usare sempre quello
@@ -253,6 +259,10 @@ public:
      * - aprire in append e stampare una riga intera alla volta
      */ 
     void print_space_profile(ofstream& output);
+    
+    double total_gauge_action();
+    
+    double topological_charge();
     
     // ##### FILE I/O #####
     

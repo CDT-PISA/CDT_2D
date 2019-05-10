@@ -33,3 +33,8 @@ int Simplex::position()
 {
     return id;
 }
+
+Triangulation* Simplex::get_owner()
+{
+    return owner;
+}

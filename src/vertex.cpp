@@ -134,6 +134,12 @@ GaugeElement Vertex::looparound(Triangle edge_t[2])
     return Staple;
 }
 
+double Vertex::action_contrib()
+{
+    GaugeElement Plaquette = this->looparound();
+    return 2 * ( Plaquette.N - real(Plaquette.tr()) );
+}
+
 // ##### FILE I/O #####
 
 void Vertex::write(ostream& output)

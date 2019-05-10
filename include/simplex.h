@@ -51,6 +51,8 @@ public:
     * @return id
     */
     int position();
+    
+    Triangulation* get_owner();
 };
 
 #endif // SIMPLEX_H
