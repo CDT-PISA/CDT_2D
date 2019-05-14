@@ -43,7 +43,7 @@ using namespace std;
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
  */ 
-Triangulation::Triangulation(int TimeLength, double Lambda)
+Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym)
 {
     volume_step = 16;
     steps_done = -512;
@@ -53,6 +53,7 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         throw out_of_range("only positive time length are excepted for a triangulation");
  
     lambda = Lambda;
+    g_ym = G_ym;
     
     num40 = 0;
     num40p = 0;
@@ -95,6 +96,7 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
     for(int j=0;j<3;j++){   // initialize the 3 edges at time 1
         Label vertices[] = {list0[(j + 2)%3], list0[j]};
         Label lab(new Edge(list1.size(), vertices, list2[j+3], EdgeType::_space));
+        list1.push_back(lab);
         
         list2[j+3].dync_triangle()->e[2] = lab;
     }
@@ -166,23 +168,26 @@ Triangulation::Triangulation(int TimeLength, double Lambda)
         // EDGES
         
         for(int j=0;j<3;j++){
-            // space-like ones
+            // time-like ones
             Label vertices_s1[] = {list0[(j + 2)%3 + 3*(i-1)], list0[j + 3*i]};
-            Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3 + 6*i], EdgeType::_space));
+            Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3 + 6*i], EdgeType::_time));
+            list1.push_back(lab_s1);
             
             list2[j + 3 + 6*i].dync_triangle()->e[0] = lab_s1;
             list2[j + 6*i].dync_triangle()->e[1] = lab_s1;
             
             Label vertices_s2[] = {list0[j + 3*(i-1)], list0[j + 3*i]};
-            Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 6*i], EdgeType::_space));
+            Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 6*i], EdgeType::_time));
+            list1.push_back(lab_s2);
             
             list2[j + 6*i].dync_triangle()->e[0] = lab_s2;
             list2[(j + 1)%3 + 3 + 6*i].dync_triangle()->e[1] = lab_s2;
         }
         for(int j=0;j<3;j++){
-            // time-like ones
+            // space-like ones
             Label vertices_t[] = {list0[(j + 2)%3 + 3*i], list0[j + 3*i]};
-            Label lab_t(new Edge(list1.size(), vertices_t, list2[j + 3 + 6*i], EdgeType::_time));
+            Label lab_t(new Edge(list1.size(), vertices_t, list2[j + 3 + 6*i], EdgeType::_space));
+            list1.push_back(lab_t);
             
             list2[j + 3 + 6*i].dync_triangle()->e[2] = lab_t;
             list2[j + 6*i].dync_triangle()->e[2] = list1[j + 9*(i - 1)]; // initialized on the previous slice
@@ -467,7 +472,7 @@ void Triangulation::remove_triangle(Label lab_t)
  * 
  * @test devo fare i test per questa mossa (forse devo trovare un modo semplice di stampare tutta la triangolazione)
  */ 
-void Triangulation::move_22_1(bool debug_flag)
+void Triangulation::move_22_1(int cell, bool debug_flag)
 {   
     long num_t = transition1221.size(); 
     
@@ -476,9 +481,21 @@ void Triangulation::move_22_1(bool debug_flag)
         return;
     
     RandomGen r;
-    int tr = r.next() * num_t;
+    
+    // ___ cell recognition ___
+    
+    int tr;
+    
+    // to make testing easier it is possible to specify the "cell" on which operate
+    // if it is not specified (cell = -1), as in real runs, the cell is extracted
+    if(cell == -1){
+        tr  = r.next() * num_t;
     if(tr == num_t) // this shouldn't happen never
-        tr = num_t -1;
+        tr = num_t - 1;
+    }
+    else{
+        tr = cell;
+    }
     
 //     uniform_int_distribution<int> transition(0, num_t - 1);
 //     uniform_real_distribution<double> reject_trial(0.0,1.0);
@@ -730,7 +747,7 @@ void Triangulation::move_22_1(bool debug_flag)
  *     v0         v1            v0         v1 
  * \endcode
  */ 
-void Triangulation::move_22_2(bool debug_flag)
+void Triangulation::move_22_2(int cell, bool debug_flag)
 {
     long num_t = transition2112.size(); 
     
@@ -746,9 +763,22 @@ void Triangulation::move_22_2(bool debug_flag)
 //     int tr = transition(mt);
     
     RandomGen r;
-    int tr = r.next() * num_t;
+    
+    // ___ cell recognition ___
+    
+    int tr;
+    
+    // to make testing easier it is possible to specify the "cell" on which operate
+    // if it is not specified (cell = -1), as in real runs, the cell is extracted
+    if(cell == -1){
+        tr  = r.next() * num_t;
     if(tr == num_t) // this shouldn't happen never
         tr = num_t - 1;
+    }
+    else{
+        tr = cell;
+    }
+    
     if(debug_flag){
         cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
     }
@@ -993,7 +1023,7 @@ void Triangulation::move_22_2(bool debug_flag)
  * @todo check if there is something more to be done by the move_24
  * @test check if it works
  */
-void Triangulation::move_24(bool debug_flag)
+void Triangulation::move_24(int cell, bool debug_flag)
 {
     if(debug_flag){
         cout << "move_24: ";
@@ -1011,14 +1041,24 @@ void Triangulation::move_24(bool debug_flag)
     
     RandomGen r;
     
+    // ___ cell recognition ___
+    
+    int extr;
+    
+    // to make testing easier it is possible to specify the "cell" on which operate
+    // if it is not specified (cell = -1), as in real runs, the cell is extracted
+    if(cell == -1){
+        extr  = r.next() * volume;
+        if(extr == volume) // this shouldn't happen never
+            extr = volume - 1;
+        //     int extr = extracted_triangle(mt);
+        //     int extr = ;
+    }
+    else{
+        extr = cell;
+    }
+    
     // ----- REJECT RATIO -----
-    
-    
-    int extr = r.next() * volume;
-    if(extr == volume) // this shouldn't happen never
-        extr = volume - 1;
-//     int extr = extracted_triangle(mt);
-//     int extr = ;
     
     // ___ cell recognition ___
     
@@ -1246,7 +1286,7 @@ void Triangulation::move_24(bool debug_flag)
  *              v3                              v3        
  * \endcode
  */
-void Triangulation::move_42(bool debug_flag)
+void Triangulation::move_42(int cell, bool debug_flag)
 {
     // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
     
@@ -1261,6 +1301,29 @@ void Triangulation::move_42(bool debug_flag)
             cout << endl;
         }
         return;
+    }
+    
+    RandomGen r;
+    
+    // ___ cell extraction ___
+    int extr;
+    
+    // to make testing easier it is possible to specify the "cell" on which operate
+    // if it is not specified (cell = -1), as in real runs, the cell is extracted
+    if(cell == -1){
+        extr = r.next() * (num40 + num40p);
+        if(extr == (num40 + num40p)) // this shouldn't happen never
+            extr = (num40 + num40p) - 1;
+    }
+    else{
+        extr = cell;
+    }
+    
+    if(extr > num40 - 1)
+        return;
+    
+    if(debug_flag){
+        cout << extr;
     }
     
     // ___ cell recognition ___
@@ -1347,8 +1410,6 @@ void Triangulation::move_42(bool debug_flag)
 //     mt19937_64 mt(rd());
 //     uniform_int_distribution<int> extracted_vertex(0, num40 + num40p - 1);
 //     uniform_real_distribution<double> reject_trial(0.0,1.0);
-
-    RandomGen r;
     
     // ----- REJECT RATIO -----
     int volume = list2.size();
@@ -1362,18 +1423,7 @@ void Triangulation::move_42(bool debug_flag)
         return; // if not rejected goes on, otherwise it returns with nothing done
     }
     
-    // ----- CELL "EVOLUTION" -----
-    int extr = r.next() * (num40 + num40p);
-    if(extr == (num40 + num40p)) // this shouldn't happen never
-        extr = (num40 + num40p) - 1;
-    
-    if(extr > num40 - 1)
-        return;
-    
-    if(debug_flag){
-        cout << extr;
-    }
-    
+    // ----- CELL "EVOLUTION" -----    
     
     // ___ update adjacencies of persisting simplexes ___
     
@@ -1467,17 +1517,28 @@ void Triangulation::move_42(bool debug_flag)
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
-void Triangulation::move_gauge(bool debug_flag)
+
+void Triangulation::move_gauge(int cell, bool debug_flag)
 {
     RandomGen r;
-    int e_num = r.next()*list1.size();
+    int e_num;
     
+    // to make testing easier it is possible to specify the "cell" on which operate
+    // if it is not specified (cell = -1), as in real runs, the cell is extracted
+    if(cell == -1)
+        e_num = r.next()*list1.size();
+    else
+        e_num = cell;
+        
     Label lab_e = list1[e_num];
     Edge* e_lab = lab_e.dync_edge();
     
     GaugeElement Force = e_lab->force();
     
     e_lab->U.heatbath(Force);
+    
+    if(debug_flag)
+        cout << "gauge move: " << endl;
     
     // ----- END MOVE -----
 }

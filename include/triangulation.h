@@ -131,7 +131,7 @@ public:
      * 
      * @param TimeLength the number of time slices
      */
-    Triangulation(int TimeLength, double Lambda);
+    Triangulation(int TimeLength, double Lambda, double G_ym);
     
     /**
      * @brief load a stored configuration
@@ -193,15 +193,20 @@ public:
     /**
     * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
     */
-    void move_22_1(bool debug_flag);
+    void move_22_1(int cell = -1, bool debug_flag = false);
+    void move_22_1(bool debug_flag){ move_22_1(-1, debug_flag);}
     
-    void move_22_2(bool debug_flag);
+    void move_22_2(int cell = -1, bool debug_flag = false);
+    void move_22_2(bool debug_flag){ move_22_2(-1, debug_flag);}
     
-    void move_24(bool debug_flag);
+    void move_24(int cell = -1, bool debug_flag = false);
+    void move_24(bool debug_flag){ move_24(-1, debug_flag);}
     
-    void move_42(bool debug_flag);
+    void move_42(int cell = -1, bool debug_flag = false);
+    void move_42(bool debug_flag){ move_42(-1, debug_flag);}
     
-    void move_gauge(bool debug_flag);
+    void move_gauge(int cell = -1, bool debug_flag = false);
+    void move_gauge(bool debug_flag){ move_gauge(-1, debug_flag);}
     
     // auxiliary functions (for moves)
     
