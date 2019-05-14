@@ -7,6 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <complex>
+#include <cmath>
 using namespace std;
 
 class GaugeElement
@@ -72,11 +73,13 @@ public:
     */
     Label base();
     
+    complex<double>* operator[](int i);
+    
     // ##### OPERATIONS #####
     
     double partition_function();
     
-    void random_element();
+    void random_element(double a = nan(""));
     
     void heatbath(GaugeElement Force);
     

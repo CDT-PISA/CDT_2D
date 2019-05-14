@@ -62,6 +62,13 @@ complex<double>** GaugeElement::matrix()
     return aux;
 }
 
+complex<double>* GaugeElement::operator[](int i)
+{
+    if( i >= N )
+        throw out_of_range("Index out of bounds");
+    
+    return mat[i];
+}
 
 double GaugeElement::partition_function()
 {
@@ -84,16 +91,29 @@ double GaugeElement::partition_function()
     return Z;
 }
 
-void GaugeElement::random_element()
+void GaugeElement::random_element(double a)
 {
     RandomGen r;
     
     double pi = 2 * asin(1);
     
     if( N == 1 ){
-        double theta = 2 * pi * r.next();
-        mat[0][0] = exp(1i * theta);
+        // extracted elements' distribution is lorentzian
+        
+        // double theta = 2 * pi * r.next();
+        // mat[0][0] = exp(1i * theta);
+        double c = sqrt(a/2);
+        double k = atan(c*pi);
+        
+        double x = r.next();
+        double alpha = tan(k * x) / c;
+        
+        this->mat[0][0] = exp(1i * alpha);
     }
+    else
+        throw runtime_error("random_element: Not implemented for N!=1");
+    
+    cout << mat[0][0] << endl;
 }
 
 void GaugeElement::heatbath(GaugeElement Force)
@@ -102,20 +122,36 @@ void GaugeElement::heatbath(GaugeElement Force)
     
     bool accepted = false;
     double g_ym2 = pow(base_edge.dync_edge()->get_owner()->g_ym, 2);
-    double max_rho;
     
-    if(N == 1)
-        max_rho = exp(abs(Force.tr()) / (N * g_ym2));
+    double a;
+    double c;
+    if( N == 1)
+        a = 2 * N * abs(Force.tr()) / g_ym2;
+        c = sqrt(a/2);
+    
+    // double max_rho;
+    // if(N == 1)
+    //     max_rho = exp(abs(Force.tr()) / (N * g_ym2));
     // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
     // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
     
     while(not accepted){
-        this->random_element();
+        this->random_element(a);
         
-        double rho = exp(real((*this * Force).tr()) / (N * g_ym2));
+        if( N == 1){
+            double alpha = arg(mat[0][0]);
+            double x = r.next();
+            double eta;
+            if(a >= 0.8)
+                eta = 0.99;
+            else
+                eta = 0.73;
+            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );
+        }
+        else
+            throw runtime_error("heatbath: Not implemented for N!=1");
         
-        if(r.next() * max_rho < rho)
-            accepted = true;
+        // double rho = exp(real((*this * Force).tr()) / (N * g_ym2));
     }    
 }
 
