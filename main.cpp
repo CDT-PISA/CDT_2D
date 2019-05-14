@@ -1,15 +1,17 @@
 /** @file */
 #include <iostream>
 #include <cstdio>
-#include <random>
 #include <chrono>
 #include <string>
 #include <sys/stat.h>
 #include "triangulation.h"
+#include "randomgenerator.h"
 
 using namespace std;
 
 void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, int i);
+
+int dice();
 
 int main(int argc, char* argv[]){
     
@@ -17,11 +19,12 @@ int main(int argc, char* argv[]){
     
     string run_id = argv[1];
     double lambda = stod(argv[2]);
-    int TimeLength = stoi(argv[3]);
-    string end_condition = argv[4];
-    string debug_str = argv[5]; /// @todo da sostituire il nome
-    string last_chkpt = argv[6];
-    string linear_history_str = argv[7];
+    double g_ym = stod(argv[3]);
+    int TimeLength = stoi(argv[4]);
+    string end_condition = argv[5];
+    string debug_str = argv[6]; /// @todo da sostituire il nome
+    string last_chkpt = argv[7];
+    string linear_history_str = argv[8];
     
     float save_interval = 0.1;//15.; // in minutes
     int n_chkpt = 3;
@@ -35,6 +38,7 @@ int main(int argc, char* argv[]){
     logput << "\nSimulation Parameters:" << endl;
     logput << "\trun_id: " << run_id << endl;
     logput << "\tlambda: " << lambda << endl;
+    logput << "\tg_ym: " << g_ym << endl;
     logput << "\tTimeLength: " << TimeLength << endl;
     logput << "\tend_condition: " << end_condition << endl;
     logput << "\tdebug_flag: " << debug_str << endl; /// @todo da sostituire il nome
@@ -42,12 +46,14 @@ int main(int argc, char* argv[]){
     logput << "\tlinear_history: " << linear_history_str<< endl;
     logput.close();
     
+    
     // CHECKPOINT NAMES
     
     vector<string> chkpts;
     chkpts.push_back("");
     for(int i=1; i<=n_chkpt; i++)
         chkpts.push_back("checkpoint/run" + run_id + "_check" + to_string(i) + ".chkpt");
+    
     
     // CHECK IF DEBUG MODE IS ACTIVATED
     /// @todo trasformare tutto in direttive preprocessor #ifndef
@@ -62,6 +68,7 @@ int main(int argc, char* argv[]){
         debug_flag = false;
     else
         throw logic_error("The 5th argument in function main() must be a bool (it is the \"debug_flag\")");
+    
     
     // END CONDITION
     
@@ -86,6 +93,7 @@ int main(int argc, char* argv[]){
             last_step *= 1e9L;
         
     }
+    
     
     // LINEAR HISTORY
     
@@ -115,10 +123,11 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         volume_stream << "# iteration[0] - volume[1]" << endl << endl;
     
+    
     // SETUP THE TRIANGULATION
     // and output parameters
     
-    Triangulation universe(TimeLength,lambda);
+    Triangulation universe(TimeLength,lambda, g_ym);
     
     int profile_ratio = 4;
     
@@ -129,16 +138,12 @@ int main(int argc, char* argv[]){
         universe = aux_universe;
     }
     
-    // MOVE
-    
-    random_device rd;
-    mt19937_64 mt(rd());
-    uniform_int_distribution<int> dice(1,4);
     
     // FIRST SAVE, then begin
     save_routine(chkpts, n_chkpt, universe, 0);
     auto time_ref = chrono::system_clock::now();
     auto start_time = time_ref;
+    
     
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
@@ -155,7 +160,7 @@ int main(int argc, char* argv[]){
             cout << i << ") ";
         }
         
-        switch(dice(mt)){
+        switch(dice()){
             case 1:
             {
                 universe.move_22_1(debug_flag);
@@ -174,6 +179,11 @@ int main(int argc, char* argv[]){
             case 4:
             {
                 universe.move_42(debug_flag);
+                break;
+            }
+            case 5:
+            {
+                universe.move_gauge(debug_flag);
                 break;
             }
         }
@@ -292,4 +302,23 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, in
     ofstream iter("iterations_done");
     iter << universe.iterations_done + i;
     iter.close();
+}
+
+int dice(){
+    static RandomGen r;
+    int dice = 0;
+    
+    double extraction = r.next();
+    if(extraction < 0.1)
+        dice = 1;
+    else if(extraction < 0.2)
+        dice = 2;
+    else if(extraction < 0.3)
+        dice = 3;
+    else if(extraction < 0.4)
+        dice = 4;
+    else
+        dice = 5;
+    
+    return extraction;
 }
