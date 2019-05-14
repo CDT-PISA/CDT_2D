@@ -90,7 +90,7 @@ void GaugeElement::random_element()
     
     double pi = 2 * asin(1);
     
-    if( N == 1){
+    if( N == 1 ){
         double theta = 2 * pi * r.next();
         mat[0][0] = exp(1i * theta);
     }
@@ -105,14 +105,14 @@ void GaugeElement::heatbath(GaugeElement Force)
     double max_rho;
     
     if(N == 1)
-        max_rho = exp(abs(Force.tr()) / (N * g_ym2)) / Force.partition_function();
+        max_rho = exp(abs(Force.tr()) / (N * g_ym2));
     // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
     // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
     
     while(not accepted){
         this->random_element();
         
-        double rho = exp(real((*this * Force).tr()) / (N * g_ym2)) / Force.partition_function();
+        double rho = exp(real((*this * Force).tr()) / (N * g_ym2));
         
         if(r.next() * max_rho < rho)
             accepted = true;
@@ -292,7 +292,8 @@ GaugeElement GaugeElement::operator/=(const complex<double>& alpha)
 
 void GaugeElement::unitarize()
 {
-    /// @todo
+    if(N == 1)
+        mat[0][0] /= abs(mat[0][0]);
 }
 
 // ##### FILE I/O #####
