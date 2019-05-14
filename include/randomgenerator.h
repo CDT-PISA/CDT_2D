@@ -3,6 +3,7 @@
 #define RANDOMGEN_H
 
 #include <random>
+#include <sstream>
 
 using namespace std;
 
@@ -16,16 +17,15 @@ private:
     
 public:
     
-    static long n;
-    long m;
+    static stringstream state;
     
-    /**
-     * Auxiliary Vertex
-     * 
-     */ 
+    // CLASS STANDARD
+    
     RandomGen();
     
     ~RandomGen(){}
+    
+    // METHODS
     
     double next();
 };

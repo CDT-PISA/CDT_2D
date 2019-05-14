@@ -18,22 +18,26 @@
 
 #include "randomgenerator.h"
 #include <random>
+#include <iostream>
 
 using namespace std;
 
-#define SEED 5
-
-long RandomGen::n = 0;
+#define SEED 1145
 
 RandomGen::RandomGen()
-{    
-    m = 0;
+{
     gen.seed(SEED);
 }
 
+stringstream RandomGen::state;
+
 double RandomGen::next(){
-    gen.discard(n-m);
-    n++;
-    m = n;
-    return generate_canonical<double, 10>(gen);
+    
+    if(state.str() != "")
+        state >> gen;
+    state.clear();
+    double rand = generate_canonical<double, 10>(gen);
+    state << gen;
+    
+    return rand;
 }
