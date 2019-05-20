@@ -24,7 +24,7 @@ class GaugeElement;
  */
 class Triangulation
 {
-public: /// @todo deve essere private
+public: /// @todo deve essere private (forse?)
     // DATA
     
     double lambda;
@@ -265,7 +265,7 @@ public:
      */ 
     void print_space_profile(ofstream& output);
     
-    double total_gauge_action();
+    double total_gauge_action(bool debug_flag = false);
     
     double topological_charge();
     

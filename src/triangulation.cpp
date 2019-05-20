@@ -234,21 +234,23 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym)
     
     // ... and some edges and their adjacencies ...
     for(int j=0;j<3;j++){
-        // missing space-like ones
-        Label vertices_s1[] = {list0[(j + 2)%3 + 3*(TimeLength-1)], list0[j]};
-        Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3], EdgeType::_space));
+        // missing time-like edges
+        Label vertices_t1[] = {list0[(j + 2)%3 + 3*(TimeLength-1)], list0[j]};
+        Label lab_t1(new Edge(list1.size(), vertices_t1, list2[j + 3], EdgeType::_time));
+        list1.push_back(lab_t1);
         
-        list2[j + 3].dync_triangle()->e[0] = lab_s1;
-        list2[j].dync_triangle()->e[1] = lab_s1;
+        list2[j + 3].dync_triangle()->e[0] = lab_t1;
+        list2[j].dync_triangle()->e[1] = lab_t1;
         
-        Label vertices_s2[] = {list0[j + 3*(TimeLength-1)], list0[j]};
-        Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j], EdgeType::_space));
+        Label vertices_t2[] = {list0[j + 3*(TimeLength-1)], list0[j]};
+        Label lab_t2(new Edge(list1.size(), vertices_t2, list2[j], EdgeType::_time));
+        list1.push_back(lab_t2);
         
-        list2[j].dync_triangle()->e[0] = lab_s2;
-        list2[(j + 1)%3 + 3].dync_triangle()->e[1] = lab_s2;
+        list2[j].dync_triangle()->e[0] = lab_t2;
+        list2[(j + 1)%3 + 3].dync_triangle()->e[1] = lab_t2;
         
-        // missing time-like adjacencies
-        list2[j + 6].dync_triangle()->e[2] = list1[j];
+        // missing time-like adjacencies (space-like edges)
+        list2[j].dync_triangle()->e[2] = list1[j + 9*(TimeLength-1)];
     }
     
     // ... and vertices of (2,1)-triangles (ones at time 0)
@@ -1525,8 +1527,11 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     
     // to make testing easier it is possible to specify the "cell" on which operate
     // if it is not specified (cell = -1), as in real runs, the cell is extracted
-    if(cell == -1)
+    if(cell == -1){
         e_num = r.next()*list1.size();
+        if(e_num == list1.size()) // this shouldn't never happen
+            e_num = list1.size() - 1;
+    }
     else
         e_num = cell;
         
@@ -1534,6 +1539,7 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     Edge* e_lab = lab_e.dync_edge();
     
     GaugeElement Force = e_lab->force();
+    Force.set_base(lab_e);
     
     e_lab->U.heatbath(Force);
     
@@ -1631,11 +1637,17 @@ void Triangulation::print_space_profile(ofstream& output)
     output << endl;
 }
 
-double Triangulation::total_gauge_action()
+double Triangulation::total_gauge_action(bool debug_flag)
 {
     double S = 0;
     for(auto lab_v: list0){
+        if(debug_flag)
+            cout << lab_v->position() << "\n"; cout.flush();
+        
         GaugeElement plaq = lab_v.dync_vertex()->looparound();
+        
+        if(debug_flag)
+            cout << lab_v->position() << "ciao\n"; cout.flush();
         
         S += (2/pow(g_ym,2))*real(-(plaq - 1).tr());
     }
