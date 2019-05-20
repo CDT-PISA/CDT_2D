@@ -109,17 +109,17 @@ public:
      * 
      * ATTENTION: is not a pure function, it modifies the previous_idx for future uses
      */
-    Triangle next(Triangle current, int& previous_idx);
+    Triangle next(Triangle current, int& previous_idx, bool debug_flag = false);
     
     /**
      * @brief return a Plaquette
      */
-    GaugeElement looparound();
+    GaugeElement looparound(bool debug_flag = false);
     
     /**
      * @brief return a Staple
      */
-    GaugeElement looparound(Triangle edge_t[2]);
+    GaugeElement looparound(Triangle edge_t[2], bool debug_flag = false);
     
     double action_contrib();
     

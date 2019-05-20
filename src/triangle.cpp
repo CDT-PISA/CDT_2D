@@ -20,6 +20,7 @@
 #include "vertex.h"
 #include "edge.h"
 #include "gaugeelement.h"
+#include <iostream>
 
 using namespace std;
 

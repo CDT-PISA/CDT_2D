@@ -48,27 +48,43 @@ Label Vertex::adjacent_triangle(){ return near_t; }
     
 // ##### GAUGE #####
 
-Triangle Vertex::next(Triangle current, int& previous_idx){
+Triangle Vertex::next(Triangle current, int& previous_idx, bool debug_flag){
     Triangle next;
     
+    if(debug_flag)
+        cout << "current: " << current.position() << endl;
+    
     int bond_idx = current.find_element(owner->list0[this->position()], SimplexType::_vertex);
+    
+    if(debug_flag)
+        cout << "bond: " << bond_idx << endl;
     
     int next_idx = 0;
     // I'd want to consider previous_idx == 0
     // to do this I translate to that reference frame 
     // to interpret the result I translate back in the original frame
-    if((bond_idx - previous_idx) % 3 == 1)
-        next_idx = (2 + previous_idx) % 3;
-    else if((bond_idx - previous_idx) % 3 == 2)
-        next_idx = (1 + previous_idx) % 3;
+    next_idx = ( (3 - ((bond_idx - previous_idx) % 3)) + previous_idx ) % 3;
+    
+    if(debug_flag)
+        cout << "next: " << next_idx << endl;
     
     next = *current.adjacent_triangles()[next_idx].dync_triangle();
     previous_idx = (4 - next_idx) % 3; // is the `opposite` function: 1 <--> 0, 2 <--> 2
     
+    if(debug_flag){
+        cout << endl << "t[" << next.position() << "]: " << endl << "v: ";
+        for(int j=0; j<3; j++)
+            cout << next.v[j]->position() << " ";
+        cout << endl << "t: ";
+        for(int j=0; j<3; j++)
+            cout << next.t[j]->position() << " ";
+        cout << endl << endl;
+    }
+    
     return next;
 }
 
-GaugeElement Vertex::looparound()
+GaugeElement Vertex::looparound(bool debug_flag)
 {
     GaugeElement Plaquette;
     Vertex bond = *this;
@@ -94,10 +110,16 @@ GaugeElement Vertex::looparound()
     while(current != start || first_round){
         first_round = false;
         
+        if(debug_flag)
+            cout << "\t" << id << " " << current.id; cout.flush();
+        
         GaugeElement current_previous = current.edges()[previous_idx].dync_edge()->gauge_element();
         Plaquette *= current_previous.dagger();
         // to be multiplied correctly the element has to be taken in the direction of travel
         // I took the inverse, therefore I add the dagger
+        
+        if(debug_flag)
+            cout << "\t" << id << "a\n"; cout.flush();
         
         previous = current;
         current = next(current, previous_idx);
@@ -106,8 +128,21 @@ GaugeElement Vertex::looparound()
     return Plaquette;
 }
 
-GaugeElement Vertex::looparound(Triangle edge_t[2])
+GaugeElement Vertex::looparound(Triangle edge_t[2], bool debug_flag)
 {
+    if(debug_flag){
+        cout << endl;
+        cout << this->position() << endl;
+        for(int i=0; i<2; i++){
+            for(int j=0; j<3; j++)
+                cout << edge_t[i].v[j]->position() << " ";
+            cout << endl << "t[" << edge_t[i].position() << "]: ";
+            for(int j=0; j<3; j++)
+                cout << edge_t[i].t[j]->position() << " ";
+            cout << endl;
+        }
+    }
+    
     GaugeElement Staple;
     Vertex bond = *this;
     Triangle start = edge_t[1];
@@ -115,10 +150,16 @@ GaugeElement Vertex::looparound(Triangle edge_t[2])
     Triangle previous = edge_t[0];
     int previous_idx = start.find_element(owner->list2[previous.position()], SimplexType::_triangle);
     
+    if(debug_flag)
+        cout << previous_idx << endl << endl;
+    
     Triangle current = start;
     bool first_round = true;
     while(current != start || first_round){
         first_round = false;
+        
+        if(debug_flag)
+            cout << "(loop) current: " << current.position() << endl;
         
         if(current != start){
             GaugeElement current_previous = current.edges()[previous_idx].dync_edge()->gauge_element();

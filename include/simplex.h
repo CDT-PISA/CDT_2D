@@ -12,7 +12,8 @@ class Label;
  */
 class Simplex
 {
-protected:
+public:
+// protected:
     
     // DATA
     
