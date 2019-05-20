@@ -45,6 +45,8 @@ GaugeElement::GaugeElement(const complex<double> (&matrix)[N][N])
 
 Label GaugeElement::base(){ return base_edge; }
 
+void GaugeElement::set_base(Label base){ base_edge = base; }
+
 int GaugeElement::dimension(){ return N; }
 
 complex<double>** GaugeElement::matrix()
@@ -112,8 +114,6 @@ void GaugeElement::random_element(double a)
     }
     else
         throw runtime_error("random_element: Not implemented for N!=1");
-    
-    cout << mat[0][0] << endl;
 }
 
 void GaugeElement::heatbath(GaugeElement Force)
@@ -121,7 +121,7 @@ void GaugeElement::heatbath(GaugeElement Force)
     RandomGen r;
     
     bool accepted = false;
-    double g_ym2 = pow(base_edge.dync_edge()->get_owner()->g_ym, 2);
+    double g_ym2 = pow(Force.base()->get_owner()->g_ym, 2);
     
     double a;
     double c;
@@ -160,13 +160,12 @@ void GaugeElement::heatbath(GaugeElement Force)
 GaugeElement GaugeElement::operator+(const GaugeElement& V)
 {
     GaugeElement U;
-    complex<double> U_mat[N][N];
     
     U.base_edge = this->base_edge;
     
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++)
-            U_mat[i][j] = this->mat[i][j] + V.mat[i][j];
+            U.mat[i][j] = this->mat[i][j] + V.mat[i][j];
     }
 
     return U;
@@ -175,13 +174,12 @@ GaugeElement GaugeElement::operator+(const GaugeElement& V)
 GaugeElement GaugeElement::operator-(const GaugeElement& V)
 {
     GaugeElement U;
-    complex<double> U_mat[N][N];
     
     U.base_edge = this->base_edge;
     
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++)
-            U_mat[i][j] = this->mat[i][j] - V.mat[i][j];
+            U.mat[i][j] = (this->mat[i][j] - V.mat[i][j]);
     }
 
     return U;
@@ -190,15 +188,14 @@ GaugeElement GaugeElement::operator-(const GaugeElement& V)
 GaugeElement GaugeElement::operator*(const GaugeElement& V)
 {
     GaugeElement U;
-    complex<double> U_mat[N][N];
     
     U.base_edge = this->base_edge;
     
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
-            U_mat[i][j] = 0;
+            U.mat[i][j] = 0;
             for(int k=0; k<N; k++)
-                U_mat[i][j] += this->mat[i][k]*V.mat[k][j];
+                U.mat[i][j] += this->mat[i][k]*V.mat[k][j];
         }
     }
 
@@ -223,13 +220,12 @@ GaugeElement GaugeElement::operator*=(const GaugeElement& V)
 GaugeElement GaugeElement::dagger()
 {
     GaugeElement U;
-    complex<double> U_mat[N][N];
     
     U.base_edge = this->base_edge;
     
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++)
-            U_mat[i][j] = conj(this->mat[j][i]);
+            U.mat[i][j] = conj(this->mat[j][i]);
     }
 
     return U;    
@@ -281,7 +277,7 @@ GaugeElement GaugeElement::operator+(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator-(const complex<double>& alpha)
 {
-    return *this + alpha_id(alpha);
+    return *this - alpha_id(alpha);
 }
 
 GaugeElement GaugeElement::operator*(const complex<double>& alpha)

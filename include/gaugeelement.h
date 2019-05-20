@@ -73,6 +73,8 @@ public:
     */
     Label base();
     
+    void set_base(Label base);
+    
     complex<double>* operator[](int i);
     
     // ##### OPERATIONS #####
