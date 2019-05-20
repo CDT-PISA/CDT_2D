@@ -64,25 +64,25 @@ GaugeElement Edge::force()
     Vertex* edge_v[2];
     Triangle edge_t[2];
     Label lab_this = owner->list1[id];
+    Force.set_base(lab_this);
     
     edge_t[0] = *near_t.dync_triangle();
-    
+        
     // find the vertex opposite to this edge in near_t
     int i;
     for(i=0; i<3; i++){
-        for(int j=0; j<2 && v[j]!=near_t.dync_triangle()->vertices()[i]; j++)
+        int j;
+        for(j=0; j<2 && v[j]!=near_t.dync_triangle()->vertices()[i]; j++){}
         if(j == 2)
             break;
     }
     edge_t[1] = *near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
-    for(int i=0; i<2; i++){
-        edge_v[i] = edge_t[i].v[edge_t[i].find_element(lab_this, SimplexType::_edge)].dync_vertex();
-    }
+    for(int i=0; i<2; i++)
+        edge_v[i] = v[i].dync_vertex();//edge_t[i].v[edge_t[i].find_element(lab_this, SimplexType::_edge)].dync_vertex();
     
-    for(auto x: edge_v){
+    for(auto x: edge_v)
         Force += x->looparound(edge_t);
-    }
     
     return Force;
 }
