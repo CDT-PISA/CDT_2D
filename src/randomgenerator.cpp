@@ -41,3 +41,10 @@ double RandomGen::next(){
     
     return rand;
 }
+
+void RandomGen::really_rand()
+{
+    random_device rd;
+    gen.seed(rd());
+    state << gen;
+}

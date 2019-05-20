@@ -28,6 +28,8 @@ public:
     // METHODS
     
     double next();
+    
+    void really_rand();
 };
 
 #endif // RANDOMGEN_H
