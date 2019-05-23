@@ -20,6 +20,15 @@ int main(){
     RandomGen r;
     Triangulation uni(10, 1., 1.);
     
+//     GaugeElement A, B;
+//     
+//     A = 6.;
+//     B = 5. + 7i;
+//     
+//     A *= 3;
+//     
+//     cout << A.matrix()[0][0] << endl;
+    
     cout << uni.total_gauge_action() << endl;
     
     for( int i=0; i< 20; i++)

@@ -204,17 +204,17 @@ GaugeElement GaugeElement::operator*(const GaugeElement& V)
 
 GaugeElement GaugeElement::operator+=(const GaugeElement& V)
 {
-    return *this + V;
+    return *this = *this + V;
 }
 
 GaugeElement GaugeElement::operator-=(const GaugeElement& V)
 {
-    return *this - V;
+    return *this = *this - V;
 }
 
 GaugeElement GaugeElement::operator*=(const GaugeElement& V)
 {
-    return *this * V;
+    return *this = *this * V;
 }
 
 GaugeElement GaugeElement::dagger()
@@ -267,7 +267,9 @@ GaugeElement GaugeElement::alpha_id(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator=(const complex<double>& alpha)
 {
-    return alpha_id(alpha);
+    *this = alpha_id(alpha);
+    
+    return *this;
 }
 
 GaugeElement GaugeElement::operator+(const complex<double>& alpha)
@@ -302,22 +304,22 @@ GaugeElement GaugeElement::operator/(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator+=(const complex<double>& alpha)
 {
-    return *this + alpha;
+    return *this = *this + alpha;
 }
 
 GaugeElement GaugeElement::operator-=(const complex<double>& alpha)
 {
-    return *this - alpha;
+    return *this = *this - alpha;
 }
 
 GaugeElement GaugeElement::operator*=(const complex<double>& alpha)
 {
-    return *this * alpha;
+    return *this = *this * alpha;
 }
 
 GaugeElement GaugeElement::operator/=(const complex<double>& alpha)
 {
-    return *this / alpha;
+    return *this = *this / alpha;
 }
 
 // auxiliary
