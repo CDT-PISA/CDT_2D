@@ -118,8 +118,8 @@ public: /// @todo deve essere private (forse?)
 public:
     // SERVICE'S (they count simulation's steps and iterations)
     
-    int volume_step;
-    int steps_done;
+    long volume_step;
+    long steps_done;
     long iterations_done;
     
     // ##### STARTING TRIANGULATION INITIALIZATION #####
