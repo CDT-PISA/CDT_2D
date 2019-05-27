@@ -10,6 +10,8 @@
 #include <cmath>
 using namespace std;
 
+class Vertex;
+
 class GaugeElement
 {
 public:
@@ -32,6 +34,7 @@ private:
     Label base_edge;
     
     friend class Triangulation;
+    friend class Vertex;
     
 public:
     
@@ -39,6 +42,11 @@ public:
      * 
      */ 
     GaugeElement();
+    
+    /**
+     * 
+     */ 
+    GaugeElement(const Label& edge);
     
     /**
      * 

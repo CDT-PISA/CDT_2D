@@ -35,6 +35,12 @@ GaugeElement::GaugeElement(){
     }
 }
 
+GaugeElement::GaugeElement(const Label& edge)
+{
+    base_edge = edge;
+    *this = alpha_id(1.);
+}
+
 GaugeElement::GaugeElement(const complex<double> (&matrix)[N][N])
 {
     for(int i=0; i<N; i++){
