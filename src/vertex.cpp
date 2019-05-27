@@ -143,7 +143,11 @@ GaugeElement Vertex::looparound(Triangle edge_t[2], bool debug_flag)
         }
     }
     
-    GaugeElement Staple;
+    // initialize base_edge to a random edge in order not to have 
+    // GaugeElements with missing base_edges
+    // (so that each GaugeElement has a reference to the structure
+    // that owns it)
+    GaugeElement Staple(this->owner->list1[0]);
     Vertex bond = *this;
     Triangle start = edge_t[1];
     

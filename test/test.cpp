@@ -31,7 +31,10 @@ int main(){
     
     cout << uni.total_gauge_action() << endl;
     
-    for( int i=0; i< 20; i++)
-        uni.move_gauge();
+    for( int i=0; i< 300; i++)
+        uni.move_24();
+    
+    for( int i=0; i< 200; i++)
+        uni.move_42();
     cout << uni.total_gauge_action() << endl;
 }
