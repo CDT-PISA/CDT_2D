@@ -4,6 +4,7 @@
 
 #include "simplex.h"
 #include "label.h"
+#include <iostream>
 #include <memory>
 #include <vector>
 #include <fstream>
@@ -18,7 +19,7 @@ class Edge;
  */
 class Vertex : public Simplex
 {
-private:    
+public:    
     
     /**
      * Auxiliary Vertex
@@ -41,7 +42,6 @@ private:
      */
     Vertex(int list_position, int Time, int coordination_number, Label triangle);
 
-
     
     // DATA
     
@@ -62,11 +62,6 @@ private:
     * 
     */
     Label near_t;
-    
-    /** 
-    * @todo Appena scopro a che serve lo aggiungo
-    * int r; 
-    */
     
     friend class Triangulation;
     friend class Edge;
@@ -128,7 +123,10 @@ public:
     void write(ostream& output);
     
     void read(istream& input, const vector<Label>& List2);
-
+    
+    // ##### DEBUG FACILITIES #####
+    
+    void print_elements(ostream& os=cout);
 };
 
 #endif // VERTEX_H

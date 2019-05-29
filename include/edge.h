@@ -5,6 +5,7 @@
 #include "simplex.h"
 #include "label.h"
 #include "gaugeelement.h"
+#include <iostream>
 #include <memory>
 #include <vector>
 #include <fstream>
@@ -16,13 +17,13 @@ enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
 {
-private:    
+public:    
 
     /**
      * Auxiliary Edge
      * 
      */ 
-    Edge();
+    Edge(){}
     
     /**
      * 
@@ -108,7 +109,11 @@ public:
     void write(ostream& output);
     
     void read(istream& input, const vector<Label>& List0, const vector<Label>& List1, const vector<Label>& List2);
-
+    
+    // ##### DEBUG FACILITIES #####
+    
+    void print_elements(ostream& os=cout);
+    void print_elements(bool gauge, ostream& os=cout);
 };
 
 #endif // EDGE_H

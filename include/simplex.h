@@ -2,6 +2,9 @@
 #ifndef SIMPLEX_H
 #define SIMPLEX_H
 
+#include <iostream>
+using namespace std;
+
 enum class SimplexType {_vertex, _edge, _triangle};
 
 class Triangulation;
@@ -54,6 +57,10 @@ public:
     int position();
     
     Triangulation* get_owner();
+    
+    virtual void print_elements(ostream& os=cout){}
+    
+    friend ostream& operator<<(ostream& os, Simplex& s);
 };
 
 #endif // SIMPLEX_H

@@ -360,3 +360,45 @@ void GaugeElement::read(std::istream& input, const vector<Label>& List1)
             input.read((char*)&mat[i][j], sizeof(mat[i][j]));
     }
 }
+
+ostream& operator<<(ostream& os, const GaugeElement& U){
+    os.precision(2);
+    os << fixed;
+    
+    if(U.N <= 5){
+        os << " ┌";
+        for(int j=0; j<U.N; j++){
+            os << "           ";
+            if(j != U.N -1)
+                os << "    ";
+        }
+        os << "  ┐" << endl;
+    }
+    
+    for(int i=0; i<U.N; i++){
+        if(U.N <= 5)
+            os << " │ ";
+                
+        for(int j=0; j<U.N; j++){
+            os << U.mat[i][j];
+            if(j != U.N -1)
+                os << "    ";
+        }
+        
+        if(U.N <= 5)
+            os << " │";
+        os << endl;
+    }
+    
+    if(U.N <= 5){
+        os << " └";
+        for(int j=0; j<U.N; j++){
+            os << "           ";
+            if(j != U.N -1)
+                os << "    ";
+        }
+        os << "  ┘";
+    }
+    
+    return os;
+}

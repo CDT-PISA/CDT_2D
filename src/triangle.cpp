@@ -154,4 +154,30 @@ void Triangle::read(istream& input, const vector<Label>& List0, const vector<Lab
     }   
 }
 
+// ##### DEBUG FACILITIES #####
 
+void Triangle::print_elements(std::ostream& os)
+{
+    print_elements(false, os);
+}
+
+void Triangle::print_elements(bool trans, ostream& os)
+{
+    os << endl << "t[" << this->position() << "]:   (type";
+    if(this->is12())
+        os << "12)";
+    else
+        os << "21)";
+    os << endl << "v: ";
+    for(int j=0; j<3; j++)
+        os << this->v[j]->position() << " ";
+    os << endl << "e: ";
+    for(int j=0; j<3; j++)
+        os << this->e[j]->position() << " ";
+    os << endl << "t: ";
+    for(int j=0; j<3; j++)
+        os << this->t[j]->position() << " ";
+    if(trans)
+        os << endl << "transition_id: " << transition_id;
+    os << endl;
+}

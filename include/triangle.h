@@ -4,6 +4,7 @@
 
 #include "simplex.h"
 #include "label.h"
+#include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <vector>
@@ -119,6 +120,11 @@ public:
     void write(ostream& output);
     
     void read(istream& input, const vector<Label>& List0, const vector<Label>& List1, const vector<Label>& List2);
+    
+    // ##### DEBUG FACILITIES #####
+    
+    void print_elements(ostream& os=cout);
+    void print_elements(bool trans, ostream& os=cout);
 };
 
 #endif // TRIANGLE_H

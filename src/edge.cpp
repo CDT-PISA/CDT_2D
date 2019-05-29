@@ -79,10 +79,7 @@ GaugeElement Edge::force()
     edge_t[1] = *near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
     for(int i=0; i<2; i++)
-        edge_v[i] = v[i].dync_vertex();//edge_t[i].v[edge_t[i].find_element(lab_this, SimplexType::_edge)].dync_vertex();
-    
-    for(auto x: edge_v)
-        Force += x->looparound(edge_t);
+        Force += v[i].dync_vertex()->looparound(edge_t);
     
     return Force;
 }
@@ -118,5 +115,28 @@ void Edge::read(std::istream& input, const vector<Label>& List0, const vector<La
         int pos = 0;
         input.read((char*)&pos, sizeof(pos));
         x = List0[pos];
+    }
+}
+
+void Edge::print_elements(std::ostream& os)
+{
+    print_elements(false, os);
+}
+
+void Edge::print_elements(bool gauge, ostream& os)
+{
+    os << endl << "e[" << this->position() << "]:   (";
+    if(this->is_space())
+        os << "space";
+    else
+        os << "time";
+    os << "-like)" << endl << "v: ";
+    for(int j=0; j<2; j++)
+        os << this->v[j]->position() << " ";
+    os << endl << "near_t: " << near_t.dync_triangle()->position() << endl;
+    
+    if(gauge){
+        os << "GaugeElement: " << endl;
+        os << U << endl;
     }
 }

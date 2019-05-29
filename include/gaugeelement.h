@@ -17,7 +17,7 @@ class GaugeElement
 public:
     static const int N=1;
     
-private:
+//private:
     
     // DATA
     
@@ -143,7 +143,10 @@ public:
     void write(ostream& output);
     
     void read(istream& input, const vector<Label>& List1);
-
+    
+    // ##### DEBUG FACILITIES #####
+    
+    friend ostream& operator<<(ostream& os, const GaugeElement& U);
 };
 
 #endif // GAUGE_H
