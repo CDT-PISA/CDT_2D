@@ -289,7 +289,7 @@ public:
      * @brief check if the entire triangulation is in a consistent state
      * 
      */
-    void is_consistent(bool debug_flag);
+    void is_consistent();
     
     /**
      * @brief find the number of adjacents triangles of a vertex

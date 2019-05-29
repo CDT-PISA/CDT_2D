@@ -189,7 +189,8 @@ int main(int argc, char* argv[]){
         }
         
         /// @todo mettere un #ifdef (copia da Giuseppe) anziché debug_flag
-        universe.is_consistent(debug_flag);
+        if(debug_flag)
+            universe.is_consistent();
         
         //
         if(linear_history > 0){
