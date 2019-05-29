@@ -38,3 +38,9 @@ Triangulation* Simplex::get_owner()
 {
     return owner;
 }
+
+ostream& operator<<(ostream& os, Simplex& s){
+    s.print_elements(os);
+    
+    return os;
+}

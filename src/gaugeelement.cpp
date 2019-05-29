@@ -35,6 +35,12 @@ GaugeElement::GaugeElement(){
     }
 }
 
+GaugeElement::GaugeElement(const Label& edge)
+{
+    base_edge = edge;
+    *this = alpha_id(1.);
+}
+
 GaugeElement::GaugeElement(const complex<double> (&matrix)[N][N])
 {
     for(int i=0; i<N; i++){
@@ -204,17 +210,17 @@ GaugeElement GaugeElement::operator*(const GaugeElement& V)
 
 GaugeElement GaugeElement::operator+=(const GaugeElement& V)
 {
-    return *this + V;
+    return *this = *this + V;
 }
 
 GaugeElement GaugeElement::operator-=(const GaugeElement& V)
 {
-    return *this - V;
+    return *this = *this - V;
 }
 
 GaugeElement GaugeElement::operator*=(const GaugeElement& V)
 {
-    return *this * V;
+    return *this = *this * V;
 }
 
 GaugeElement GaugeElement::dagger()
@@ -267,7 +273,9 @@ GaugeElement GaugeElement::alpha_id(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator=(const complex<double>& alpha)
 {
-    return alpha_id(alpha);
+    *this = alpha_id(alpha);
+    
+    return *this;
 }
 
 GaugeElement GaugeElement::operator+(const complex<double>& alpha)
@@ -302,22 +310,22 @@ GaugeElement GaugeElement::operator/(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator+=(const complex<double>& alpha)
 {
-    return *this + alpha;
+    return *this = *this + alpha;
 }
 
 GaugeElement GaugeElement::operator-=(const complex<double>& alpha)
 {
-    return *this - alpha;
+    return *this = *this - alpha;
 }
 
 GaugeElement GaugeElement::operator*=(const complex<double>& alpha)
 {
-    return *this * alpha;
+    return *this = *this * alpha;
 }
 
 GaugeElement GaugeElement::operator/=(const complex<double>& alpha)
 {
-    return *this / alpha;
+    return *this = *this / alpha;
 }
 
 // auxiliary
@@ -351,4 +359,46 @@ void GaugeElement::read(std::istream& input, const vector<Label>& List1)
         for(int j=0; j<N; j++)
             input.read((char*)&mat[i][j], sizeof(mat[i][j]));
     }
+}
+
+ostream& operator<<(ostream& os, const GaugeElement& U){
+    os.precision(2);
+    os << fixed;
+    
+    if(U.N <= 5){
+        os << " ┌";
+        for(int j=0; j<U.N; j++){
+            os << "           ";
+            if(j != U.N -1)
+                os << "    ";
+        }
+        os << "  ┐" << endl;
+    }
+    
+    for(int i=0; i<U.N; i++){
+        if(U.N <= 5)
+            os << " │ ";
+                
+        for(int j=0; j<U.N; j++){
+            os << U.mat[i][j];
+            if(j != U.N -1)
+                os << "    ";
+        }
+        
+        if(U.N <= 5)
+            os << " │";
+        os << endl;
+    }
+    
+    if(U.N <= 5){
+        os << " └";
+        for(int j=0; j<U.N; j++){
+            os << "           ";
+            if(j != U.N -1)
+                os << "    ";
+        }
+        os << "  ┘";
+    }
+    
+    return os;
 }

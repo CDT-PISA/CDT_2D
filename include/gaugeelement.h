@@ -10,12 +10,14 @@
 #include <cmath>
 using namespace std;
 
+class Vertex;
+
 class GaugeElement
 {
 public:
     static const int N=1;
     
-private:
+//private:
     
     // DATA
     
@@ -32,6 +34,7 @@ private:
     Label base_edge;
     
     friend class Triangulation;
+    friend class Vertex;
     
 public:
     
@@ -39,6 +42,11 @@ public:
      * 
      */ 
     GaugeElement();
+    
+    /**
+     * 
+     */ 
+    GaugeElement(const Label& edge);
     
     /**
      * 
@@ -135,7 +143,10 @@ public:
     void write(ostream& output);
     
     void read(istream& input, const vector<Label>& List1);
-
+    
+    // ##### DEBUG FACILITIES #####
+    
+    friend ostream& operator<<(ostream& os, const GaugeElement& U);
 };
 
 #endif // GAUGE_H
