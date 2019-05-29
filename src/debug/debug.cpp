@@ -1,10 +1,7 @@
-void Triangulation::is_consistent(bool debug_flag)
+void Triangulation::is_consistent()
 {
-    if(not debug_flag)
-        return;
         
-    cout << "\n\ndebug...\n";
-    cout.flush();
+    cout << "\n\ndebug..." << endl;
     
     // check list0: Vertices, num40, num40p
     
@@ -165,6 +162,11 @@ void Triangulation::is_consistent(bool debug_flag)
         
     }
     
+    // check list1: Edges
+    for(int i=0; i < list1.size(); i++){
+        
+    }
+    
     // check list2: Triangles
     
     for(int i=0; i < list2.size(); i++){
@@ -191,6 +193,20 @@ void Triangulation::is_consistent(bool debug_flag)
         
         if((tri_lab->vertices()[2]->id > list0.size()) or (&*tri_lab->vertices()[2] != &*list0[tri_lab->vertices()[2]->id]))
             throw runtime_error("Error in Triangle ["+to_string(i)+"]: adjacent Vertex ["+to_string(tri_lab->vertices()[2]->id)+"], the \"lonely\" one [2], is not in list0 (list0.size = "+to_string(list0.size())+")");
+        
+        // edges: right vertices
+        
+        for(int j=0; j<3; j++){
+            Edge e = *tri_lab->edges()[j].dync_edge();
+            for(int k=0; k<2; k++){
+                try{
+                    tri_lab->find_element(e.v[k], SimplexType::_vertex);
+                }
+                catch(runtime_error){
+                    throw runtime_error("Error in Triangle ["+to_string(i)+"]: Edge ["+to_string(e.position())+"] ("+to_string(j)+" in triangle) incosistent, missing its vertex "+to_string(k)+" (i.e. Vertex ["+to_string(e.v[k]->position())+"])");
+                }
+            }
+        }
         
         // adjacent_triangles: check identities and "loops" (they share a couple of vertices)
         
