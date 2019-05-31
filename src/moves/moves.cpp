@@ -645,7 +645,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     delta_Sg_hat += 1 / (pow(g_ym, 2) * 4);
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
-    Triangle edge0_t[2] = {*tri_lab1, *tri_lab0};
+    Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     GaugeElement Staple = v_lab1->looparound(edge0_t);
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
     
@@ -940,8 +940,8 @@ void Triangulation::move_42(int cell, bool debug_flag)
     tri_lab3->gauge_transform(e_lab3->gauge_element());
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
-    Triangle edge2_t[2] = {*tri_lab2, *tri_lab3};
-    Triangle edge0_t[2] = {*tri_lab1, *tri_lab0};
+    Triangle *edge2_t[2] = {tri_lab2, tri_lab3};
+    Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     // the staple here it's searching for is the one of the cell with 2 triangles
     // to reconstruct it is needed to sum together the two contributes from the staple of e0 and e2
     // substracting the contributes of the inner loop (the square)
