@@ -84,11 +84,11 @@ int Triangle::find_element(Label lab_Element, SimplexType type)
     int pos;
     
     if(type == SimplexType::_vertex)
-        for(pos=0; pos<3 && lab_Element!=v[pos]; pos++){}
+        pos = distance(v,find(v,v+3,lab_Element));
     else if(type == SimplexType::_edge)
-        for(pos=0; pos<3 && lab_Element!=e[pos]; pos++){}
+        pos = distance(e,find(e,e+3,lab_Element));
     else if(type == SimplexType::_triangle)
-        for(pos=0; pos<3 && lab_Element!=t[pos]; pos++){}
+        pos = distance(t,find(t,t+3,lab_Element));
     else
         throw runtime_error("SimplexType not recognized");
         
