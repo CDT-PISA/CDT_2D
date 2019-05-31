@@ -17,7 +17,6 @@
  */
 
 #include "randomgenerator.h"
-#include "Rand.hpp"
 #include <random>
 #include <iostream>
 
@@ -32,8 +31,6 @@ RandomGen::RandomGen()
 //    j=tval.tv_sec*1000000ULL+tval.tv_usec;
     rng.seed(SEED);
 }
-
-stringstream RandomGen::state;
 
 double RandomGen::next(){
 //    

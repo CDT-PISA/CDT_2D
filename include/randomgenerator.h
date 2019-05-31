@@ -5,7 +5,8 @@
 #include <random>
 #include <sstream>
 #include "pcg32.h"
-#include <ctime>
+#include <sys/time.h>
+
 using namespace std;
 
 class RandomGen
@@ -17,8 +18,6 @@ private:
    pcg32 rng;
 
 public:
-    
-    static stringstream state;
     
     // CLASS STANDARD
     
