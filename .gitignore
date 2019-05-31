@@ -53,6 +53,8 @@ lib/__pycache__/*
 output/*
 test/build/*
 test/record/*
+test/test
+test/call*
 
 # Other
 .directory

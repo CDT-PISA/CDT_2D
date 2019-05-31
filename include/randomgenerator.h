@@ -4,7 +4,8 @@
 
 #include <random>
 #include <sstream>
-
+#include "pcg32.h"
+#include <ctime>
 using namespace std;
 
 class RandomGen
@@ -13,8 +14,8 @@ private:
     
     // DATA
     
-    mt19937_64 gen;
-    
+   pcg32 rng;
+
 public:
     
     static stringstream state;
