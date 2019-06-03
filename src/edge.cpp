@@ -24,6 +24,9 @@
 Edge::Edge(const int& list_position)
 {   
     id = list_position;
+    
+    if(owner != nullptr && owner->list1.size() > id)
+        GaugeElement U(owner->list1[id]);
 }
 
 Edge::Edge(const int& list_position, const Label (&vertices)[2], const Label& triangle, const EdgeType& e_type)
@@ -31,6 +34,9 @@ Edge::Edge(const int& list_position, const Label (&vertices)[2], const Label& tr
     id = list_position;
     near_t = triangle;
     type = e_type;
+    
+    if(owner != nullptr && owner->list1.size() > id)
+        GaugeElement U(owner->list1[id]);
     
     for(int i=0;i<2;i++){
         v[i] = vertices[i];

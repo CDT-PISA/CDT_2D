@@ -3,6 +3,8 @@ My own implementation of CDT in 1+1 dimension
 
 ## TODO:
 
+**DOCUMENTAZIONE**
+
 **Marconi**
 - Aggiustare `modules` su `marconi` con Giuseppe
 	- `module load python`, piazzarlo da qualche parte (magari in `.bashrc`)

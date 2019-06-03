@@ -266,8 +266,10 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym)
     
     for(auto v: list0)
         v.dync_vertex()->owner = this;
-    for(auto e: list1)
+    for(auto e: list1){
         e.dync_edge()->owner = this;
+        e.dync_edge()->U.base_edge = list1[e->id];
+    }
     for(auto t: list2)
         t.dync_triangle()->owner = this;
 }

@@ -17,7 +17,7 @@ enum class EdgeType {_time, _space };
 
 class Edge : public Simplex
 {
-public:    
+public:
 
     /**
      * Auxiliary Edge

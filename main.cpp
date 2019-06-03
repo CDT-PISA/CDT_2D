@@ -48,6 +48,7 @@ int main(int argc, char* argv[]){
     
     
     // CHECKPOINT NAMES
+    /// @todo non sto usando last_chkpt
     
     vector<string> chkpts;
     chkpts.push_back("");
@@ -68,7 +69,6 @@ int main(int argc, char* argv[]){
         debug_flag = false;
     else
         throw logic_error("The 5th argument in function main() must be a bool (it is the \"debug_flag\")");
-    
     
     // END CONDITION
     
@@ -144,7 +144,6 @@ int main(int argc, char* argv[]){
     auto time_ref = chrono::system_clock::now();
     auto start_time = time_ref;
     
-    
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
     int i=0;
@@ -183,6 +182,8 @@ int main(int argc, char* argv[]){
             }
             case 5:
             {
+                if(i % 1000 == 0)
+                    cout << i << endl;
                 universe.move_gauge(debug_flag);
                 break;
             }
@@ -278,6 +279,7 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, in
     static int count=-1;
     count++;
     universe.iterations_done += i;
+    
     
     string logfile = "runs.txt";
     ofstream logput;

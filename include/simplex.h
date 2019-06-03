@@ -28,7 +28,7 @@ public:
     */
     int id;
     
-    Triangulation* owner;
+    Triangulation* owner = nullptr;
     
     friend class Triangulation;
     
