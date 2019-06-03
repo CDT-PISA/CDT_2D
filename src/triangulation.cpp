@@ -349,9 +349,9 @@ Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triang
     
     e_lab->owner = this;
     e_lab->U = 1.;
-    e_lab->U.base_edge = list1[e_lab->id];
     
     list1.push_back(lab);
+    e_lab->U.base_edge = list1[e_lab->id];
     
     return lab;
 }
