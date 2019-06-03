@@ -71,6 +71,8 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
     if len(lambdas) > 0:
         print()
     
+    g_ym = 1.
+    
     project_folder = getcwd()
     
     for Lambda in lambdas:
@@ -134,7 +136,7 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
             time_length = time_length[0]
         
         debug_flag = 'false'
-        arguments = [run_num, Lambda, time_length, end_condition, debug_flag, 
+        arguments = [run_num, Lambda, g_ym, time_length, end_condition, debug_flag, 
                      last_check, linear_history]
         arg_str = ''
         for x in arguments:

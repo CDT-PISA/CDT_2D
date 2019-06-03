@@ -345,10 +345,11 @@ Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triang
 {    
     int list_position=list1.size();
     Label lab(new Edge(list_position, vertices, triangle, e_type));
-    Edge* e_lab = lab.dync_edge();
+    Edge* e_lab = lab.dync_edge();    
     
     e_lab->owner = this;
     e_lab->U = 1.;
+    e_lab->U.base_edge = list1[e_lab->id];
     
     list1.push_back(lab);
     

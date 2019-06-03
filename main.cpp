@@ -182,8 +182,6 @@ int main(int argc, char* argv[]){
             }
             case 5:
             {
-                if(i % 1000 == 0)
-                    cout << i << endl;
                 universe.move_gauge(debug_flag);
                 break;
             }
@@ -316,12 +314,12 @@ int dice(){
         dice = 1;
     else if(extraction < 0.2)
         dice = 2;
-    else if(extraction < 0.3)
+    else if(extraction < 0.5)
         dice = 3;
-    else if(extraction < 0.4)
+    else if(extraction < 0.7)
         dice = 4;
     else
         dice = 5;
     
-    return extraction;
+    return dice;
 }

@@ -202,8 +202,8 @@ def main():
     run_sub = subparsers.add_parser('run', help='run')
     run_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
                          help='λ values')
-    run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float, 
-                         help='g_ym values')
+    #run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float, 
+    #                     help='g_ym values')
     run_sub.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
     run_sub.add_argument('-@', dest='is_data', action='store_true', 
@@ -263,8 +263,8 @@ def main():
     stop_sub = subparsers.add_parser('stop', help='stop')
     stop_sub.add_argument('lambdas', metavar='L', nargs='*', type=float, 
                          help='λ values')
-    run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float, 
-                         help='g_ym values')
+    #run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float, 
+    #                     help='g_ym values')
     lambdas = stop_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', dest='is_range', action='store_true', 
                          help='range')
