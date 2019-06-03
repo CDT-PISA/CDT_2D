@@ -55,6 +55,8 @@ test/build/*
 test/out/*
 !test/out/launch.sh
 test/record/*
+test/test
+test/call*
 
 # Other
 .directory

@@ -4,6 +4,8 @@
 
 #include <random>
 #include <sstream>
+#include "pcg32.h"
+#include <sys/time.h>
 
 using namespace std;
 
@@ -13,11 +15,9 @@ private:
     
     // DATA
     
-    mt19937_64 gen;
-    
+   pcg32 rng;
+
 public:
-    
-    static stringstream state;
     
     // CLASS STANDARD
     

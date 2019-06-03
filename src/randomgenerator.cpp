@@ -26,25 +26,29 @@ using namespace std;
 
 RandomGen::RandomGen()
 {
-    gen.seed(SEED);
+//    struct timeval tval;
+//    gettimeofday(&tval,NULL);
+//    j=tval.tv_sec*1000000ULL+tval.tv_usec;
+    rng.seed(SEED);
 }
 
-stringstream RandomGen::state;
-
 double RandomGen::next(){
-    
-    if(state.str() != "")
-        state >> gen;
-    state.clear();
-    double rand = generate_canonical<double, 10>(gen);
-    state << gen;
-    
-    return rand;
+//    
+//    if(state.str() != "")
+//        state >> gen;
+//    state.clear();
+//    double rand = generate_canonical<double, 10>(gen);
+//    state << gen;
+//    
+//    return rand;
+//    return generate_canonical<double, 10>(gen);
+    return rng.nextDouble();
 }
 
 void RandomGen::really_rand()
 {
-    random_device rd;
-    gen.seed(rd());
-    state << gen;
+    struct timeval tval;
+    gettimeofday(&tval,NULL);
+    int j=tval.tv_sec*1000000ULL+tval.tv_usec;
+    rng.seed(j);
 }

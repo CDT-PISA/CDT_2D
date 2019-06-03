@@ -9,7 +9,7 @@
 
 using namespace std;
 
-void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, int i);
+void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, long i);
 
 int dice();
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]){
     char last_char = end_condition[end_condition.size()-1];
     bool limited_step = false;
     long last_step;
-    int sim_duration;
+    long sim_duration;
     if(last_char == 'h')
         sim_duration = stoi(end_condition)*60*60; // stoi("10afk") == 10 !
     else if(last_char == 'm')
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]){
         linear_history *= 1e9L;
     
     
-    // OPEN OUTPUT FILE
+    // OPEN OUTPUT FILES
     
     string profile_file = "history/profiles.txt";
     ofstream profile_stream(profile_file, ofstream::out | ofstream::app);
@@ -146,8 +146,8 @@ int main(int argc, char* argv[]){
     
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
-    int i=0;
-    int j=0;
+    long i=0;
+    long j=0;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
         
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]){
 }
 
 
-void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, int i){
+void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, long i){
     static int count=-1;
     count++;
     universe.iterations_done += i;
