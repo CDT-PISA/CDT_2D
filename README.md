@@ -4,6 +4,12 @@ My own implementation of CDT in 1+1 dimension
 ## TODO:
 
 **DOCUMENTAZIONE**
+- se chiami cdt2d senza nulla dovrebbe darti l'usage
+	- o almeno un messaggio con un utilizzo minimale e poi il suggerimento di mettere -h per approfondire
+- aggiungere l'elenco delle dependecies:
+	- cmake >= 3.8
+	- gcc >= 7.1
+	- python >= 3.6 (?)
 
 **Marconi**
 - Aggiustare `modules` su `marconi` con Giuseppe
