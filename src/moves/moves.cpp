@@ -284,15 +284,15 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
 /**
  * Questa sarà la mossa
  * \code
- *     v3         v2            v3         v2 
+ *     v0         v1            v0         v1 
  *      * * * * * *             * * * * * *  
  *      **        *             *        **  
- *      *  *   1  *             *  1   *  *  
+ *      *  *   0  *             *  0   *  *  
  *    2 *    *    * 3   -->   2 *    *    * 3
- *      *  0   *  *             *  *   0  *  
+ *      *  1   *  *             *  *   1  *  
  *      *        **             **        *  
  *      * * * * * *             * * * * * *  
- *     v0         v1            v0         v1 
+ *     v3         v2            v3         v2 
  * \endcode
  */ 
 void Triangulation::move_22_2(int cell, bool debug_flag)
@@ -347,10 +347,10 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     // ___ find vertices ___
     /* it's anticipated, because vertices are needed in order to compute the gauge action variation
      */ 
-    Label lab_v0 = tri_lab1->vertices()[0];
-    Label lab_v1 = tri_lab1->vertices()[1];
-    Label lab_v2 = tri_lab0->vertices()[1];
-    Label lab_v3 = tri_lab1->vertices()[2];
+    Label lab_v0 = tri_lab0->vertices()[0];
+    Label lab_v1 = tri_lab0->vertices()[1];
+    Label lab_v2 = tri_lab1->vertices()[1];
+    Label lab_v3 = tri_lab1->vertices()[0];
     Vertex* v_lab0 = lab_v0.dync_vertex();
     Vertex* v_lab1 = lab_v1.dync_vertex();
     Vertex* v_lab2 = lab_v2.dync_vertex();
@@ -397,11 +397,11 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     // ----- CELL "EVOLUTION" -----
     
     // ___ find edges ___
-    Label lab_e0 = tri_lab0->edges()[0]; //           3    
-    Label lab_e1 = tri_lab0->edges()[1]; //      * * * * * *  
-    Label lab_e2 = tri_lab1->edges()[1]; //      **        *  
-    Label lab_e3 = tri_lab1->edges()[2]; //      *  *   0  *  
-    Label lab_e4 = tri_lab0->edges()[2]; //    1 *    *    * 2
+    Label lab_e0 = tri_lab0->edges()[1]; //           3    
+    Label lab_e1 = tri_lab1->edges()[1]; //      * * * * * *  
+    Label lab_e2 = tri_lab0->edges()[0]; //      **        *  
+    Label lab_e3 = tri_lab0->edges()[2]; //      *  *   0  *  
+    Label lab_e4 = tri_lab1->edges()[2]; //    1 *    *    * 2
     Edge* e_lab0 = lab_e0.dync_edge();   //      *      *  *  
     Edge* e_lab1 = lab_e1.dync_edge();   //      *        **  
     Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
@@ -426,33 +426,33 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     tri_lab3->adjacent_triangles()[1] = lab_t1;
     
     // ___ modify triangles' vertices ___
-    tri_lab0->vertices()[2] = lab_v0;
-    tri_lab1->vertices()[2] = lab_v2;
+    tri_lab0->vertices()[2] = lab_v3;
+    tri_lab1->vertices()[2] = lab_v1;
     
     // ___ modify triangles' edges ___
-    tri_lab1->edges()[0] = lab_e0;
-    tri_lab1->edges()[1] = lab_e1;
-    tri_lab0->edges()[0] = lab_e2;
-    tri_lab0->edges()[1] = lab_e0;
+    tri_lab1->edges()[0] = lab_e2;
+    tri_lab1->edges()[1] = lab_e0;
+    tri_lab0->edges()[0] = lab_e0;
+    tri_lab0->edges()[1] = lab_e1;
     
     // ___ modify edges' near_t ___
-    e_lab1->near_t = lab_t1;
-    e_lab2->near_t = lab_t0;
+    e_lab1->near_t = lab_t0;
+    e_lab2->near_t = lab_t1;
     
     // ___ modify edges' vertices ___
-    e_lab0->vertices()[0] = lab_v0;
-    e_lab0->vertices()[1] = lab_v2;
+    e_lab0->vertices()[0] = lab_v1;
+    e_lab0->vertices()[1] = lab_v3;
     
     // ___ modify vertices' near_t ___
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
-    v_lab1->near_t = lab_t1;
-    v_lab3->near_t = lab_t0;
+    v_lab0->near_t = lab_t0;
+    v_lab2->near_t = lab_t1;
     
     // ___ modify vertices' coord_num ___
-    v_lab1->coord_num--;
-    v_lab3->coord_num--;
-    v_lab0->coord_num++;
-    v_lab2->coord_num++;
+    v_lab1->coord_num++;
+    v_lab3->coord_num++;
+    v_lab0->coord_num--;
+    v_lab2->coord_num--;
     
     // ----- AUXILIARY STRUCTURES -----
     
@@ -499,13 +499,13 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     
     // ___ find vert. coord. 4 and patologies ___
     
-    /* vertex 1,3 were not of coord. 4, and they could have become
-     * vertex 0,2 could be of coord. 4, and now they are not
+    /* vertex 0,2 were not of coord. 4, and they could have become
+     * vertex 1,3 could be of coord. 4, and now they are not
      */ 
     
     vector<Vertex*> vec;
-    vec.push_back(v_lab1);
-    vec.push_back(v_lab3);
+    vec.push_back(v_lab0);
+    vec.push_back(v_lab2);
     
     for(auto x : vec){
         if(x->coordination() == 4){
@@ -531,8 +531,8 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     }
     
     vec.clear();
-    vec.push_back(v_lab0);
-    vec.push_back(v_lab2);
+    vec.push_back(v_lab1);
+    vec.push_back(v_lab3);
     
     for(auto x : vec){
         if(x->coordination() == 5){
