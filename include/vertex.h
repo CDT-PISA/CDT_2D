@@ -116,7 +116,7 @@ public:
      */
     GaugeElement looparound(Triangle *edge_t[2], bool debug_flag = false);
     
-    double action_contrib();
+    double action_contrib(bool debug_flag = false);
     
     // ##### FILE I/O #####
     

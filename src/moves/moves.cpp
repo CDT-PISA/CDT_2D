@@ -99,10 +99,10 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
         x--;
     
     double delta_Sg = 0;
-    delta_Sg += (v_lab0->action_contrib() / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab1->action_contrib() / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
@@ -271,7 +271,9 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     
     if(debug_flag){
         cout << "\t\t---\n";
-        cout << " at the end of the move_42:" << endl;
+        cout << "------------------------" << endl;
+        cout << "AT THE END OF move_22_1:" << endl;
+        cout << "------------------------" << endl;
         cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
@@ -355,10 +357,23 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
     if(debug_flag){
+        cout << endl;
+        cout << "╔═══════════════════════╗" << endl;
+        cout << "║BEGINNING OF move_22_2:║" << endl;
+        cout << "╚═══════════════════════╝" << endl;
         cout << " (time " << v_lab0->time() << ")" << endl;
-        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << " [cell] (vertices) \t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
-        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl << endl;
+        
+        cout << "+----------+" << endl;
+        cout << "|TRIANGLES:|" << endl;
+        cout << "+----------+";
+        cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
+        
+        cout << "+------+" << endl;
+        cout << "|EDGES:|" << endl;
+        cout << "+------+";
     }
     
     int x = 1;
@@ -368,10 +383,10 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
         x--;
     
     double delta_Sg = 0;
-    delta_Sg -= (v_lab0->action_contrib() / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab1->action_contrib() / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
@@ -392,6 +407,10 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
     Edge* e_lab3 = lab_e3.dync_edge();   //           4    
     Edge* e_lab4 = lab_e4.dync_edge();
+    
+    if(debug_flag){
+        cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << e_lab4;
+    }
     
     // ___ gauge transform on t1 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
@@ -473,8 +492,7 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     /** @todo ripensare a questo errore */
     if(debug_flag){
         if(transition1221.size() != transition2112.size()){
-            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
-            cout.flush();
+            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size() << endl;
             throw runtime_error("Not the same number of transitions of the two types");
         }
     }
@@ -539,11 +557,23 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     }
     
     if(debug_flag){
-        cout << "\t\t---\n";
-        cout << " at the end of the move_42:" << endl;
-        cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
+        cout << endl;
+        cout << "┌────────────────────────┐" << endl;
+        cout << "│AT THE END OF move_22_2:│ " << endl;
+        cout << "└────────────────────────┘" << endl;
+        cout << " [cell] (vertices) \t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
+        
+        cout << "+----------+" << endl;
+        cout << "|TRIANGLES:|" << endl;
+        cout << "+----------+";
+        cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
+        
+        cout << "+------+" << endl;
+        cout << "|EDGES:|" << endl;
+        cout << "+------+";
+        cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << e_lab4;
     }
     // ----- END MOVE -----
 }
@@ -639,14 +669,14 @@ void Triangulation::move_24(int cell, bool debug_flag)
     tri_lab0->gauge_transform(e_lab0->gauge_element());
     
     double delta_Sg_hat = 0;
-    delta_Sg_hat += (v_lab1->action_contrib() / v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat += (v_lab2->action_contrib() / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat += (v_lab3->action_contrib() / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += (v_lab1->action_contrib(debug_flag) / v_lab1->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
     delta_Sg_hat += 1 / (pow(g_ym, 2) * 4);
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
-    GaugeElement Staple = v_lab1->looparound(edge0_t);
+    GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
     
     double reject_trial = r.next();
@@ -945,15 +975,15 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // the staple here it's searching for is the one of the cell with 2 triangles
     // to reconstruct it is needed to sum together the two contributes from the staple of e0 and e2
     // substracting the contributes of the inner loop (the square)
-    GaugeElement Staple2 = v_lab1->looparound(edge2_t);
-    GaugeElement Staple0 = v_lab0->looparound(edge0_t);
+    GaugeElement Staple2 = v_lab1->looparound(edge2_t, debug_flag);
+    GaugeElement Staple0 = v_lab0->looparound(edge0_t, debug_flag);
     GaugeElement Staple = Staple0 + Staple2 + e_lab2->gauge_element() + e_lab2->gauge_element().dagger();
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
     
     double delta_Sg_hat = 0;
     delta_Sg_hat -= ((real(Force.tr()) / Force.N  - 1) / v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat -= (v_lab2->action_contrib() / (v_lab2->coordination() - 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat -= (v_lab3->action_contrib() / (v_lab3->coordination() - 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() - 1)*v_lab2->coordination()) / pow(g_ym, 2);
+    delta_Sg_hat -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() - 1)*v_lab3->coordination()) / pow(g_ym, 2);
     delta_Sg_hat -= 1 / (pow(g_ym, 2) * 4);
     // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
     // (because the "new" edges have id as gauge_element)
@@ -1056,8 +1086,9 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }
     
     if(debug_flag){
-        cout << "\t\t---\n";
-        cout << " at the end of the move_42:" << endl;
+        cout << "----------------------" << endl;
+        cout << "AT THE END OF move_42:" << endl;
+        cout << "----------------------" << endl;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
         cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;

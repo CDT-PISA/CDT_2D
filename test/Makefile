@@ -13,7 +13,7 @@ SRC      := 					   \
 OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
 all: build $(APP_DIR)/$(TARGET)
-	@rm ./test
+	@rm -f ./test
 	@cp $(APP_DIR)/$(TARGET) $(TARGET)	
 
 $(OBJ_DIR)/%.o: %.cpp

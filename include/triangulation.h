@@ -131,7 +131,7 @@ public:
      * 
      * @param TimeLength the number of time slices
      */
-    Triangulation(int TimeLength, double Lambda, double G_ym);
+    Triangulation(int TimeLength, double Lambda, double G_ym, bool debug_flag = false);
     
     /**
      * @brief load a stored configuration
@@ -226,11 +226,6 @@ public:
     */
     Label move_42_find_t0(Label extr_lab);
     
-    /**
-     * @brief same function as before, with a flag for printing information for debugging
-     */ 
-//     Label move_42_find_t0(Label extr_lab, bool print_flag);
-    
     // ##### USER INTERACTION METHODS #####
     
     /**
@@ -267,7 +262,7 @@ public:
     
     double total_gauge_action(bool debug_flag = false);
     
-    double topological_charge();
+    double topological_charge(bool debug_flag = false);
     
     // ##### FILE I/O #####
     

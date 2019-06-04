@@ -102,7 +102,7 @@ public:
     
     // ##### GAUGE #####
     
-    GaugeElement force();
+    GaugeElement force(bool debug_flag=false);
     
     // ##### FILE I/O #####
     

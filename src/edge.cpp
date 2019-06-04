@@ -63,7 +63,7 @@ bool Edge::is_time(){ return not is_space(); }
 
 // ##### GAUGE #####
 
-GaugeElement Edge::force()
+GaugeElement Edge::force(bool debug_flag)
 {
     GaugeElement Force;
     Force = 0;
@@ -84,7 +84,7 @@ GaugeElement Edge::force()
     edge_t[1] = near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
     for(int i=0; i<2; i++)
-        Force += v[i].dync_vertex()->looparound(edge_t);
+        Force += v[i].dync_vertex()->looparound(edge_t, debug_flag);
     
     return Force;
 }

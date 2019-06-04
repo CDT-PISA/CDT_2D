@@ -98,6 +98,12 @@ int Triangle::find_element(Label lab_Element, SimplexType type)
     return pos;
 }
 
+int Triangle::opposite(int i){
+    // is the `opposite` function: 1 <--> 0, 2 <--> 2
+    
+    return (4 - i) % 3;
+}
+
 // ##### GAUGE #####
 
 void Triangle::gauge_transform(GaugeElement G)

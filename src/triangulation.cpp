@@ -43,7 +43,7 @@ using namespace std;
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
  */ 
-Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym)
+Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym, bool debug_flag)
 {
     volume_step = 16;
     steps_done = -512;
@@ -517,7 +517,7 @@ double Triangulation::total_gauge_action(bool debug_flag)
         if(debug_flag)
             cout << lab_v->position() << "\n"; cout.flush();
         
-        GaugeElement plaq = lab_v.dync_vertex()->looparound();
+        GaugeElement plaq = lab_v.dync_vertex()->looparound(debug_flag);
         
         if(debug_flag)
             cout << lab_v->position() << "ciao\n"; cout.flush();
@@ -530,13 +530,13 @@ double Triangulation::total_gauge_action(bool debug_flag)
 
 constexpr double pi() { return atan(1)*4; }
 
-double Triangulation::topological_charge()
+double Triangulation::topological_charge(bool debug_flag)
 {
     // currently implented only for U(1)
     double charge = 0;
     
     for(auto lab_v: list0){
-        GaugeElement plaq = lab_v.dync_vertex()->looparound();
+        GaugeElement plaq = lab_v.dync_vertex()->looparound(debug_flag);
         
         charge += arg(plaq.tr()) / (2 * pi());
     }

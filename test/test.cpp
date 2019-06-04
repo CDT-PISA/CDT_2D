@@ -47,13 +47,15 @@ int main(){
 
     
      for( int i=0; i< 20000; i++){
+         uni.is_consistent();
+         
          if(i%100 == 0){
             cout << i << endl;
             cout << "Gauge Action: " <<  uni.total_gauge_action() << endl;
             cout << "Carica Topologica: " << uni.topological_charge() << endl;
          }
          for(int j=0; j<20; ++j){
-            cout<<"gauge move"<<endl;
+            //cout<<"gauge move"<<endl;
             uni.move_gauge();
          }
          cout<<"hello"<<endl;
@@ -71,7 +73,7 @@ int main(){
                 uni.move_22_1();
              }else{
                  cout<<"hello22_2"<<endl;
-                uni.move_22_2();
+                uni.move_22_2(true);
              }
          }
     }

@@ -235,6 +235,14 @@ void Triangulation::is_consistent()
         if(tri_lab->adjacent_triangles()[2].dync_triangle()->adjacent_triangles()[2]->position() != tri_lab->position())
             throw runtime_error("Error in Triangle: The _time_ adjacent of Triangle ["+to_string(i)+"] is Triangle ["+to_string(tri_lab->adjacent_triangles()[2].dync_triangle()->id)+"], but its _time_ adjacent is not ["+to_string(i)+"] itself");
         
+        for(int j=0; j<3; j++){
+            Label lab_e0 = tri_lab->adjacent_triangles()[j].dync_triangle()->edges()[tri_lab->opposite(j)];
+            Label lab_e1 = tri_lab->edges()[j];
+            
+            if(lab_e0 != lab_e1)
+                throw runtime_error("Error in Triangle: The Edge ["+to_string(lab_e1->id)+"] ("+to_string(j)+") of Triangle ["+to_string(i)+"] is different from the corresponding one in Triangle ["+to_string(tri_lab->adjacent_triangles()[j]->id)+"], that is Edge ["+to_string(lab_e0->id)+"]");
+        }
+        
         // vertices 0 and 1 on the same t_slice, coherent with the TriangleType (vertex 2 on adjacent slice)
         
         

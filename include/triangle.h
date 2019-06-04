@@ -112,6 +112,8 @@ public:
     
     int find_element(Label lab_Element, SimplexType type);
     
+    int opposite(int i);
+    
     // ##### GAUGE #####
     
     void gauge_transform(GaugeElement G);

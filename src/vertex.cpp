@@ -106,8 +106,6 @@ Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
     while(next->adjacent_triangles()[previous_idx].dync_triangle()!=current) 
         previous_idx++; 
     
-
-    
     if(debug_flag){
         next->print_elements();
     }
@@ -192,8 +190,7 @@ GaugeElement Vertex::looparound(bool debug_flag)
 }
 
 GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
-{    
-    debug_flag=true;
+{
     if(debug_flag){
         cout << endl << endl;
         cout << "+------------------+" << endl;
@@ -250,9 +247,9 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
     return Staple;
 }
 
-double Vertex::action_contrib()
+double Vertex::action_contrib(bool debug_flag)
 {
-    GaugeElement Plaquette = this->looparound();
+    GaugeElement Plaquette = this->looparound(debug_flag);
     return 2 * ( Plaquette.N - real(Plaquette.tr()) );
 }
 
