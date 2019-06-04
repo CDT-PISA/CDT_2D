@@ -82,15 +82,31 @@ Label* Triangle::adjacent_triangles(){ return t; }
 int Triangle::find_element(Label lab_Element, SimplexType type)
 {
     int pos;
-    
-    if(type == SimplexType::_vertex)
-        pos = distance(v,find(v,v+3,lab_Element));
-    else if(type == SimplexType::_edge)
-        pos = distance(e,find(e,e+3,lab_Element));
-    else if(type == SimplexType::_triangle)
-        pos = distance(t,find(t,t+3,lab_Element));
-    else
+    int lab_id = lab_Element->id;
+    if(type == SimplexType::_vertex){
+//        pos = distance(v,find(v,v+3,lab_Element));
+        for(pos=0; pos<3; ++pos){
+            if(lab_id==v[pos]->id)
+                break;
+        }
+    }else if(type == SimplexType::_edge){
+//        pos = distance(e,find(e,e+3,lab_Element));
+        for(pos=0; pos<3; ++pos){
+            if(lab_id==e[pos]->id)
+                break;
+        }
+    }else if(type == SimplexType::_triangle){
+//        pos = distance(t,find(t,t+3,lab_Element));
+        for(pos=0; pos<3; ++pos){
+            if(lab_id==t[pos]->id)
+                break;
+        }
+    }else{
         throw runtime_error("SimplexType not recognized");
+    }
+   
+
+        
         
     if(pos == 3)
         throw runtime_error("Element not found in triangle " + to_string(this->id));

@@ -102,9 +102,10 @@ Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
     
     Triangle *next = current->adjacent_triangles()[next_idx].dync_triangle();
     
-    previous_idx = 0;
-    while(next->adjacent_triangles()[previous_idx].dync_triangle()!=current) 
-        previous_idx++; 
+//    previous_idx = 0;
+//    while(next->adjacent_triangles()[previous_idx].dync_triangle()!=current) 
+//        previous_idx++; 
+    previous_idx = (4 - next_idx) % 3; // is the `opposite` function: 1 <--> 0, 2 <--> 2
     
     if(debug_flag){
         next->print_elements();
