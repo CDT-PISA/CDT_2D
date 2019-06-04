@@ -46,11 +46,35 @@ int main(){
     
 
     
-     for( int i=0; i< 2000; i++){
-         if(i%50 == 0)
-             cout << i << endl;
-         uni.move_gauge();
-     }
+     for( int i=0; i< 20000; i++){
+         if(i%100 == 0){
+            cout << i << endl;
+            cout << "Gauge Action: " <<  uni.total_gauge_action() << endl;
+            cout << "Carica Topologica: " << uni.topological_charge() << endl;
+         }
+         for(int j=0; j<20; ++j){
+            cout<<"gauge move"<<endl;
+            uni.move_gauge();
+         }
+         cout<<"hello"<<endl;
+         if(r.next()>0.4){
+             if(r.next()>0.5){
+                 cout<<"hello24"<<endl;
+                uni.move_24();
+             }else{
+                 cout<<"hello42"<<endl;
+                uni.move_42();
+             }
+         }else{
+             if(r.next()>0.5){
+                 cout<<"hello22_1"<<endl;
+                uni.move_22_1();
+             }else{
+                 cout<<"hello22_2"<<endl;
+                uni.move_22_2();
+             }
+         }
+    }
     
     cout << "Gauge Action: " <<  uni.total_gauge_action() << endl;
     cout << "Carica Topologica: " << uni.topological_charge() << endl;

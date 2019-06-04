@@ -5,6 +5,7 @@ project(cdt_2d)
 # Bring the headers into the project
 include_directories(include)
 
+
 # The file(GLOB...) allows for wildcard additions:
 file(GLOB SOURCES "src/*.cpp")
 #list(REMOVE_ITEM SOURCES "src/debug.cpp")
@@ -21,5 +22,5 @@ target_link_libraries(cdt_2d cdt_2d_lib)
 set_property(TARGET cdt_2d PROPERTY CXX_STANDARD 17)
 set_property(TARGET cdt_2d_lib PROPERTY CXX_STANDARD 17)
 
-install(TARGETS cdt_2d RUNTIME DESTINATION ~/projects/CDT_2D/bin)
+install(TARGETS cdt_2d RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 # install(TARGETS cdt_2d RUNTIME DESTINATION ~/projects/CDT_2D/bin CONFIGURATIONS Release)
