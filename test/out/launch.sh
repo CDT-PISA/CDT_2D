@@ -17,8 +17,8 @@ rm -rf history
 mkdir history
 
 RUN_NUM=1
-LAMBDA=1.
-G_YM=1e8
+LAMBDA=0.7
+G_YM=1.
 TIMELENGTH=10
 END_CONDITION=10s
 DEBUG_FLAG=false

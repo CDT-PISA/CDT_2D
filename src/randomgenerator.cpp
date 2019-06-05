@@ -24,12 +24,18 @@ using namespace std;
 
 #define SEED 1145
 
+pcg32 RandomGen::rng;
+
 RandomGen::RandomGen()
 {
+    static bool first = true;
 //    struct timeval tval;
 //    gettimeofday(&tval,NULL);
 //    j=tval.tv_sec*1000000ULL+tval.tv_usec;
-    rng.seed(SEED);
+    if(first){
+        rng.seed(SEED);
+        first = false;
+    }
 }
 
 double RandomGen::next(){

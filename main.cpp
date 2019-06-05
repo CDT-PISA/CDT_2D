@@ -318,7 +318,7 @@ int dice(){
         dice = 1;
     else if(extraction < 2*move22)
         dice = 2;
-    else if(extraction < move24 + 2*move22)
+    else if(extraction < 2*move24 + 2*move22)
         dice = 3;
     else if(extraction < 2*move24 + 2*move22)
         dice = 4;

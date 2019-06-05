@@ -682,17 +682,15 @@ void Triangulation::move_24(int cell, bool debug_flag)
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
     
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
+    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(volume) / (2*(num40+1)) ));
     
     
     if(reject_trial > reject_ratio){
-        cout << reject_trial << endl;
         if(debug_flag){
             cout << endl;
         }
         return; // if not rejected goes on, otherwise it returns with nothing done
     }
-    cout << "---------------------" << endl;
     
     // ----- CELL "EVOLUTION" -----
     
@@ -1003,7 +1001,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // ----- REJECT RATIO -----
     int volume = list2.size();
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (volume/2 - 1)) / Force.partition_function());
+    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
     
     if(reject_trial > reject_ratio){
         if(debug_flag){

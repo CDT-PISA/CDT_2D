@@ -15,7 +15,7 @@ private:
     
     // DATA
     
-   pcg32 rng;
+   static pcg32 rng;
 
 public:
     
