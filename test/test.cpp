@@ -44,7 +44,11 @@ int main(){
 //        type = "21";
 //    cout << "tri: " << i  << "  (type" << type << ")"<< endl;
     
-
+    GaugeElement U;
+    
+    cout << U << endl;
+    
+    return 0;
     
      for( int i=0; i< 20000; i++){
          uni.is_consistent();

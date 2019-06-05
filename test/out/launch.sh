@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm cdt_2d
+
 cd ../../build
 make install
 
@@ -15,8 +17,8 @@ rm -rf history
 mkdir history
 
 RUN_NUM=1
-LAMBDA=0.6
-G_YM=1.
+LAMBDA=1.
+G_YM=1e8
 TIMELENGTH=10
 END_CONDITION=10s
 DEBUG_FLAG=false

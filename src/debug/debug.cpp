@@ -164,7 +164,26 @@ void Triangulation::is_consistent()
     
     // check list1: Edges
     for(int i=0; i < list1.size(); i++){
+        Label lab = list1[i];
+        Edge* e_lab = lab.dync_edge();
+        GaugeElement U = e_lab->gauge_element();
         
+        // id
+        
+        if(i != lab->id)
+            throw runtime_error("Edge identifier wrong: Edge in position ["+to_string(i)+"] in list1, while its identifier points to ["+to_string(lab->id)+"]");
+        
+        // GaugeElement
+        
+        if(isnan(real(U.tr())) || isinf(real(U.tr())))
+            throw runtime_error("Inf or Nan encountered in Edge ["+to_string(i)+"]");
+        
+        double threshold = 1e4;
+        if(U.N == 1 && ( real(U.tr()) > threshold || imag(U.tr()) > threshold)){
+            stringstream s;
+            s << U.tr();
+            throw runtime_error("Big Value encountered in Edge ["+to_string(i)+"], U = "+s.str());
+        }
     }
     
     // check list2: Triangles

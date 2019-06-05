@@ -91,7 +91,7 @@ public:
     
     void random_element(double a = nan(""));
     
-    void heatbath(GaugeElement Force);
+    void heatbath(GaugeElement Force, bool debug_flag = false);
     
     // ##### ALGEBRA #####
     

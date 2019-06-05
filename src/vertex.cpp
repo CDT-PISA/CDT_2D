@@ -243,7 +243,13 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
 //        }
         
         current = next(current, previous_idx);
+        
+        if(debug_flag)
+            cout << current_previous << endl << Staple << endl;
     }
+    
+    if(debug_flag)
+        cout << Staple << endl;
     
     return Staple;
 }

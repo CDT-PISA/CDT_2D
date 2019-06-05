@@ -457,6 +457,12 @@ void Triangulation::remove_triangle(Label lab_t)
     }
 }
 
+void Triangulation::unitarize()
+{
+    for(auto e_lab : list1)
+        e_lab.dync_edge()->U.unitarize();
+}
+
 // ##### MOVES #####
 // and their auxiliary functions
 #include "moves/moves.cpp"

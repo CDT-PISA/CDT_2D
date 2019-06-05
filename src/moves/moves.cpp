@@ -49,7 +49,8 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
 //     static int tr = 3;
 //     tr++;
     if(debug_flag){
-        cout << "move_22_1 :" << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
+        cout << "move_22_1 :" << endl;
+        cout << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
     }
     
     /**
@@ -328,7 +329,8 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     }
     
     if(debug_flag){
-        cout << "move_22_2 :" << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
+        cout << "move_22_2 :" << endl;
+        cout << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
     }
         
     // ___ find triangles (they are needed to compute the reject ratio) ___
@@ -602,7 +604,7 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
 void Triangulation::move_24(int cell, bool debug_flag)
 {
     if(debug_flag){
-        cout << "move_24: ";
+        cout << "move_24: " << endl;
     }
     
     // the number of points is equal to the number of space-links (space volume) that is equal to the number of triangles (spacetime volume)
@@ -682,12 +684,15 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
     
+    
     if(reject_trial > reject_ratio){
+        cout << reject_trial << endl;
         if(debug_flag){
             cout << endl;
         }
         return; // if not rejected goes on, otherwise it returns with nothing done
     }
+    cout << "---------------------" << endl;
     
     // ----- CELL "EVOLUTION" -----
     
@@ -837,13 +842,13 @@ void Triangulation::move_24(int cell, bool debug_flag)
     }
     
     // ___ extraction of GaugeElement on link 6 ___
-    e_lab6->U.heatbath(Force);
+    e_lab6->U.heatbath(Force, debug_flag);
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
      *  - the new one (5,7) are set to id by default (by create_edge function), and is correct 
      * 
      * Moreover is needed to do this at the end of the cell manipulation because
-     * in order to calculate the heathbath is necessary to ensure that
+     * in order to calculate the heatbath is necessary to ensure that
      * the triangulation is in a consistent state
      */
     
@@ -877,7 +882,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // also toward states with num40 = num40p = 0 there are non-null probabilities to go in, so if I exclude the trial of this move(_42) for these states the other moves will have probabilities of 1/3 instead of 1/4, and detailed balance would be ruined
     
     if(debug_flag){
-        cout << "move_42: ";
+        cout << "move_42: " << endl;
     }
     
     if((num40 == 0) && (num40p == 0)){
@@ -1091,7 +1096,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
         cout << "----------------------" << endl;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
-        cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
+        cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << endl;
         cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
@@ -1108,6 +1113,9 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     RandomGen r;
     int e_num;
     
+    if(debug_flag)
+        cout << "gauge move: " << endl;
+    
     // to make testing easier it is possible to specify the "cell" on which operate
     // if it is not specified (cell = -1), as in real runs, the cell is extracted
     if(cell == -1){
@@ -1121,14 +1129,10 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     Label lab_e = list1[e_num];
     Edge* e_lab = lab_e.dync_edge();
     
-    GaugeElement Force = e_lab->force();
+    GaugeElement Force = e_lab->force(debug_flag);
     Force.set_base(lab_e);
     
-    
-    e_lab->U.heatbath(Force);
-    
-    if(debug_flag)
-        cout << "gauge move: " << endl;
+    e_lab->U.heatbath(Force, debug_flag);
     
     // ----- END MOVE -----
 }

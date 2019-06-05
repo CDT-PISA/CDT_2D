@@ -130,6 +130,9 @@ void Triangle::gauge_transform(GaugeElement G)
         e[2].dync_edge()->U *= G;
     else
         e[2].dync_edge()->U *= G.dagger();
+    
+    for(auto &e_lab : e)
+        e_lab.dync_edge()->U.unitarize();
 }
 
 // ##### FILE I/O #####

@@ -187,7 +187,6 @@ int main(int argc, char* argv[]){
             }
         }
         
-        /// @todo mettere un #ifdef (copia da Giuseppe) anziché debug_flag
         if(debug_flag)
             universe.is_consistent();
         
@@ -217,7 +216,9 @@ int main(int argc, char* argv[]){
                         universe.steps_done = 0;
                 }
                 j++;
-                volume_stream << universe.iterations_done + i << " " << universe.list2.size() << endl;
+                volume_stream << universe.iterations_done + i << " " << universe.list2.size();
+                volume_stream << " " << universe.total_gauge_action() << " " << universe.topological_charge() << endl;
+                
                 if(j == profile_ratio){
                     j=0;
                     profile_stream << universe.iterations_done + i << " ";
@@ -309,14 +310,17 @@ int dice(){
     static RandomGen r;
     int dice = 0;
     
+    double move22 = 0.2;
+    double move24 = 0.3;
+    
     double extraction = r.next();
-    if(extraction < 0.1)
+    if(extraction < move22)
         dice = 1;
-    else if(extraction < 0.2)
+    else if(extraction < 2*move22)
         dice = 2;
-    else if(extraction < 0.5)
+    else if(extraction < move24 + 2*move22)
         dice = 3;
-    else if(extraction < 0.7)
+    else if(extraction < 2*move24 + 2*move22)
         dice = 4;
     else
         dice = 5;

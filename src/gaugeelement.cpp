@@ -116,16 +116,22 @@ void GaugeElement::random_element(double a)
         double x = r.next();
         double alpha = tan(k * x) / c;
         
-        this->mat[0][0] = exp(1i * alpha);
+        mat[0][0] = exp(1i * alpha);
     }
     else
         throw runtime_error("random_element: Not implemented for N!=1");
 }
 
-void GaugeElement::heatbath(GaugeElement Force)
+void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 {
     RandomGen r;
     
+    if(debug_flag){
+        cout << "+----------+" << endl;
+        cout << "| HEATBATH |" << endl;
+        cout << "+----------+" << endl;
+        cout << "Given force: " << Force.tr() << endl;
+    }
     bool accepted = false;
     double g_ym2 = pow(Force.base()->get_owner()->g_ym, 2);
     
@@ -152,10 +158,13 @@ void GaugeElement::heatbath(GaugeElement Force)
                 eta = 0.99;
             else
                 eta = 0.73;
-            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );
+            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );            
         }
         else
             throw runtime_error("heatbath: Not implemented for N!=1");
+        
+        if(isnan(abs(this->tr())) || isinf(abs(this->tr())))
+            throw runtime_error("heatbath: invalid numerical value generated");
         
         // double rho = exp(real((*this * Force).tr()) / (N * g_ym2));
     }    
@@ -204,7 +213,7 @@ GaugeElement GaugeElement::operator*(const GaugeElement& V)
                 U.mat[i][j] += this->mat[i][k]*V.mat[k][j];
         }
     }
-
+    
     return U;
 }
 
@@ -242,10 +251,11 @@ complex<double> GaugeElement::trace()
     complex<double> trace = 0;
     
     for(int i=0; i<N; i++)
-        trace += this->mat[i][i];
+        trace += mat[i][i];
     
     return trace;
 }
+
 complex<double> GaugeElement::tr()
 {
     return trace();
@@ -365,13 +375,31 @@ ostream& operator<<(ostream& os, const GaugeElement& U){
     os.precision(2);
     os << fixed;
     
+    stringstream s;
+    s.precision(2);
+    s << fixed;
+    int len=0;
+    
+    for(int i=0; i<U.N; i++){
+                
+        for(int j=0; j<U.N; j++){
+            s << U.mat[i][j];
+            if(j != U.N -1)
+                s << "    ";
+        }
+        
+        if(s.str().length() > len)
+            len = s.str().length();
+        
+        s.str("");
+    }
+    
     if(U.N <= 5){
         os << " ┌";
-        for(int j=0; j<U.N; j++){
-            os << "           ";
-            if(j != U.N -1)
-                os << "    ";
+        for(int j=0; j<len; j++){
+            os << " ";
         }
+        
         os << "  ┐" << endl;
     }
     
@@ -392,10 +420,8 @@ ostream& operator<<(ostream& os, const GaugeElement& U){
     
     if(U.N <= 5){
         os << " └";
-        for(int j=0; j<U.N; j++){
-            os << "           ";
-            if(j != U.N -1)
-                os << "    ";
+        for(int j=0; j<len; j++){
+            cout << " ";
         }
         os << "  ┘";
     }

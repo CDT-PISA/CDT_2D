@@ -186,6 +186,10 @@ public:
     
     void remove_triangle(Label tri_lab);
     
+    // ##### GAUGE STRUCTURE #####
+    
+    void unitarize();
+    
     // ##### MOVES #####
     
     /** @todo pensare magari a nomi migliori per le mosse */
