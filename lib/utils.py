@@ -69,7 +69,7 @@ def find_all_availables(config='data', dir_prefix='Lambda'):
     l = len(dir_prefix)
 
     directories = [x.name for x in scandir(config_dir) if x.is_dir()]
-    matches = {x : search("\d*.?\d*", x[l:]) for x in directories if x[0:l] == dir_prefix}
+    matches = {x : search("-?\d*.?\d*", x[l:]) for x in directories if x[0:l] == dir_prefix}
     all_availables = [float(x[6:6+matches[x].end()]) for x in directories if x[0:l] == dir_prefix]
     all_availables.sort()
 
