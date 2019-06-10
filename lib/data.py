@@ -182,6 +182,7 @@ def show_state(configs, full_show=False):
     else:
         ps_out = []
         print("This platform is still not supported")
+        return
     
     empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
     if len(ps_out) > 1 and not empty:

@@ -91,7 +91,7 @@ def find_running():
         for line in ps_out[1:]:
             if 'CDT_2D-Lambda' in line:
                 pinfos = line.split()
-                Lambda = float(pinfos[-6])
+                Lambda = float(pinfos[-7])
                 start_time = pinfos[6]
                 run_id = pinfos[8]
                 PID = pinfos[1]

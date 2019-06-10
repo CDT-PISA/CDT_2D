@@ -168,7 +168,7 @@ def clear(lambdas_old, lambdas_new, config, force):
 import sys
 import argparse
 from os import chdir, scandir
-from os.path import dirname, realpath
+from os.path import dirname, realpath, exists, isdir
 from platform import node
 
 if(node() == 'Paperopoli'):
@@ -195,7 +195,10 @@ def main():
     
     parser.add_argument('--version', action='version', version='CDT_2D ' +
                         'Pure Gravity: ' + __version__)
-    configs = [x.name for x in scandir('output') if x.is_dir()]
+    if exists('./output') and isdir('./output'):
+        configs = [x.name for x in scandir('output') if x.is_dir()]
+    else:
+        configs = []
     
     # run command
     
