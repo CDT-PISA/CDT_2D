@@ -310,15 +310,15 @@ int dice(){
     static RandomGen r;
     int dice = 0;
     
-    double move22 = 0.2;
-    double move24 = 0.3;
+    double move22 = 0.1;
+    double move24 = 0.2;
     
     double extraction = r.next();
     if(extraction < move22)
         dice = 1;
     else if(extraction < 2*move22)
         dice = 2;
-    else if(extraction < 2*move24 + 2*move22)
+    else if(extraction < move24 + 2*move22)
         dice = 3;
     else if(extraction < 2*move24 + 2*move22)
         dice = 4;
