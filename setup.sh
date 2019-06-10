@@ -46,6 +46,7 @@ if [ -d "build" ] || [ -d "output" ]; then
 	echo "ATTENTION: It will remove the whole content of 'bin', 'build' and 'output'."
 	echo -n ""; read ANS
 	if [ -z $ANS ] || [ $ANS != 'y' ]; then
+    	echo "Nothing done"
 		exit
 	fi
 	echo " "

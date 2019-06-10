@@ -445,7 +445,8 @@ def plot(lambdas_old, config):
         i += 1
         vol_file = ('output/' + config + '/Lambda' + str(Lambda) +
                    '/history/volumes.txt')
-        indices, volumes = loadtxt(vol_file, unpack=True)
+        indices, volumes, gauge_action, topological_charge = \
+            loadtxt(vol_file, unpack=True)
         
         fig = figure()
         ax = fig.add_subplot(111)
