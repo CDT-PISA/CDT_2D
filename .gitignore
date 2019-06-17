@@ -51,12 +51,15 @@ build/*
 doc/*
 lib/__pycache__/*
 output/*
-test/build/*
-test/out/*
+test/*
+!test/Makefile
+!test/test.cpp
+!test/test.py
 !test/out/launch.sh
-test/record/*
-test/test
-test/call*
+lib/AdjacencyList/*
+!lib/AdjacencyList/Makefile
+!lib/AdjacencyList/make_adjacency.cpp
+!lib/AdjacencyList/read_adjacency.cpp
 
 # Other
 .directory

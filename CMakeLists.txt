@@ -7,6 +7,7 @@ include_directories(include)
 
 
 # The file(GLOB...) allows for wildcard additions:
+#file(GLOB_RECURSE SOURCES "src/" *.cpp)
 file(GLOB SOURCES "src/*.cpp")
 #list(REMOVE_ITEM SOURCES "src/debug.cpp")
 #set(SOURCES src/main.cpp src/triangulation.cpp)

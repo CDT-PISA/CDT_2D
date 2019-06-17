@@ -1,3 +1,20 @@
+// #include <iostream>
+// #include <fstream>
+// #include <iomanip>
+// #include <memory>
+// #include <stdexcept>
+// #include <random>
+// #include <cmath>
+// #include <complex>
+// #include <string>
+// #include "randomgenerator.h"
+// #include "triangulation.h"
+// #include "vertex.h"
+// #include "edge.h"
+// #include "triangle.h"
+// #include "label.h"
+// #include "gaugeelement.h"
+
 void Triangulation::is_consistent()
 {
         

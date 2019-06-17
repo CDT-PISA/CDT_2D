@@ -191,9 +191,11 @@ int main(int argc, char* argv[]){
             universe.is_consistent();
         
         //
+        
+        long iter_from_beginning = universe.iterations_done + i;
         if(linear_history > 0){
-            if((universe.iterations_done + i) % linear_history == 0){
-                volume_stream << universe.iterations_done + i << " " << universe.list2.size() << endl;
+            if((iter_from_beginning) % linear_history == 0){
+                volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
                 
                 chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
                 if(from_last.count()/60 > save_interval){
@@ -209,14 +211,14 @@ int main(int argc, char* argv[]){
             }
         }
         else{
-            if((universe.iterations_done + i) % universe.volume_step == 0){
+            if((iter_from_beginning) % universe.volume_step == 0){
                 universe.steps_done++;
                 if(universe.steps_done == 512){
                         universe.volume_step *= 2;
                         universe.steps_done = 0;
                 }
                 j++;
-                volume_stream << universe.iterations_done + i << " " << universe.list2.size();
+                volume_stream << iter_from_beginning << " " << universe.list2.size();
                 volume_stream << " " << universe.total_gauge_action() << " " << universe.topological_charge() << endl;
                 
                 if(j == profile_ratio){
@@ -238,7 +240,7 @@ int main(int argc, char* argv[]){
             }
         }
         
-        if((universe.iterations_done + i) % int(2e5) == 0){
+        if((iter_from_beginning) % int(2e5) == 0){
             struct stat buffer;
             if(stat("stop", &buffer) == 0){
                 ofstream logput;

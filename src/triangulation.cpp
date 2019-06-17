@@ -465,7 +465,7 @@ void Triangulation::unitarize()
 
 // ##### MOVES #####
 // and their auxiliary functions
-#include "moves/moves.cpp"
+#include "triangulation/moves.cpp"
 
 // ##### USER INTERACTION METHODS #####
 
@@ -556,7 +556,7 @@ double Triangulation::topological_charge(bool debug_flag)
 void Triangulation::save(string filename)
 {
     ofstream of(filename, ios::binary | ios::out);
-	save(of);
+    save(of);
     of.close();
 }
 
@@ -570,14 +570,14 @@ void Triangulation::save(ofstream& output)
     output.write((char*)&num40, sizeof(num40));
     output.write((char*)&num40p, sizeof(num40p));
     
-    int n_tri = list2.size();
-    output.write((char*)&n_tri, sizeof(n_tri));
-    
     int n_v = list0.size();
     output.write((char*)&n_v, sizeof(n_v));
-    
+
     int n_e = list1.size();
     output.write((char*)&n_e, sizeof(n_e));
+    
+    int n_tri = list2.size();
+    output.write((char*)&n_tri, sizeof(n_tri));
     
     for(auto lab_v : list0)
         lab_v.dync_vertex()->write(output);
@@ -624,10 +624,14 @@ void Triangulation::load(ifstream& input)
     input.read((char*)&num40, sizeof(num40));
     input.read((char*)&num40p, sizeof(num40p));
     
-    // 1st list: empty Triangles
-    
+    int n_v = 0;
+    input.read((char*)&n_v, sizeof(n_v));
+    int n_e = 0;
+    input.read((char*)&n_e, sizeof(n_e));
     int n_tri = 0;
     input.read((char*)&n_tri, sizeof(n_tri));
+    
+    // 1st list: empty Triangles
     
     for(int i=0; i<n_tri; i++){
         Label lab(new Triangle(i));
@@ -635,9 +639,6 @@ void Triangulation::load(ifstream& input)
     }
     
     // 2nd list: initialized Vertices
-    
-    int n_v = 0;
-    input.read((char*)&n_v, sizeof(n_v));
     
     for(int i=0; i<n_v; i++){        
         Label lab(new Vertex(i));
@@ -647,9 +648,6 @@ void Triangulation::load(ifstream& input)
     }
     
     // 3nd list: initialized Edges
-    
-    int n_e = 0;
-    input.read((char*)&n_e, sizeof(n_e));
     
     for(int i=0; i<n_e; i++){        
         Label lab(new Edge(i));
@@ -669,7 +667,6 @@ void Triangulation::load(ifstream& input)
     input.read((char*)&TimeLength, sizeof(TimeLength));
     
     spatial_profile.resize(TimeLength);
-    
     
     // space profile
     for(auto x : list0){
@@ -701,4 +698,10 @@ void Triangulation::load(ifstream& input)
         
 }
 
-#include "debug/debug.cpp"
+// ##### ADJACENCY LIST #####
+
+#include "triangulation/adjacency.cpp"
+
+// ##### DEBUG #####
+
+#include "triangulation/debug.cpp"

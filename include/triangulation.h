@@ -278,6 +278,12 @@ public:
     
     void load(ifstream& input);
     
+    // ##### ADJACENCY LIST #####
+    
+    void produce_adjacency_list(string filename);
+    
+    void produce_adjacency_list(ofstream& input);
+    
     // ##### DEBUG #####
     
     /**
