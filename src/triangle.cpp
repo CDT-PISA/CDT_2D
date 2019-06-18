@@ -164,12 +164,12 @@ void Triangle::read(istream& input, const vector<Label>& List0, const vector<Lab
     input.read((char*)&type, sizeof(type));
     
     
-    for(auto& x : e){
+    for(auto& x : v){
         int pos = 0;
         input.read((char*)&pos, sizeof(pos));
         x = List0[pos];
     }
-    for(auto& x : v){
+    for(auto& x : e){
         int pos = 0;
         input.read((char*)&pos, sizeof(pos));
         x = List1[pos];

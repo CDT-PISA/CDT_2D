@@ -6,7 +6,7 @@ Created on Fri Mar 15 10:54:46 2019
 """
 
 def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
-           force, time_length):
+           force, time_length, debug):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -135,7 +135,7 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         if type(time_length) == list:
             time_length = time_length[0]
         
-        debug_flag = 'false'
+        debug_flag = str(debug).lower()
         arguments = [run_num, Lambda, g_ym, time_length, end_condition, debug_flag, 
                      last_check, linear_history]
         arg_str = ''

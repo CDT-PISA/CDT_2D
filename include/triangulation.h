@@ -29,7 +29,9 @@ public: /// @todo deve essere private (forse?)
     
     double lambda;
     
-    double g_ym;
+    double beta;
+    
+    double N;
     
     /**
      * @todo per ogni vector creare una funzione che elimina l'elemento faccendo uno o più swap e portandolo in fondo e poi fa pop_back\n
@@ -131,7 +133,7 @@ public:
      * 
      * @param TimeLength the number of time slices
      */
-    Triangulation(int TimeLength, double Lambda, double G_ym, bool debug_flag = false);
+    Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag = false);
     
     /**
      * @brief load a stored configuration
@@ -294,7 +296,7 @@ public:
      * @brief check if the entire triangulation is in a consistent state
      * 
      */
-    void is_consistent();
+    void is_consistent(bool verbose = true);
     
     /**
      * @brief find the number of adjacents triangles of a vertex
@@ -311,6 +313,8 @@ public:
      * @return if found or not
      */
     bool find_vertex_in_triangle(Triangle* adjacent_triangle,int v_id);
+    
+    friend ostream& operator<<(ostream& os, Triangulation& T);
 };
 
 #endif // TRIANGULATION_H

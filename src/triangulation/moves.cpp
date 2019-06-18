@@ -99,11 +99,12 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     if(tri_lab3->is12())
         x--;
     
+    double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg += (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg += (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) * beta_N;
+    delta_Sg += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) * beta_N;
+    delta_Sg -= (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) * beta_N;
+    delta_Sg -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) * beta_N;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
@@ -384,11 +385,12 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     if(tri_lab3->is21())
         x--;
     
+    double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg -= (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) / pow(g_ym, 2);
-    delta_Sg -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
+    delta_Sg -= (v_lab0->action_contrib(debug_flag) / (v_lab0->coordination() + 1)*v_lab0->coordination()) *beta_N;
+    delta_Sg -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) *beta_N;
+    delta_Sg += (v_lab1->action_contrib(debug_flag) / (v_lab1->coordination() + 1)*v_lab1->coordination()) *beta_N;
+    delta_Sg += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) *beta_N;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
@@ -670,11 +672,12 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
     tri_lab0->gauge_transform(e_lab0->gauge_element());
     
+    double beta_N = beta * N;
     double delta_Sg_hat = 0;
-    delta_Sg_hat += (v_lab1->action_contrib(debug_flag) / v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat += 1 / (pow(g_ym, 2) * 4);
+    delta_Sg_hat += (v_lab1->action_contrib(debug_flag) / v_lab1->coordination()) * beta_N;
+    delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) * beta_N;
+    delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) * beta_N;
+    delta_Sg_hat += beta_N / 4;
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
@@ -983,11 +986,12 @@ void Triangulation::move_42(int cell, bool debug_flag)
     GaugeElement Staple = Staple0 + Staple2 + e_lab2->gauge_element() + e_lab2->gauge_element().dagger();
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
     
+    double beta_N = beta * N;
     double delta_Sg_hat = 0;
-    delta_Sg_hat -= ((real(Force.tr()) / Force.N  - 1) / v_lab1->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() - 1)*v_lab2->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() - 1)*v_lab3->coordination()) / pow(g_ym, 2);
-    delta_Sg_hat -= 1 / (pow(g_ym, 2) * 4);
+    delta_Sg_hat -= ((real(Force.tr()) / Force.N  - 1) / v_lab1->coordination()) * beta_N;
+    delta_Sg_hat -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() - 1)*v_lab2->coordination()) * beta_N;
+    delta_Sg_hat -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() - 1)*v_lab3->coordination()) * beta_N;
+    delta_Sg_hat -= beta_N / 4;
     // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
     // (because the "new" edges have id as gauge_element)
     

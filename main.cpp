@@ -19,7 +19,7 @@ int main(int argc, char* argv[]){
     
     string run_id = argv[1];
     double lambda = stod(argv[2]);
-    double g_ym = stod(argv[3]);
+    double beta = stod(argv[3]);
     int TimeLength = stoi(argv[4]);
     string end_condition = argv[5];
     string debug_str = argv[6]; /// @todo da sostituire il nome
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     logput << "\nSimulation Parameters:" << endl;
     logput << "\trun_id: " << run_id << endl;
     logput << "\tlambda: " << lambda << endl;
-    logput << "\tg_ym: " << g_ym << endl;
+    logput << "\tbeta: " << beta << endl;
     logput << "\tTimeLength: " << TimeLength << endl;
     logput << "\tend_condition: " << end_condition << endl;
     logput << "\tdebug_flag: " << debug_str << endl; /// @todo da sostituire il nome
@@ -54,7 +54,6 @@ int main(int argc, char* argv[]){
     chkpts.push_back("");
     for(int i=1; i<=n_chkpt; i++)
         chkpts.push_back("checkpoint/run" + run_id + "_check" + to_string(i) + ".chkpt");
-    
     
     // CHECK IF DEBUG MODE IS ACTIVATED
     /// @todo trasformare tutto in direttive preprocessor #ifndef
@@ -123,11 +122,10 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         volume_stream << "# iteration[0] - volume[1]" << endl << endl;
     
-    
     // SETUP THE TRIANGULATION
     // and output parameters
     
-    Triangulation universe(TimeLength,lambda, g_ym);
+    Triangulation universe(TimeLength, lambda, beta);
     
     int profile_ratio = 4;
     
@@ -137,7 +135,6 @@ int main(int argc, char* argv[]){
         Triangulation aux_universe(loadfile);
         universe = aux_universe;
     }
-    
     
     // FIRST SAVE, then begin
     save_routine(chkpts, n_chkpt, universe, 0);
@@ -150,6 +147,11 @@ int main(int argc, char* argv[]){
     long j=0;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
+        
+        if( run_id != "1" ){
+            cout << "limited_step: " << limited_step << "last_step: " << last_step << "i: " << i << endl;
+            cout << "size: " << universe.list2.size() << endl;
+        }
         
         chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
         if(elapsed.count() > sim_duration)

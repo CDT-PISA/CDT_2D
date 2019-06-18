@@ -84,11 +84,12 @@ double GaugeElement::partition_function()
      * deve dipendere da N
      */ 
     
-    double g_ym2 = pow(base_edge.dync_edge()->get_owner()->g_ym, 2);
+    double beta = base_edge.dync_edge()->get_owner()->beta;
+    
     // slightly transform the Force in order to put the integrand in the form
     // exp(tr(Source.dagger * U + U.dagger * Source))
     GaugeElement Force = *this;
-    GaugeElement Source = (Force / (2 * N * g_ym2)).dagger();
+    GaugeElement Source = (Force * beta / 2).dagger();
     double Z = 1.;
     
     if(N == 1){
@@ -133,17 +134,17 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         cout << "Given force: " << Force.tr() << endl;
     }
     bool accepted = false;
-    double g_ym2 = pow(Force.base()->get_owner()->g_ym, 2);
+    double beta = Force.base()->get_owner()->beta;
     
     double a;
     double c;
     if( N == 1)
-        a = 2 * N * abs(Force.tr()) / g_ym2;
+        a = 2 * beta * abs(Force.tr()) ;
         c = sqrt(a/2);
     
     // double max_rho;
     // if(N == 1)
-    //     max_rho = exp(abs(Force.tr()) / (N * g_ym2));
+    //     max_rho = exp(abs(Force.tr()) * beta);
     // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
     // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
     
@@ -166,7 +167,7 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         if(isnan(abs(this->tr())) || isinf(abs(this->tr())))
             throw runtime_error("heatbath: invalid numerical value generated");
         
-        // double rho = exp(real((*this * Force).tr()) / (N * g_ym2));
+        // double rho = exp(real((*this * Force).tr()) * beta);
     }    
 }
 
@@ -316,6 +317,26 @@ GaugeElement GaugeElement::operator/(const complex<double>& alpha)
     }
     
     return quotient;
+}
+
+GaugeElement GaugeElement::operator-()
+{
+    return alpha_id(0) - *this;
+}
+
+GaugeElement operator+(const complex<double>& alpha, GaugeElement U)
+{
+    return U + alpha;
+}
+
+GaugeElement operator-(const complex<double>& alpha, GaugeElement U)
+{
+    return - ( U - alpha );
+}
+
+GaugeElement operator*(const complex<double>& alpha, GaugeElement U)
+{
+    return U * alpha;
 }
 
 GaugeElement GaugeElement::operator+=(const complex<double>& alpha)

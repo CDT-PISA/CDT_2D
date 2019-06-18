@@ -13,10 +13,10 @@ __author__ = 'Alessandro Candido'
 # Useful on running
 
 def data(lambdas_old, lambdas_new, config, linear_history, time, steps,
-         force, timelength):
+         force, timelength, debug):
     from lib.data import launch
     launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
-           force, timelength)
+           force, timelength, debug)
 
 def state(configs, full_show=False):
     from lib.data import show_state
@@ -217,6 +217,7 @@ def main():
     run_sub.add_argument('-f', '--force', action='store_true', help='force')
     run_sub.add_argument('--timelength', nargs=1, type=int,
                          default=80, help='set timelength')
+    run_sub.add_argument('-d', '--debug', action='store_true', help='debug')
     run_sub.add_argument('--lin', '--linear-history', dest='linear_history', 
                         default='0',
                         help="it takes an integer argument, that if set \
@@ -520,7 +521,7 @@ def main():
         
     if args.command == 'run':
         data(lambdas_old, lambdas_new, args.config, args.linear_history,
-             args.time, args.steps, args.force, args.timelength)
+             args.time, args.steps, args.force, args.timelength, args.debug)
         
     elif args.command == 'state':
         state(args.config, args.full_show)

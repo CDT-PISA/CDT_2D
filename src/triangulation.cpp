@@ -43,7 +43,7 @@ using namespace std;
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
  */ 
-Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym, bool debug_flag)
+Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag)
 {
     volume_step = 16;
     steps_done = -512;
@@ -53,7 +53,7 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym, bool de
         throw out_of_range("only positive time length are excepted for a triangulation");
  
     lambda = Lambda;
-    g_ym = G_ym;
+    beta = Beta;
     
     num40 = 0;
     num40p = 0;
@@ -272,6 +272,8 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double G_ym, bool de
     }
     for(auto t: list2)
         t.dync_triangle()->owner = this;
+    
+    N = list1[0].dync_edge()->gauge_element().N;
 }
 
 /// @todo I NOMI alle variabili
@@ -528,7 +530,7 @@ double Triangulation::total_gauge_action(bool debug_flag)
         if(debug_flag)
             cout << lab_v->position() << "ciao\n"; cout.flush();
         
-        S += (2/pow(g_ym,2))*real(-(plaq - 1).tr());
+        S += (2/pow(beta,2))*real(-(plaq - 1).tr());
     }
     
     return S;
@@ -567,6 +569,9 @@ void Triangulation::save(ofstream& output)
     output.write((char*)&iterations_done, sizeof(iterations_done));
     
     output.write((char*)&lambda, sizeof(lambda));
+    output.write((char*)&beta, sizeof(beta));
+    output.write((char*)&N, sizeof(N));
+    
     output.write((char*)&num40, sizeof(num40));
     output.write((char*)&num40p, sizeof(num40p));
     
@@ -621,6 +626,9 @@ void Triangulation::load(ifstream& input)
     input.read((char*)&iterations_done, sizeof(iterations_done));
     
     input.read((char*)&lambda, sizeof(lambda));
+    input.read((char*)&beta, sizeof(beta));
+    input.read((char*)&N, sizeof(N));
+    
     input.read((char*)&num40, sizeof(num40));
     input.read((char*)&num40p, sizeof(num40p));
     

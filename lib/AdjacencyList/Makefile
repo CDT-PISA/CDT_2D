@@ -1,6 +1,6 @@
 CXX      := c++
 CXXFLAGS := -pedantic-errors -Werror -std=gnu++17
-LDFLAGS  := -L /usr/lib -lstdc++ -lm
+LDFLAGS  := -L /usr/lib -lstdc++ -lm -lboost_system -lboost_filesystem
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
@@ -27,10 +27,12 @@ $(OBJ_DIR)/%.o: ../../%.cpp
 #.SECONDEXPANSION:
 #$(subst ../,,$(OBJ_DIR)/%.o): %.cpp
 
-$(APP_DIR)/$(TARGET): $(OBJECTS)
-	@mkdir -p $(@D)
+$(OBJ_DIR)/$(TARGET).o: $(TARGET).cpp
 	@echo "building:   $(subst ./,,$(OBJ_DIR))/$(TARGET).o"
 	@$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(OBJ_DIR)/$(TARGET).o -c $(TARGET).cpp
+
+$(APP_DIR)/$(TARGET): $(OBJECTS) $(OBJ_DIR)/$(TARGET).o
+	@mkdir -p $(@D)
 	@echo
 	@echo "✾ generating \e[3m $(TARGET) \e[0m binary:"
 	@echo "└────────────"

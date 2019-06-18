@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <boost/filesystem.hpp>
 #include "triangulation.h"
 
 using namespace std;
@@ -34,17 +35,28 @@ int main(int argc, char* argv[]){
         throw runtime_error("missing triangulation from which extracting adj_list");
     else if(len > 2)
         throw runtime_error("too many arguments, the program accepts only one valid path");
-        
+    
     string triang_chkpt = argv[1];
     Triangulation triang(triang_chkpt);
     
+    string triang_path;
+    int pos1;
     int pos = find_nth_from_last(triang_chkpt, "/", 2);
-    string triang_path = triang_chkpt.substr(0, pos);
-    int pos1 = triang_chkpt.find_last_of("/") + 1;
+    if( pos != -1){
+        triang_path = triang_chkpt.substr(0, pos);
+        pos1 = triang_chkpt.find_last_of("/") + 1;
+    }
+    else{
+        triang_path = "..";
+        pos1 = 0;
+    }
     int pos2 = triang_chkpt.find_last_of(".");
     string chkpt_name = triang_chkpt.substr(pos1, pos2 - pos1);
     
     string adj_list = triang_path + "/adjacency_lists/" + chkpt_name + ".adj";
+    boost::filesystem::create_directories(triang_path + "/adjacency_lists/");
+    
+    cout << "Saving adjacency list in:" << endl << adj_list << endl;
     
     triang.produce_adjacency_list(adj_list);
 }

@@ -1,5 +1,5 @@
 CXX      := c++
-CXXFLAGS := -pedantic-errors -Werror -std=gnu++17 -pg -g -O3
+CXXFLAGS := -pedantic-errors -Werror -std=gnu++17
 LDFLAGS  := -L /usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
@@ -30,10 +30,10 @@ build:
 	@mkdir -p $(APP_DIR)
 	@mkdir -p $(OBJ_DIR)
 
-debug: CXXFLAGS += -DDEBUG -g
+debug: CXXFLAGS += -DDEBUG -g -pg
 debug: all
 
-release: CXXFLAGS += -O2
+release: CXXFLAGS += -O3
 release: all
 
 #install:

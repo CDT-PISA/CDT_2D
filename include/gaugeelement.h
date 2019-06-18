@@ -126,6 +126,14 @@ public:
     
     GaugeElement operator/(const complex<double>& alpha);
     
+    GaugeElement operator-();
+    
+    friend GaugeElement operator+(const complex<double>& alpha, const GaugeElement& U);
+    
+    friend GaugeElement operator-(const complex<double>& alpha, const GaugeElement& U);
+    
+    friend GaugeElement operator*(const complex<double>& alpha, const GaugeElement& U);
+    
     GaugeElement operator+=(const complex<double>& alpha);
     
     GaugeElement operator-=(const complex<double>& alpha);

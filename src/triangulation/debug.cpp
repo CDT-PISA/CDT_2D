@@ -15,10 +15,11 @@
 // #include "label.h"
 // #include "gaugeelement.h"
 
-void Triangulation::is_consistent()
+void Triangulation::is_consistent(bool verbose)
 {
         
-    cout << "\n\ndebug..." << endl;
+    if(verbose)
+        cout << "\n\ndebug..." << endl;
     
     // check list0: Vertices, num40, num40p
     
@@ -394,4 +395,28 @@ bool Triangulation::find_vertex_in_triangle(Triangle* adjacent_triangle, int v_i
     else{
         return false;
     }
+}
+
+ostream& operator<<(ostream& os, Triangulation& T){
+    
+    os << endl;
+    os << "-------------" << endl;
+    os << "TRIANGULATION" << endl;
+    os << "-------------" << endl;
+    
+    os << "lambda: " << T.lambda << ", beta: " << T.beta << ", N: " << T.N << endl;
+    os << "volume_step: " << T.volume_step << " steps_done: " << T.steps_done << " iterations_done: " << T.iterations_done << endl << endl;
+    
+    
+    os << "num40: " << T.num40 << ", num40p: " << T.num40p << ", n_v: " << T.list0.size() << endl;
+    os << "n_e: " << T.list1.size() << endl;
+    os << "n_t: " << T.list2.size() << endl << endl;
+    
+    os << "timelength: " << T.spatial_profile.size() << endl;
+    
+    os << endl << "  checking triangulation consistency... " << endl;
+    T.is_consistent(false);
+    os << "  triangulation is consistent!" << endl;
+    
+    return os;
 }
