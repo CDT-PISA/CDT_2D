@@ -530,7 +530,7 @@ double Triangulation::total_gauge_action(bool debug_flag)
         if(debug_flag)
             cout << lab_v->position() << "ciao\n"; cout.flush();
         
-        S += (2/pow(beta,2))*real(-(plaq - 1).tr());
+        S += (2 * beta * N)*real(-(plaq - 1).tr());
     }
     
     return S;
