@@ -9,18 +9,18 @@ from re import search
 from platform import node
 from math import floor, log10
 
-def lambdas_recast(lambda_list, is_range=False, is_all=False, 
+def lambdas_recast(lambda_list, is_range=False, is_all=False,
                    config='test', cmd=''):
     from lib.utils import find_all_availables
-    
+
     if len(lambda_list) == 0 and cmd == 'show':
         is_all = True
-        
+
     lambdas = []
     lambdas_old = []
     lambdas_new = []
     all_lambdas = find_all_availables(config)
-    
+
     if is_all:
         lambdas_old = all_lambdas
     else:
@@ -29,23 +29,23 @@ def lambdas_recast(lambda_list, is_range=False, is_all=False,
                 extremes = lambda_list
                 lambdas_old = [x for x in all_lambdas \
                                if x >= extremes[0] and x <= extremes[1]]
-            elif len(lambda_list) == 3:                
+            elif len(lambda_list) == 3:
                 from numpy import linspace
                 lambdas = list(linspace(*lambda_list))
             else:
                 raise ValueError('Testo da scrivere (#arg è quello di un range!)')
         else:
             lambdas = lambda_list
-            
+
     if len(lambdas) > 0:
         lambdas_old = [x for x in lambdas if x in all_lambdas]
         lambdas_new = [x for x in lambdas if x not in lambdas_old]
-           
+
     lambdas_old = list(set(lambdas_old))
     if len(lambdas_old) > 0: lambdas_old.sort()
     lambdas_new = list(set(lambdas_new))
     if len(lambdas_new) > 0: lambdas_new.sort()
-    
+
     return lambdas_old, lambdas_new
 
 def find_all_availables(config='data', dir_prefix='Lambda'):
@@ -80,7 +80,7 @@ def find_running():
     @todo: scrivere la docstring
     """
     from os import environ
-    
+
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
         ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
 #        lambdas_run = [float(line.split()[-6]) \
@@ -99,7 +99,7 @@ def find_running():
                 lambdas_run += [[Lambda]]
                 sim_info += [[start_time, run_id, PID, PPID]]
                 PPID_list += [PPID]
-                
+
         for line in ps_out[1:]:
             pinfos = line.split()
             if len(pinfos) > 0:
@@ -107,21 +107,21 @@ def find_running():
                     i = PPID_list.index(pinfos[1])
                 except ValueError:
                     continue
-                
+
                 from re import split
                 config = split('.*/output|/', pinfos[8])[2]
                 lambdas_run[i] += [config]
-        
+
     else:
         lambdas_run = []
         sim_info = []
         print("This platform is still not supported")
-    
+
     return lambdas_run, sim_info
 
 def authorization_request(what_to_do='', Lambda=None, extra_message=''):
     import readline
-    
+
     if not Lambda == None:
         print("(λ = " + str(Lambda) + ") ", end='')
     print("Do you really want " + what_to_do + "? [y/n]")
@@ -149,8 +149,52 @@ def authorization_request(what_to_do='', Lambda=None, extra_message=''):
                 print(', type it again [y/n]')
             else:
                 print(' (nothing done)')
-            
+
     return authorized
+
+def end_parser(end_condition):
+       
+    last_char = end_condition[-1]
+    if last_char in ['s', 'm', 'h']:
+        end_type = 'time'
+        end_condition = int(float(end_condition[:-1]))
+        if last_char == 'm':
+            end_condition *= 60
+        elif last_char == 'h':
+            end_condition *= 60*60
+
+        if end_condition < 600:
+            end_partial = str(int(end_condition)) + 's'
+        elif end_condition < 1e4:
+            end_partial = str(int(end_condition // 5)) + 's'
+        else:
+            end_partial = '1h'
+
+    elif last_char.isdigit or end_condition[-1] in ['k', 'M', 'G']:
+        end_type = 'steps'
+        if last_char.isdigit:
+            end_condition = int(float(end_condition))
+        else:
+            end_condition = int(float(end_condition[:-1]))
+            if last_char == 'k':
+                end_condition *= int(1e3)
+            elif last_char == 'M':
+                end_condition *= int(1e6)
+            elif last_char == 'G':
+                end_condition *= int(1e9)
+
+        if end_condition < 6e7:
+            end_partial = end_condition
+        elif end_condition < 1e9:
+            end_partial = end_condition // 5
+        else:
+            end_partial = 1e5 * 3600
+
+        end_partial = str(int(end_partial))
+    else:
+        raise ValueError("End condition not recognized")
+
+    return end_partial, end_condition, end_type
 
 def color_mem(s, size=False):
     """ va a soglie:
