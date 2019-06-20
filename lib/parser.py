@@ -77,8 +77,8 @@ def define_parser(launcher_path, version):
 
     # run command
 
-    run_cmd = {'LAMBDA': '',
-               'BETA': '',
+    run_cmd = {'LAMBDA': '--lambda',
+               'BETA': '--beta',
                'RANGE': '--range',
                'CONFIG': '--config',
                'FORCE': '--force',
@@ -91,11 +91,11 @@ def define_parser(launcher_path, version):
     cmds = update_cmds(cmds, run_cmd)
 
     run_sub = subparsers.add_parser('run', help='run')
-    run_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
+    run_sub.add_argument('-l', '--lambda', nargs='*', type=float, required=True,
                          help='λ values')
-    #run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float,
-    #                     help='g_ym values')
-    run_sub.add_argument('--range', dest='is_range', action='store_true',
+    run_sub.add_argument('-b', '--beta',  nargs='*', type=float, required=True,
+                         help='β values')
+    run_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     run_sub.add_argument('-@', dest='is_data', action='store_true',
                          help="data configuration flag \
@@ -128,6 +128,10 @@ def define_parser(launcher_path, version):
                                 help='if set it specifies the length of the \
                                 run in MC steps (is not the default, units: \
                                 | ex: --steps 200M')
+    run_sub.add_argument('--file', help="launch simulation from config file: \
+                          launch with '?' to show the help, else give the \
+                          relative path of a valid CDT_2D valid from your \
+                          PWD")
 
     # state command
     class ToggleChoiceAction(argparse.Action):
@@ -157,12 +161,12 @@ def define_parser(launcher_path, version):
     # stop command
 
     stop_sub = subparsers.add_parser('stop', help='stop')
-    stop_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
-    #run_sub.add_argument('-g', '--gym', metavar='g', nargs='*', type=float,
-    #                     help='g_ym values')
+    stop_sub.add_argument('-l', '--lambda', nargs='*', type=float, required=True,
+                          help='λ values')
+    stop_sub.add_argument('-b', '--beta',  nargs='*', type=float, required=True,
+                          help='β values')
     lambdas = stop_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                          help="all (the '-' in front is not needed)")
@@ -175,16 +179,18 @@ def define_parser(launcher_path, version):
     # show command
 
     show_sub = subparsers.add_parser('show', help='show')
-    show_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    show_sub.add_argument('-l', '--lambda', nargs='*', type=float, required=True,
+                          help='λ values')
+    show_sub.add_argument('-b', '--beta',  nargs='*', type=float, required=True,
+                          help='β values')
     lambdas = show_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help="all (the '-' in front is not needed)")
     show_sub.add_argument('-@', dest='is_data', action='store_true',
-                        help="data configuration flag \
-                        (the '-' in front is not needed)")
+                          help="data configuration flag \
+                          (the '-' in front is not needed)")
     show_sub.add_argument('-c', '--config', choices=configs, default='test',
                            help='config')
     show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
@@ -195,9 +201,11 @@ def define_parser(launcher_path, version):
     # plot command
 
     plot_sub = subparsers.add_parser('plot', help='plot')
-    plot_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
-    plot_sub.add_argument('--range', dest='is_range', action='store_true',
+    plot_sub.add_argument('-l', '--lambda', nargs='*', type=float, required=True,
+                          help='λ values')
+    plot_sub.add_argument('-b', '--beta',  nargs='*', type=float, required=True,
+                          help='β values')
+    plot_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     plot_sub.add_argument('-@', dest='is_data', action='store_true',
                         help="data configuration flag \
@@ -208,10 +216,12 @@ def define_parser(launcher_path, version):
     # fit command
 
     fit_sub = subparsers.add_parser('fit', help='fit')
-    fit_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
+    fit_sub.add_argument('-l', '--lambda', nargs='*', type=float, required=True,
                          help='λ values')
+    fit_sub.add_argument('-b', '--beta',  nargs='*', type=float, required=True,
+                         help='β values')
     lambdas = fit_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")
@@ -231,10 +241,12 @@ def define_parser(launcher_path, version):
     # recovery command
 
     recovery_sub = tools_sub.add_parser('recovery', help='recovery')
-    recovery_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    recovery_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                              required=True, help='λ values')
+    recovery_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                              required=True, help='β values')
     lambdas = recovery_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")
@@ -250,8 +262,10 @@ def define_parser(launcher_path, version):
     # info command
 
     info_sub = tools_sub.add_parser('info', help='info on a sim')
-    info_sub.add_argument('lambdas', metavar='L', nargs=1, type=float,
-                         help='λ values')
+    info_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                          required=True, help='λ values')
+    info_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                          required=True, help='β values')
     info_sub.add_argument('-@', dest='is_data', action='store_true',
                         help="data configuration flag \
                         (the '-' in front is not needed)")
@@ -261,8 +275,10 @@ def define_parser(launcher_path, version):
     # thermalization command
 
     therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation')
-    therm_sub.add_argument('lambdas', metavar='L', nargs='+', type=float,
-                         help='λ values')
+    therm_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                           required=True, help='λ values')
+    therm_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                           required=True, help='β values')
     therm_sub.add_argument('-@', dest='is_data', action='store_true',
                         help="data configuration flag \
                         (the '-' in front is not needed)")
@@ -272,14 +288,16 @@ def define_parser(launcher_path, version):
     therm_sub.add_argument('-t', '--is-therm', default='True',
                            choices=['True', 'False'], help='thermalization')
 
-    # thermalization command
+    # launcher update command
 
     launch_sub = tools_sub.add_parser('up-launch',
                                      help='update launch/make_script')
-    launch_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    launch_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                              required=True, help='λ values')
+    launch_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                              required=True, help='β values')
     lambdas = launch_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")
@@ -292,16 +310,18 @@ def define_parser(launcher_path, version):
     script = launch_sub.add_mutually_exclusive_group()
     script.add_argument('-m', '--make', action='store_true',
                         help='update make_script instead')
-    script.add_argument('-b', '--both', action='store_true',
+    script.add_argument('--both', action='store_true',
                         help='update both launch_script and make_script')
 
     # autoremove command
 
     remove_sub = tools_sub.add_parser('autoremove', help='autoremove')
-    remove_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    remove_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                              required=True, help='λ values')
+    remove_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                              required=True, help='β values')
     lambdas = remove_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")
@@ -321,10 +341,12 @@ def define_parser(launcher_path, version):
 
     remote_sub = tools_sub.add_parser('remote',
                                      help='upload/download sim dirs')
-    remote_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    remote_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                            required=True, help='λ values')
+    remote_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                            required=True, help='β values')
     lambdas = remote_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")
@@ -353,6 +375,8 @@ def define_parser(launcher_path, version):
                          default=None, ifcall='-', help='set rclone remote')
     configs_arg.add_argument('-p', '--path', action=ToggleChoiceAction,
                          default=None, ifcall='-', help='set rclone path')
+    configs_arg.add_argument('-n', '--node', action=ToggleChoiceAction,
+                         default=None, ifcall='-', help='set node name')
     config_sub.add_argument('-s', '--show', action='store_true',
                          help='show config_file')
 
@@ -371,10 +395,12 @@ def define_parser(launcher_path, version):
     # clear command
 
     clear_sub = tools_sub.add_parser('clear', help='clear')
-    clear_sub.add_argument('lambdas', metavar='L', nargs='*', type=float,
-                         help='λ values')
+    clear_sub.add_argument('-l', '--lambda', nargs='*', type=float,
+                           required=True, help='λ values')
+    clear_sub.add_argument('-b', '--beta',  nargs='*', type=float,
+                           required=True, help='β values')
     lambdas = clear_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', dest='is_range', action='store_true',
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     lambdas.add_argument('-°', dest='is_all', action='store_true',
                                     help="all (the '-' in front is not needed)")

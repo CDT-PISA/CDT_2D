@@ -188,16 +188,15 @@ def file_input(file_path, commands):
         List of arguments, as if `cdt2d` input was given as command.
     """
     def decode_line(line, i, d):
-        """Transform a single line into a command."""
-
+        """Transform a single line into a command argument."""
         if line[0] not in ['#', '\n']:
             if line.count('=') == 1:
                 cmd_name, cmd_value = line.split('=')
 
-                # flags
+                # flags or empty tags
                 if cmd_value == 'True':
                     cmd_value = ''
-                elif cmd_value == 'False':
+                elif cmd_value in ['False', '']:
                     return ''
 
                 return f'{ d[cmd_name]} {cmd_value.strip()}'
@@ -206,13 +205,18 @@ def file_input(file_path, commands):
                 msg += f"\nerror in line {i}:\n\t{line}"
                 raise ValueError(msg)
         else:
-            return []
+            return ''
 
     args = [__file__]
     with open(file_path, 'r') as file:
         i = 1
+
+        # check if it is a CDT_2D input file
+        if next(file) != '### CDT_2D ###':
+            raise ValueError('File given is not a CDT_2D file input.')
+
         for line in file:
-            args += decode_line(line, i, commands)
+            args += [decode_line(line, i, commands)]
             i += 1
 
     return args
@@ -225,9 +229,29 @@ def main():
 
     parser, commands = lib.parser.define_parser(__file__, __version__)
 
-    if sys.argv[1] == '--file':
-        sys.argv = file_input(sys.argv[2], commands)
-    else:
+    try:
+        assert sys.argv[1] == 'run'
+        assert sys.argv[2] == '--file'
+
+        if sys.argv[3] == '?':
+            from inspect import cleandoc
+            import pprint
+            help = cleandoc(f"""Help for input files
+                               --------------------
+
+                               Each input has to start with the following line:
+                               ### CDT_2D ###
+                               tags are assignable in the form:
+                               TAG=VALUE
+                               and it isn't  whitespace-sensitive.
+
+                               Available tags are:""")
+            print(help)
+            pprint.pprint(commands)
+            quit()
+        else:
+            sys.argv = file_input(sys.argv[2], commands)
+    except (AssertionError, IndexError):
         sys.argv = ['-' + x if x in ['°', '@'] else x for x in sys.argv]
 
     if(node() == 'Paperopoli'):
