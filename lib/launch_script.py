@@ -2,8 +2,9 @@
 
 #Created on Mon Mar 18 20:27:00 2019
 """
-Script that manages the single simulations of CDT_2D, each values of lambda
-has its own copy in its folder.
+Script that manages the single simulations of CDT_2D, each couples
+(lambda, beta) (in general each instance of CDT_2D simulation) has its own copy
+of this file in its folder.
 """
 
 from os import remove, stat, scandir
@@ -184,6 +185,9 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     from os.path import realpath
     path += [realpath('../../..')] # CDT_2D project_folder
     from lib.analysis import is_thermalized
+
+    with open('state.json', 'r') as state_file:
+        state = json.load(state_file)
 
     start_record = time()
     start_time = datetime.fromtimestamp(start_record)\

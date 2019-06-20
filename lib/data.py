@@ -48,11 +48,11 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
     from lib.utils import find_running
     from lib.utils import authorization_request, end_parser
 
-    lambdas_run, sim_info = find_running()
+    lambdas_run, _ = find_running()
     lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
 
-    lambdas_old_auth = []
-    lambdas_req_run = []
+    lambdas_old_auth = []   # old ones which will get the authorization to rerun
+    lambdas_req_run = []    # those requested which are already running
     for Lambda in lambdas_old:
         if Lambda not in lambdas_run:
             if not config == 'test' and not force:
@@ -93,16 +93,27 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         if Lambda in lambdas_old:
             with open(dir_name + "/state.json", "r+") as state_file:
                 state = json.load(state_file)
-                if state['is_thermalized']:
-                    print('(λ = ' + str(Lambda) + ') Ha già finito idiota!')
-                    # @todo da migliorare
-                    continue
 
-                if state['last_run_succesful']:
-                    run_num = state['run_done'] + 1
-                else:
-                    print('(λ = ' + str(Lambda) + ') Problem in the last run')
-                    continue
+            if state['is_thermalized']:
+                print('(λ = ' + str(Lambda) + ') Ha già finito!')
+                # @todo da migliorare
+                continue
+
+            if state['last_run_succesful']:
+                run_num = state['run_done'] + 1
+            else:
+                print('(λ = ' + str(Lambda) + ') Problem in the last run')
+                continue
+
+            if state['is_thermalized'] and linear_history == '0':
+                linear_history = '1M'
+
+            try:
+                time_length = state['timelength']
+            except KeyError:
+                time_length = 80
+            # I'm putting the default because this case is present only for
+            # backward compatibility, and before the timelength was stuck to 80
 
             checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
                            if (split('_|\.|run', x.name)[1] == str(run_num - 1)
@@ -133,50 +144,44 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         # devo farlo qui perché prima non sono sicuro che dir_name esista
         # ('mkdir(dir_name)')
         chdir(dir_name)
-        if run_num > 1:
+
+        if int(run_num) > 1:
             from lib.tools import recovery_history
             recovery_history()
 
-        # ricongiungo le due variabili perché è ancora facile
-        # distinguerle dall'ultimo carattere
-
-        if int(run_num) > 1:
-            with open('state.json', 'r') as state_file:
-                state = json.load(state_file)
-
-            if state['is_thermalized'] and linear_history == '0':
-                linear_history = '1M'
-
-            try:
-                time_length = state['timelength']
-            except KeyError:
-                time_length = 80
-                # I'm putting the default because this case is present only for
-                # backward compatibility, and before the timelength was stuck to 80
-        else:
+        # ensure state_file existence or update it
+        if int(run_num) == 1:
             if type(time_length) == list:
                 time_length = time_length[0]
             state = {'Lambda': Lambda, 'Beta': Beta, 'run_done': 0,
                      'is_thermalized': False, 'last_checkpoint': None,
                      'iter_done': 0, 'timelength': time_length}
 
-        if not linear_history == '0':
-            end_condition == end_partial
+        with open('state.json', 'w') as state_file:
+            json.dump(state, state_file, indent=4)
 
         # END CONDITION MANIPULATION
-        # needed for thermalization loop
+
+        # ricongiungo le due variabili perché è ancora facile
+        # distinguerle dall'ultimo carattere
         if steps != '0':
             end_condition = steps
         else:
             end_condition = time
 
+        # needed for thermalization loop
         end_partial, end_condition, end_type = end_parser(end_condition)
+
+        if not linear_history == '0':
+            end_condition = end_partial
+
+        # set debug_flag for c++ (in c++ style)
+        debug_flag = str(debug).lower()
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
         exe_name = "CDT_2D-Lambda" + str(Lambda) + "_run" + str(run_num)
 
-        debug_flag = str(debug).lower()
         arguments = [run_num,
                      Lambda,
                      Beta,
@@ -192,33 +197,31 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         for x in arguments:
             arg_str += ' ' + str(x)
 
-        if(node() == 'Paperopoli'):
-            make_script = Popen(["python3", make_script_name, str(run_num),
-                             str(Lambda)])
-            make_script.wait()
-            if fake_run:
-                exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run"
-                            + str(run_num))
-                print()
-                print( *(["bin/" + exe_name] + arguments[:8]) )
-            else:
-                system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
-        elif(node() == 'fis-delia.unipi.it'):
-            make_script = Popen(["python36", make_script_name, str(run_num),
-                             str(Lambda)])
-            make_script.wait()
-            system('nohup python36 $PWD/' + launch_script_name + arg_str + ' &')
-        elif(node() == 'gridui3.pi.infn.it'):
-            print('support for grid still missing')
-#                make_script = Popen(["python3", make_script_name, str(run_num),
-#                                 str(Lambda)])
-#                make_script.wait()
-#                system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
-#                       dir_name + ' $PWD/' + launch_script_name + arg_str)
-        elif(node()[0:4] == 'r000'):
-            print('support for marconi still missing')
+        # run scripts that will manage the simulation:
+        # make_script: compiles and returns
+        # launch_script: runs the sim and keeps running until the end
+        make_script = Popen(["python3", make_script_name, str(run_num),
+                         str(Lambda)])
+        make_script.wait()
+        if fake_run:
+            exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run"
+                        + str(run_num))
+            print()
+            print( *(["bin/" + exe_name] + arguments[:8]) )
         else:
-            raise NameError('Node not recognized (known nodes in data.py)')
+            if(node() in ['Paperopoli', 'fis-delia.unipi.it']):
+                system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
+            elif(node() == 'gridui3.pi.infn.it'):
+                print('support for grid still missing')
+    #                make_script = Popen(["python3", make_script_name, str(run_num),
+    #                                 str(Lambda)])
+    #                make_script.wait()
+    #                system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
+    #                       dir_name + ' $PWD/' + launch_script_name + arg_str)
+            elif(node()[0:4] == 'r000'):
+                print('support for marconi still missing')
+            else:
+                raise NameError('Node not recognized (known nodes in data.py)')
 
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms

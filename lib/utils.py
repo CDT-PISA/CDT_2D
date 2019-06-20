@@ -11,6 +11,27 @@ from math import floor, log10
 
 def lambdas_recast(lambda_list, is_range=False, is_all=False,
                    config='test', cmd=''):
+    """Short summary.
+
+    Parameters
+    ----------
+    lambda_list : type
+        Description of parameter `lambda_list`.
+    is_range : type
+        Description of parameter `is_range`.
+    is_all : type
+        Description of parameter `is_all`.
+    config : type
+        Description of parameter `config`.
+    cmd : type
+        Description of parameter `cmd`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
     from lib.utils import find_all_availables
 
     if len(lambda_list) == 0 and cmd == 'show':
@@ -76,8 +97,14 @@ def find_all_availables(config='data', dir_prefix='Lambda'):
     return all_availables
 
 def find_running():
-    """
-    @todo: scrivere la docstring
+    """Find running simulations and configs to which they belong.
+
+    Returns
+    -------
+    list
+        (lambdas, config) for running simulations.
+    list
+        other infos to be printed by `cdt2d state`
     """
     from os import environ
 
@@ -120,6 +147,23 @@ def find_running():
     return lambdas_run, sim_info
 
 def authorization_request(what_to_do='', Lambda=None, extra_message=''):
+    """Short summary.
+
+    Parameters
+    ----------
+    what_to_do : type
+        Description of parameter `what_to_do`.
+    Lambda : type
+        Description of parameter `Lambda`.
+    extra_message : type
+        Description of parameter `extra_message`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
     import readline
 
     if not Lambda == None:
@@ -153,7 +197,19 @@ def authorization_request(what_to_do='', Lambda=None, extra_message=''):
     return authorized
 
 def end_parser(end_condition):
-       
+    """Short summary.
+
+    Parameters
+    ----------
+    end_condition : type
+        Description of parameter `end_condition`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
     last_char = end_condition[-1]
     if last_char in ['s', 'm', 'h']:
         end_type = 'time'
