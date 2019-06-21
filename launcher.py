@@ -2,13 +2,23 @@
 # PYTHON_ARGCOMPLETE_OK
 # -*- coding: utf-8 -*-
 
-#Created on Fri Mar 15 11:18:52 2019
+# Created on Fri Mar 15 11:18:52 2019
 """
 """
 
 __all__ = []
 __version__ = '0.2'
 __author__ = 'Alessandro Candido'
+
+import argparse
+import sys
+from os import chdir, getcwd
+from os.path import dirname, realpath
+from platform import node
+
+import lib.parser
+
+# WRAPPERS
 
 # Useful on running
 
@@ -80,7 +90,7 @@ def info(lambdas_old, config):
     from lib.tools import sim_info
 
     if len(lambdas_old) == 0:
-        print("λ not found") # da migliorare
+        print("λ not found")  # da migliorare
     elif len(lambdas_old) == 1:
         sim_info(lambdas_old[0], config)
 
@@ -125,16 +135,16 @@ def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
 
     rclone_remote = proj_configs['rclone_remote']
     remote_path = proj_configs['rclone_path']
-    if not exist or rclone_remote == None:
+    if not exist or rclone_remote is None:
         print("No valid remote found.")
         return
 
-    # @todo: scrivere nell'help che serve che nel remote ci si almeno il
+    # @todo: scrivere nell'help che serve che nel remote ci sia almeno il
     # path valido
     print('checking remote...')
     path_content = popen('rclone lsd ' + rclone_remote + ':' +
                          remote_path).read()
-    if not 'CDT_2D' in path_content:
+    if 'CDT_2D' not in path_content:
         print('No valid remote found (is also possible that only the ' +
               'specified path is wrong).')
         return
@@ -165,61 +175,6 @@ def clear(lambdas_old, lambdas_new, config, force):
         print("Following λ not found: ", lambdas_new)
     clear_data(lambdas_old, config, force)
 
-import sys
-import argparse
-from os import chdir, getcwd
-from os.path import dirname, realpath
-from platform import node
-import lib.parser
-
-def file_input(file_path, commands):
-    """Short summary.
-
-    Parameters
-    ----------
-    file_path : str
-        The relative path of the file, from the pwd.
-    commands : dict
-        Dictionary of available commands.
-
-    Returns
-    -------
-    list
-        List of arguments, as if `cdt2d` input was given as command.
-    """
-    def decode_line(line, i, d):
-        """Transform a single line into a command argument."""
-        if line[0] not in ['#', '\n']:
-            if line.count('=') == 1:
-                cmd_name, cmd_value = line.split('=')
-
-                # flags or empty tags
-                if cmd_value == 'True':
-                    cmd_value = ''
-                elif cmd_value in ['False', '']:
-                    return ''
-
-                return f'{ d[cmd_name]} {cmd_value.strip()}'
-            else:
-                msg = f"Invalid input file: {file_path}"
-                msg += f"\nerror in line {i}:\n\t{line}"
-                raise ValueError(msg)
-        else:
-            return ''
-
-    args = [__file__]
-    with open(file_path, 'r') as file:
-        i = 1
-
-        # check if it is a CDT_2D input file
-        if next(file) != '### CDT_2D ###':
-            raise ValueError('File given is not a CDT_2D file input.')
-
-        for line in file:
-            args += [decode_line(line, i, commands)]
-            i += 1
-
-    return args
 
 if(node() == 'Paperopoli'):
     import argcomplete
@@ -227,9 +182,11 @@ if(node() == 'Paperopoli'):
 def main():
     chdir(dirname(realpath(__file__)))
 
-    parser, commands = lib.parser.define_parser(__file__, __version__)
+    parser, file_commands = lib.parser.define_parser(__file__, __version__)
 
+    # Input file management
     try:
+        # at the present time input files are available only for run command
         assert sys.argv[1] == 'run'
         assert sys.argv[2] == '--file'
 
@@ -247,29 +204,36 @@ def main():
 
                                Available tags are:""")
             print(help)
-            pprint.pprint(commands)
+            pprint.pprint(file_commands)
             quit()
         else:
-            sys.argv = file_input(sys.argv[2], commands)
+            sys.argv = file_input(sys.argv[2], file_commands)
     except (AssertionError, IndexError):
+        # if not file adds support for some special keyword
         sys.argv = ['-' + x if x in ['°', '@'] else x for x in sys.argv]
 
+    # Arguments retrieval
     if(node() == 'Paperopoli'):
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
-    if not hasattr(args, 'lambdas'):
+    # Supplies missing arguments
+    if not hasattr(args, 'lambda'):
         lambdas = []
     else:
-        lambdas = args.lambdas
+        lambdas = args.lambda
+    if not hasattr(args, 'beta'):
+        betas = []
+    else:
+        betas = args.beta
     if not hasattr(args, 'is_data'):
         args.is_data = False
     if not hasattr(args, 'config'):
         args.config = 'test'
     if not hasattr(args, 'is_all'):
         args.is_all = False
-    if not hasattr(args, 'is_range'):
-        args.is_range = False
+    if not hasattr(args, 'range'):
+        args.range = ''
 
     if args.is_data:
         args.config = 'data'
@@ -280,6 +244,7 @@ def main():
                                                   args.is_all, args.config,
                                                   args.command)
 
+    # Wrappers' calls
     if args.command == 'run':
         data(lambdas_old, lambdas_new, args.config, args.linear_history,
              args.time, args.steps, args.force, args.timelength,
@@ -311,10 +276,10 @@ def main():
                       args.both, args.make, args.force)
         if args.tools == 'autoremove':
             remove(lambdas_old, lambdas_new, args.config, args.force,
-                       args.bin, args.check)
+                   args.bin, args.check)
         elif args.tools == 'remote':
             remote(lambdas_old, lambdas_new, args.config,
-                      args.upload, args.download, args.force, args.show)
+                   args.upload, args.download, args.force, args.show)
         elif args.tools == 'config':
             config(args.email, args.remote, args.path, args.show)
         elif args.tools == 'new-conf':
@@ -326,6 +291,7 @@ def main():
 
     elif args.command == 'plot':
         plot(lambdas_old, lambdas_new, args.config)
+
 
 if __name__ == "__main__":
     main()
