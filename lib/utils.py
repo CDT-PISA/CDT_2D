@@ -9,67 +9,57 @@ from re import search
 from platform import node
 from math import floor, log10
 
-def lambdas_recast(lambda_list, is_range=False, is_all=False,
-                   config='test', cmd=''):
-    """Short summary.
+def point_dir(Point):
+    """Standardizes directories' names.
+
+    Return `None` if `Point` is not representing a point in parameters' space.
 
     Parameters
     ----------
-    lambda_list : type
-        Description of parameter `lambda_list`.
-    is_range : type
-        Description of parameter `is_range`.
-    is_all : type
-        Description of parameter `is_all`.
-    config : type
-        Description of parameter `config`.
-    cmd : type
-        Description of parameter `cmd`.
+    Point : tuple
+         (λ, β) floats.
 
     Returns
     -------
-    type
-        Description of returned object.
+    str
+        Directory name of the corresponding point.
 
     """
-    from lib.utils import find_all_availables
+    try:
+        assert len(Point) == 2
+        _ = float(Point[0]), float(Point[1])
 
-    if len(lambda_list) == 0 and cmd == 'show':
-        is_all = True
+        return 'Lambda' + str(Point[0]) + '_Beta' + str(Point[1])
+    except (AssertionError, ValueError):
+        return None
 
-    lambdas = []
-    lambdas_old = []
-    lambdas_new = []
-    all_lambdas = find_all_availables(config)
+def dir_point(dir_name):
+    """Decodes directories' names.
 
-    if is_all:
-        lambdas_old = all_lambdas
+    It has to be opposite to point_dir:
+        dir_point(point_dir) = id
+    if there are no multiple simulations for the same point also:
+        point_dir(dir_point) = id
+
+    Return `None` if the name is not a proper `dir_name`
+
+    Parameters
+    ----------
+    dir_name : str
+       Directory name of the corresponding point.
+
+    Returns
+    -------
+    tuple
+         (λ, β) floats.
+    """
+    if all([x in dir_name for x in ['Lambda', '_Beta']]):
+        p = dir_name.split('Lambda')[1].split('_Beta')
+        return float(p[0]), float(p[1])
     else:
-        if is_range:
-            if len(lambda_list) == 2:
-                extremes = lambda_list
-                lambdas_old = [x for x in all_lambdas \
-                               if x >= extremes[0] and x <= extremes[1]]
-            elif len(lambda_list) == 3:
-                from numpy import linspace
-                lambdas = list(linspace(*lambda_list))
-            else:
-                raise ValueError('Testo da scrivere (#arg è quello di un range!)')
-        else:
-            lambdas = lambda_list
+        return None
 
-    if len(lambdas) > 0:
-        lambdas_old = [x for x in lambdas if x in all_lambdas]
-        lambdas_new = [x for x in lambdas if x not in lambdas_old]
-
-    lambdas_old = list(set(lambdas_old))
-    if len(lambdas_old) > 0: lambdas_old.sort()
-    lambdas_new = list(set(lambdas_new))
-    if len(lambdas_new) > 0: lambdas_new.sort()
-
-    return lambdas_old, lambdas_new
-
-def find_all_availables(config='data', dir_prefix='Lambda'):
+def find_all_availables(config='data', dir_decode=dir_point):
     """Find all lambdas for which a simulation has been already run
 
     Parameters
@@ -87,14 +77,152 @@ def find_all_availables(config='data', dir_prefix='Lambda'):
         a list of the existing values of lambda
     """
     config_dir = "output/" + config
-    l = len(dir_prefix)
 
     directories = [x.name for x in scandir(config_dir) if x.is_dir()]
-    matches = {x : search("-?\d*.?\d*", x[l:]) for x in directories if x[0:l] == dir_prefix}
-    all_availables = [float(x[6:6+matches[x].end()]) for x in directories if x[0:l] == dir_prefix]
+    all_availables = [dir_decode(x) for x in directories
+                      if dir_decode(x) is not None]
     all_availables.sort()
 
     return all_availables
+
+def inside_rect(p, extremes):
+    """Check if `p` is inside the multidimensional rectangle defined by
+    `extremes`.
+
+    Parameters
+    ----------
+    p : sequence
+        point's coordinates
+    extremes : sequence
+        list of intervals' extremes
+    """
+    assert len(p) == len(extremes)
+    assert all([len(x) == 2 for x in extremes])
+    return all([extremes[i][0] <= p[i] <= extremes[i][1]
+                for i in range(len(p))])
+
+def points_grid(*coords):
+    """Generates the list of points (as coordinates' tuples), from the lists
+    of projections on axes.
+
+    Parameters
+    ----------
+    sequences
+        arbitrary number of sequences of coordinates.
+
+    Returns
+    -------
+    list
+        List of points, as tuples of coordinates.
+    """
+    from numpy import meshgrid
+    l = meshgrid(*coords)
+    return list(zip(*[list(x.reshape(-1)) for x in l]))
+
+def points_recast(lambda_list, beta_list, range='', is_all=False,
+                   config='test', cmd=''):
+    """Short summary.
+
+    Parameters
+    ----------
+    lambda_list : type
+        Description of parameter `lambda_list`.
+    beta_list : type
+        Description of parameter `beta_list`.
+    range : type
+        Description of parameter `range`.
+    is_all : type
+        Description of parameter `is_all`.
+    config : type
+        Description of parameter `config`.
+    cmd : type
+        Description of parameter `cmd`.
+
+    Returns
+    -------
+    type
+        Description of returned object.
+
+    """
+    # If all parameters are absent in subcommand show it should be considered
+    # as if `is_all` is True
+    lengths = [len(lambda_list), len(beta_list)]
+    if 0 in lengths and cmd == 'show':
+        if any([x != 0 for x in lengths]):
+            raise ValueError('Error in show: only some parameters specified .')
+        else:
+            is_all = True
+
+    # loads points from already existing directories
+    points = []
+    points_old = []
+    points_new = []
+    all_points = find_all_availables(config)
+
+    """Generates points' list
+       ----------------------
+       strategy:
+         - is_all: all old points
+       n-ranges are list declared as range of length n
+         - all 2-ranges: old points in the specified rectangle
+         - some 2-ranges: Error
+       if there isn't any 2-range:
+         - 3-ranges: converted in lists with `linspace`
+         - are lists of projections are merged in a unique grid
+    """
+    if is_all:
+        points = all_points
+    else:
+        if range == '':
+            if len(lambda_list) != len(beta_list):
+                raise ValueError('λ and β must be of the same length, if \
+                                  neither of these is a range')
+            points = list(zip(lambda_list, beta_list))
+        else:
+            from numpy import linspace
+            if 'l' in range:
+                lambda_extremes = None
+                if len(lambda_list) == 3:
+                    lambdas = list(linspace(*lambda_list))
+                elif len(lambda_list) == 2:
+                    lambda_extremes = lambda_list
+                else:
+                    raise ValueError('λ is a range, but its length is neither \
+                                     2 Nor 3')
+            else:
+                lambdas = lambda_list
+            if 'b' in range:
+                beta_extremes = None
+                if len(beta_list) == 3:
+                    betas = list(linspace(*beta_list))
+                elif len(beta_list) == 2:
+                    beta_extremes = beta_list
+                else:
+                    raise ValueError('β is a range, but its length is neither \
+                                     2 Nor 3')
+            else:
+                betas = beta_list
+
+        extremes = [lambda_extremes, beta_extremes]
+        if any(extremes):
+            if all(extremes):
+                points = [p for p in all_points if inside_rect(p, extremes)]
+            else:
+                raise ValueError('Only some intervals specified, \
+                                  not the whole rectangle')
+        else:
+            points = points_grid(lambdas, betas)
+
+    if len(points) > 0:
+        points_old = [x for x in points if x in all_points]
+        points_new = [x for x in points if x not in points_old]
+
+    points_old = list(set(points_old))
+    if len(points_old) > 0: points_old.sort()
+    points_new = list(set(points_new))
+    if len(points_new) > 0: points_new.sort()
+
+    return points_old, points_new
 
 def find_running():
     """Find running simulations and configs to which they belong.
@@ -112,7 +240,7 @@ def find_running():
         ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
 #        lambdas_run = [float(line.split()[-6]) \
 #                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
-        lambdas_run = []
+        points_run = []
         sim_info = []
         PPID_list = []
         for line in ps_out[1:]:
@@ -123,7 +251,7 @@ def find_running():
                 run_id = pinfos[8]
                 PID = pinfos[1]
                 PPID = pinfos[2]
-                lambdas_run += [[Lambda]]
+                points_run += [[Lambda]]
                 sim_info += [[start_time, run_id, PID, PPID]]
                 PPID_list += [PPID]
 
@@ -137,16 +265,16 @@ def find_running():
 
                 from re import split
                 config = split('.*/output|/', pinfos[8])[2]
-                lambdas_run[i] += [config]
+                points_run[i] += [config]
 
     else:
-        lambdas_run = []
+        points_run = []
         sim_info = []
         print("This platform is still not supported")
 
-    return lambdas_run, sim_info
+    return points_run, sim_info
 
-def authorization_request(what_to_do='', Lambda=None, extra_message=''):
+def authorization_request(what_to_do='', Point=None, extra_message=''):
     """Short summary.
 
     Parameters
@@ -166,8 +294,8 @@ def authorization_request(what_to_do='', Lambda=None, extra_message=''):
     """
     import readline
 
-    if not Lambda == None:
-        print("(λ = " + str(Lambda) + ") ", end='')
+    if Point is not None:
+        print("((λ, β) = " + str(Point) + ") ", end='')
     print("Do you really want " + what_to_do + "? [y/n]")
     if extra_message != '':
         print(extra_message)

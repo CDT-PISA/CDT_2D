@@ -22,106 +22,108 @@ import lib.parser
 
 # Useful on running
 
-def data(lambdas_old, lambdas_new, config, linear_history, time, steps,
+def data(points_old, points_new, config, linear_history, time, steps,
          force, timelength, fake_run, debug):
     from lib.data import launch
-    launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
+    launch(points_old, points_new, config, linear_history, time, steps,
            force, timelength, fake_run, debug)
 
 def state(configs, full_show=False):
     from lib.data import show_state
     show_state(configs, full_show)
 
-def stop(lambdas_old, lambdas_new, config, is_all):
+def stop(points_old, points_new, config, is_all):
     from lib.data import stop
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-    stop(lambdas_old, config, is_all)
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+    stop(points_old, config, is_all)
 
 # Useful offline
 
-def show(lambdas_old, config, disk_usage):
+def show(points_old, config, disk_usage):
     from lib.data import show
-    show(lambdas_old, config, disk_usage)
+    show(points_old, config, disk_usage)
 
-def plot(lambdas_old, lambdas_new, config):
+def plot(points_old, points_new, config):
     from lib.data import plot
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-    if len(lambdas_old) > 0:
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+    if len(points_old) > 0:
         print()
-    plot(lambdas_old, config)
+    plot(points_old, config)
 
-def fit(lambdas_old, lambdas_new, config, skip):
+def fit(points_old, points_new, config, skip):
     from lib.analysis import fit
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-    fit(lambdas_old, config, skip)
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+    fit(points_old, config, skip)
 
 # Utilities
 
-def recovery(lambdas_old, lambdas_new, config, force, very_forced):
+def recovery(points_old, points_new, config, force, very_forced):
     from os import getcwd, chdir
     from lib.tools import recovery_history
-    from lib.utils import authorization_request
+    from lib.utils import authorization_request, point_dir
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_news)
-        if len(lambdas_old) > 0:
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+        if len(points_old) > 0:
             print()
 
     proj_dir = getcwd()
 
-    for Lambda in lambdas_old:
+    for Point in points_old:
         if not config == 'test' and not force:
             what_to_do = "to recovery simulation data"
-            authorized = authorization_request(what_to_do, Lambda)
+            authorized = authorization_request(what_to_do, Point)
         else:
             authorized = True
         if authorized:
-            chdir('output/' + config + '/Lambda' + str(Lambda))
+            chdir('output/' + config + point_dir(Point))
             recovery_history(very_forced)
             chdir(proj_dir)
 
-def info(lambdas_old, config):
+def info(points_old, config):
     from lib.tools import sim_info
 
-    if len(lambdas_old) == 0:
-        print("λ not found")  # da migliorare
-    elif len(lambdas_old) == 1:
-        sim_info(lambdas_old[0], config)
+    if len(points_old) == 0:
+        print("(λ, β) not found")  # da migliorare
+    elif len(points_old) == 1:
+        sim_info(points_old[0], config)
+    else:
+        print('Only one point admitted.')
 
-def therm(lambdas_old, lambdas_new, config, is_therm, force):
+def therm(points_old, points_new, config, is_therm, force):
     from lib.tools import therm
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-        if len(lambdas_old) > 0:
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+        if len(points_old) > 0:
             print()
-    therm(lambdas_old, config, is_therm, force)
+    therm(points_old, config, is_therm, force)
 
-def up_launch(lambdas_old, lambdas_new, config, both, make, force):
+def up_launch(points_old, points_new, config, both, make, force):
     from lib.tools import up_launch
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-        if len(lambdas_old) > 0:
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+        if len(points_old) > 0:
             print()
-    up_launch(lambdas_old, config, both, make, force)
+    up_launch(points_old, config, both, make, force)
 
-def remove(lambdas_old, lambdas_new, config, force, cbin, check):
+def remove(points_old, points_new, config, force, cbin, check):
     from lib.tools import remove
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-        if len(lambdas_old) > 0:
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+        if len(points_old) > 0:
             print()
-    remove(lambdas_old, config, force, cbin, check)
+    remove(points_old, config, force, cbin, check)
 
-def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
+def remote(points_old, points_new, config, upload, download, force, rshow):
     from os import popen
     import json
     from lib.tools import remote
@@ -149,7 +151,7 @@ def remote(lambdas_old, lambdas_new, config, upload, download, force, rshow):
               'specified path is wrong).')
         return
 
-    remote(lambdas_old, lambdas_new, config, upload, download, force, rshow)
+    remote(points_old, points_new, config, upload, download, force, rshow)
 
 def config(email, remote, path, show):
     from lib.tools import config
@@ -168,12 +170,12 @@ def reset_conf(name, delete=False):
 
     reset_conf(name, delete)
 
-def clear(lambdas_old, lambdas_new, config, force):
+def clear(points_old, points_new, config, force):
     from lib.tools import clear_data
 
-    if len(lambdas_new) > 0:
-        print("Following λ not found: ", lambdas_new)
-    clear_data(lambdas_old, config, force)
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+    clear_data(points_old, config, force)
 
 
 if(node() == 'Paperopoli'):
@@ -239,14 +241,15 @@ def main():
         args.config = 'data'
 
     if not args.command == 'state':
-        from lib.utils import lambdas_recast
-        lambdas_old, lambdas_new = lambdas_recast(lambdas, args.is_range,
+        from lib.utils import points_recast
+
+        points_old, points_new = points_recast(lambdas, betas, args.range,
                                                   args.is_all, args.config,
                                                   args.command)
 
     # Wrappers' calls
     if args.command == 'run':
-        data(lambdas_old, lambdas_new, args.config, args.linear_history,
+        data(points_old, points_new, args.config, args.linear_history,
              args.time, args.steps, args.force, args.timelength,
              args.fake_run, args.debug)
 
@@ -254,31 +257,31 @@ def main():
         state(args.config, args.full_show)
 
     elif args.command == 'stop':
-        stop(lambdas_old, lambdas_new, args.config, args.is_all)
+        stop(points_old, points_new, args.config, args.is_all)
 
     elif args.command == 'show':
-        show(lambdas_old, args.config, args.disk_usage)
+        show(points_old, args.config, args.disk_usage)
 
     elif args.command == 'fit':
-        fit(lambdas_old, lambdas_new, args.config, args.skip)
+        fit(points_old, points_new, args.config, args.skip)
 
     elif args.command == 'tools':
         if args.tools == 'recovery':
-            recovery(lambdas_old, lambdas_new, args.config, args.force,
+            recovery(points_old, points_new, args.config, args.force,
                      args.FORCE)
         elif args.tools == 'info':
-            info(lambdas_old, args.config)
+            info(points_old, args.config)
         elif args.tools == 'set-therm':
-            therm(lambdas_old, lambdas_new, args.config, args.is_therm,
+            therm(points_old, points_new, args.config, args.is_therm,
                   args.force)
         elif args.tools == 'up-launch':
-            up_launch(lambdas_old, lambdas_new, args.config,
+            up_launch(points_old, points_new, args.config,
                       args.both, args.make, args.force)
         if args.tools == 'autoremove':
-            remove(lambdas_old, lambdas_new, args.config, args.force,
+            remove(points_old, points_new, args.config, args.force,
                    args.bin, args.check)
         elif args.tools == 'remote':
-            remote(lambdas_old, lambdas_new, args.config,
+            remote(points_old, points_new, args.config,
                    args.upload, args.download, args.force, args.show)
         elif args.tools == 'config':
             config(args.email, args.remote, args.path, args.show)
@@ -287,10 +290,10 @@ def main():
         elif args.tools == 'reset':
             reset_conf(args.name, args.delete)
         elif args.tools == 'clear':
-            clear(lambdas_old, lambdas_new, args.config, args.force)
+            clear(points_old, points_new, args.config, args.force)
 
     elif args.command == 'plot':
-        plot(lambdas_old, lambdas_new, args.config)
+        plot(points_old, points_new, args.config)
 
 
 if __name__ == "__main__":

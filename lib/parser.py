@@ -179,8 +179,8 @@ def define_parser(launcher_path, version):
 
     show_sub = subparsers.add_parser('show', help='show')
     show_sub.add_argument('-l', '--lambda', nargs='+', type=float,
-                          required=True, help='λ values')
-    show_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
+                          help='λ values')
+    show_sub.add_argument('-b', '--beta', nargs='+', type=float,
                           help='β values')
     lambdas = show_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
