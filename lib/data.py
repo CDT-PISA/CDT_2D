@@ -45,7 +45,7 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
     from platform import node
     import json
     from subprocess import Popen
-    from lib.utils import find_running
+    from lib.utils import find_running, point_dir
     from lib.utils import authorization_request, end_parser
 
     lambdas_run, _ = find_running()
@@ -83,14 +83,14 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
 
     project_folder = getcwd()
 
-    for Lambda in lambdas:
+    for Point in points:
         chdir(project_folder + '/output/' + config)
 
-        dir_name = "Lambda" + str(Lambda)
-        launch_script_name = 'launch_' + str(Lambda) + '.py'
-        make_script_name = 'make_' + str(Lambda) + '.py'
+        dir_name = point_dir(Point)
+        launch_script_name = 'launch_' + str(Point) + '.py'
+        make_script_name = 'make_' + str(Point) + '.py'
 
-        if Lambda in lambdas_old:
+        if Point in points_old:
             with open(dir_name + "/state.json", "r+") as state_file:
                 state = json.load(state_file)
 
@@ -201,7 +201,7 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         # make_script: compiles and returns
         # launch_script: runs the sim and keeps running until the end
         make_script = Popen(["python3", make_script_name, str(run_num),
-                            str(Lambda)])
+                            str(Lambda), str(Beta)])
         make_script.wait()
         if fake_run:
             exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run" +
@@ -272,9 +272,9 @@ def show_state(configs, full_show=False):
     for config in configs:
         try:
             with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
-                lambdas_stopped = pickle.load(stop_file)
+                points_stopped = pickle.load(stop_file)
         except FileNotFoundError:
-            lambdas_stopped = []
+            points_stopped = []
 
         if len(ps_out) > 1 and not empty:
 

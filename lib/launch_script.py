@@ -84,18 +84,19 @@ def log_footer(run_id, succesful):
 
 def remove_from_stopped(Lambda, Beta):
     import pickle
+    Point = (Lambda, Beta)
 
     try:
         with open('../pstop.pickle','rb') as stop_file:
-            lambdas_stopped = pickle.load(stop_file)
+            points_stopped = pickle.load(stop_file)
     except FileNotFoundError:
         raise FileNotFoundError("Ci dev'essere, perché il processo è ancora \
                                 in corso e quindi state non può averlo \
                                 eliminato")
-    lambdas_stopped.remove(Lambda)
+    points_stopped.remove(Point)
 
     with open('../pstop.pickle','wb') as stop_file:
-        pickle.dump(lambdas_stopped, stop_file)
+        pickle.dump(points_stopped, stop_file)
 
     return
 
