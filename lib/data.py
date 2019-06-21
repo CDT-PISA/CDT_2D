@@ -115,13 +115,13 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
             # I'm putting the default because this case is present only for
             # backward compatibility, and before the timelength was stuck to 80
 
-            checkpoints = [x.name for x in scandir(dir_name + "/checkpoint") \
+            checkpoints = [x.name for x in scandir(dir_name + "/checkpoint")
                            if (split('_|\.|run', x.name)[1] == str(run_num - 1)
                            and x.name[-4:] != '.tmp')]
             # nell'ordinamento devo sostituire i '.' con le '~', o in generale
             # un carattere che venga dopo '_', altrimenti 'run1.1_...' viene
             # prima di 'run1_...'
-            checkpoints.sort(key=lambda s: s.replace('.','~'))
+            checkpoints.sort(key=lambda s: s.replace('.', '~'))
             last_check = checkpoints[-1]
         else:
             mkdir(dir_name)
@@ -201,23 +201,24 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         # make_script: compiles and returns
         # launch_script: runs the sim and keeps running until the end
         make_script = Popen(["python3", make_script_name, str(run_num),
-                         str(Lambda)])
+                            str(Lambda)])
         make_script.wait()
         if fake_run:
-            exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run"
-                        + str(run_num))
+            exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run" +
+                        str(run_num))
             print()
-            print( *(["bin/" + exe_name] + arguments[:8]) )
+            print(*(["bin/" + exe_name] + arguments[:8]))
         else:
             if(node() in ['Paperopoli', 'fis-delia.unipi.it']):
-                system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
+                system('nohup python3 $PWD/' + launch_script_name + arg_str +
+                       ' &')
             elif(node() == 'gridui3.pi.infn.it'):
                 print('support for grid still missing')
-    #                make_script = Popen(["python3", make_script_name, str(run_num),
-    #                                 str(Lambda)])
-    #                make_script.wait()
-    #                system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
-    #                       dir_name + ' $PWD/' + launch_script_name + arg_str)
+    #            make_script = Popen(["python3", make_script_name, str(run_num),
+    #                             str(Lambda)])
+    #            make_script.wait()
+    #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
+    #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
             elif(node()[0:4] == 'r000'):
                 print('support for marconi still missing')
             else:
@@ -226,7 +227,8 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms
     # @todo: for clusters: add 'pending' state
-    import pickle, json
+    import pickle
+    import json
     from os import environ, popen
     from platform import node
     from datetime import datetime
@@ -269,7 +271,7 @@ def show_state(configs, full_show=False):
 
     for config in configs:
         try:
-            with open('output/' + config + '/pstop.pickle','rb') as stop_file:
+            with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
                 lambdas_stopped = pickle.load(stop_file)
         except FileNotFoundError:
             lambdas_stopped = []
@@ -278,7 +280,7 @@ def show_state(configs, full_show=False):
 
             lambdas_run_list, sim_list = d[config]
 
-            for i in range(0,len(sim_list)):
+            for i in range(0, len(sim_list)):
                 lambdas_run = lambdas_run_list[i]
                 sim = sim_list[i]
                 Lambda = lambdas_run[0]
@@ -314,8 +316,8 @@ def show_state(configs, full_show=False):
         else:
             lambdas_stopped = []
 
-        with open('output/' + config + '/pstop.pickle','wb') as stop_file:
-                pickle.dump(lambdas_stopped, stop_file)
+        with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
+            pickle.dump(lambdas_stopped, stop_file)
 
     if len(ps_out) > 1 and not empty:
         clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
@@ -331,7 +333,7 @@ def stop(lambdas_old, config, is_all):
     lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
 
     try:
-        with open('output/' + config + '/pstop.pickle','rb') as stop_file:
+        with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
             lambdas_stopped = pickle.load(stop_file)
     except FileNotFoundError:
         lambdas_stopped = []
@@ -345,7 +347,7 @@ def stop(lambdas_old, config, is_all):
     lambdas_stopping = []
     lambdas_notstop = []
     for Lambda in lambdas_old:
-        if Lambda in lambdas_run and not Lambda in lambdas_stopped:
+        if Lambda in lambdas_run and Lambda not in lambdas_stopped:
             lambdas_stopped += [Lambda]
             lambdas_stopping += [Lambda]
             from os import system
@@ -358,8 +360,8 @@ def stop(lambdas_old, config, is_all):
         else:
             lambdas_notstop += [Lambda]
 
-    with open('output/' + config + '/pstop.pickle','wb') as stop_file:
-            pickle.dump(lambdas_stopped, stop_file)
+    with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
+        pickle.dump(lambdas_stopped, stop_file)
 
     if len(lambdas_stopping) > 0:
         print("Simulations for following λ just stopped: ", lambdas_stopping)
@@ -400,11 +402,11 @@ def show(lambdas_old, config, disk_usage=''):
             print(x)
 
         if disk_usage == '':
-            hist_lambda = histogram(lambdas_old,20)
+            hist_lambda = histogram(lambdas_old, 20)
             highest = max(hist_lambda[0])
 
             print()
-            for h in range(0,highest):
+            for h in range(0, highest):
                 for x in hist_lambda[0]:
                     if(x >= highest - h):
                         print(' X ', end='')
@@ -417,7 +419,7 @@ def show(lambdas_old, config, disk_usage=''):
             l_max = eng_not(max(lambdas_old))
             print(l_min, ' '*23, l_med, ' '*23, l_max)
 
-        elif disk_usage=='disk':
+        elif disk_usage == 'disk':
             from os import popen, chdir
             from lib.utils import color_mem, color_lambda
 
@@ -433,7 +435,7 @@ def show(lambdas_old, config, disk_usage=''):
             a[:-1].sort(key=lambda x: x.split()[0])
 
             dim = []
-            for i in range(len(x)-2):
+            for i in range(len(x) - 2):
                 w = x[i].split('\t./Lambda')
                 v = y[i].split()
                 u = z[i].split()
@@ -455,7 +457,7 @@ def show(lambdas_old, config, disk_usage=''):
             print()
             print('The overall disk used is: ', x[-2].split()[0])
 
-        elif disk_usage=='num':
+        elif disk_usage == 'num':
             from os import popen, chdir
             from lib.utils import color_mem, color_num, color_lambda
 
@@ -464,14 +466,14 @@ def show(lambdas_old, config, disk_usage=''):
             x = popen('du -hd 1').read().split('\n')
 
             dim = []
-            for i in range(len(x)-2):
+            for i in range(len(x) - 2):
                 w = x[i].split('\t./Lambda')
                 v = str(int(popen('ls -1q Lambda' + w[1] +
-                          '/checkpoint/ | wc -l').read()))
+                                  '/checkpoint/ | wc -l').read()))
                 u = str(int(popen('ls -1q Lambda' + w[1] +
                                   '/bin/ | wc -l').read()))
                 dim += [[w[1], w[0], v, u]]
-            dim.sort(key=lambda x : x[0])
+            dim.sort(key=lambda x: x[0])
 
             print('\n', ' '*3, '┌', '─'*37, '╮', sep='')
             print(' '*3, '│ LAMBDA  │  SIZE  │  CHECK  │  BIN.  │',
@@ -503,14 +505,14 @@ def plot(lambdas_old, config):
     for Lambda in lambdas_old:
         i += 1
         vol_file = ('output/' + config + '/Lambda' + str(Lambda) +
-                   '/history/volumes.txt')
+                    '/history/volumes.txt')
         indices, volumes, gauge_action, topological_charge = \
             loadtxt(vol_file, unpack=True)
 
         fig = figure()
         ax = fig.add_subplot(111)
-        props += [{'fig':fig, 'ax':ax, 'skip':len(volumes),
-                  'vol_file':vol_file}]
+        props += [{'fig': fig, 'ax': ax, 'skip': len(volumes),
+                  'vol_file': vol_file}]
         canvases += [fig.canvas]
 
         fig.set_size_inches(7, 5)
@@ -536,7 +538,7 @@ def plot(lambdas_old, config):
                     if len(vol_aux) > 10:
                         props[i]['skip'] += len(vol_aux)
                         p['ax'].plot(ind_aux, vol_aux,
-                                color=color_cycle[i % n_col])
+                                     color=color_cycle[i % n_col])
                         p['fig'].canvas.draw()
                 except TypeError:
                     pass
