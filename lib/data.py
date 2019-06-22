@@ -4,18 +4,17 @@ Created on Fri Mar 15 10:54:46 2019
 
 @author: alessandro
 """
-
-def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
+def launch(points_old, points_new, config, linear_history, time, steps,
            force, time_length, fake_run, debug):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
     Parameters
     ----------
-    lambdas_old : type
-        Description of parameter `lambdas_old`.
-    lambdas_new : type
-        Description of parameter `lambdas_new`.
+    points_old : type
+        Description of parameter `points_old`.
+    points_new : type
+        Description of parameter `points_new`.
     config : type
         Description of parameter `config`.
     linear_history : type
@@ -41,45 +40,44 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
 
     from os import mkdir, chdir, system, getcwd, scandir
     from shutil import copyfile
-    from re import split
+    from re import split, sub
     from platform import node
     import json
     from subprocess import Popen
-    from lib.utils import find_running, point_dir
+    from lib.utils import find_running, point_dir, point_str
     from lib.utils import authorization_request, end_parser
 
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+    # points_run, _ = find_running()
+    points_run = []
+    points_run = [x[0] for x in points_run if x[1] == config]
 
-    lambdas_old_auth = []   # old ones which will get the authorization to rerun
-    lambdas_req_run = []    # those requested which are already running
-    for Lambda in lambdas_old:
-        if Lambda not in lambdas_run:
+    points_old_auth = []   # old ones which will get the authorization to rerun
+    points_req_run = []    # those requested which are already running
+    for Point in points_old:
+        if Point not in points_run:
             if not config == 'test' and not force:
                 what_to_do = "to rerun simulation"
-                authorized = authorization_request(what_to_do, Lambda)
+                authorized = authorization_request(what_to_do, Point)
             else:
                 authorized = True
             if authorized:
-                lambdas_old_auth += [Lambda]
+                points_old_auth += [Point]
         else:
-            lambdas_req_run += [Lambda]
+            points_req_run += [Point]
 
-    lambdas = lambdas_old_auth + lambdas_new
+    points = points_old_auth + points_new
 
-    if len(lambdas_new) > 0:
-        print("New simulations will be launched for following λ: ",
-              lambdas_new)
-    if len(lambdas_old_auth) > 0:
-        print("Old simulations will be rerunned for following λ: ",
-              lambdas_old_auth)
-    if len(lambdas_req_run) > 0:
-        print("Simulations for following λ were already running: ",
-              lambdas_req_run)
-    if len(lambdas) > 0:
+    if len(points_new) > 0:
+        print("New simulations will be launched for following (λ, β): ",
+              points_new)
+    if len(points_old_auth) > 0:
+        print("Old simulations will be rerunned for following (λ, β): ",
+              points_old_auth)
+    if len(points_req_run) > 0:
+        print("Simulations for following (λ, β) were already running: ",
+              points_req_run)
+    if len(points) > 0:
         print()
-
-    Beta = 1.
 
     project_folder = getcwd()
 
@@ -87,33 +85,34 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         chdir(project_folder + '/output/' + config)
 
         dir_name = point_dir(Point)
-        launch_script_name = 'launch_' + str(Point) + '.py'
-        make_script_name = 'make_' + str(Point) + '.py'
+        Point_str = point_str(Point)
+        launch_script_name = 'launch_' + Point_str + '.py'
+        make_script_name = 'make_' + Point_str + '.py'
 
         if Point in points_old:
             with open(dir_name + "/state.json", "r+") as state_file:
                 state = json.load(state_file)
 
             if state['is_thermalized']:
-                print('(λ = ' + str(Lambda) + ') Ha già finito!')
+                print('((λ, β) = ' + str(Point) + ') Ha già finito!')
                 # @todo da migliorare
                 continue
 
             if state['last_run_succesful']:
                 run_num = state['run_done'] + 1
             else:
-                print('(λ = ' + str(Lambda) + ') Problem in the last run')
+                print('((λ, β) = ' + str(Point) + ') Problem in the last run')
                 continue
 
             if state['is_thermalized'] and linear_history == '0':
                 linear_history = '1M'
 
+            # I'm putting the default because this case is present only for
+            # backward compatibility, and before the timelength was stuck to 80
             try:
                 time_length = state['timelength']
             except KeyError:
                 time_length = 80
-            # I'm putting the default because this case is present only for
-            # backward compatibility, and before the timelength was stuck to 80
 
             checkpoints = [x.name for x in scandir(dir_name + "/checkpoint")
                            if (split('_|\.|run', x.name)[1] == str(run_num - 1)
@@ -136,7 +135,7 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
 
             if fake_run:
                 print('Created simulation directory for: (Lambda= ' +
-                      str(Lambda) + ', Beta= ' + str(Beta) + ')')
+                      str(Point[0]) + ', Beta= ' + str(Point[1]) + ')')
 
             run_num = 1
             last_check = None
@@ -151,9 +150,9 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
 
         # ensure state_file existence or update it
         if int(run_num) == 1:
-            if type(time_length) == list:
-                time_length = time_length[0]
-            state = {'Lambda': Lambda, 'Beta': Beta, 'run_done': 0,
+            # if type(time_length) == list:
+            #     time_length = time_length[0]
+            state = {'Lambda': Point[0], 'Beta': Point[1], 'run_done': 0,
                      'is_thermalized': False, 'last_checkpoint': None,
                      'iter_done': 0, 'timelength': time_length}
 
@@ -172,19 +171,19 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         # needed for thermalization loop
         end_partial, end_condition, end_type = end_parser(end_condition)
 
-        if not linear_history == '0':
-            end_condition = end_partial
+        if linear_history != '0':  # i.e. `if linear_history:`
+            end_partial = end_condition
 
         # set debug_flag for c++ (in c++ style)
         debug_flag = str(debug).lower()
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
-        exe_name = "CDT_2D-Lambda" + str(Lambda) + "_run" + str(run_num)
+        exe_name = "CDT_2D-" + Point_str + "_run" + str(run_num)
 
         arguments = [run_num,
-                     Lambda,
-                     Beta,
+                     Point[0],
+                     Point[1],
                      time_length,
                      end_condition,
                      debug_flag,
@@ -201,11 +200,9 @@ def launch(lambdas_old, lambdas_new, config, linear_history, time, steps,
         # make_script: compiles and returns
         # launch_script: runs the sim and keeps running until the end
         make_script = Popen(["python3", make_script_name, str(run_num),
-                            str(Lambda), str(Beta)])
+                            str(Point[0]), str(Point[1])])
         make_script.wait()
         if fake_run:
-            exe_name = ("CDT_2D-Lambda" + str(Lambda) + "_run" +
-                        str(run_num))
             print()
             print(*(["bin/" + exe_name] + arguments[:8]))
         else:
@@ -233,7 +230,7 @@ def show_state(configs, full_show=False):
     from platform import node
     from datetime import datetime
     from time import time
-    from lib.utils import find_running
+    from lib.utils import find_running, point_dir
 
     if not type(configs) == list:
         configs = [configs]
@@ -245,9 +242,9 @@ def show_state(configs, full_show=False):
         print("This platform is still not supported")
         return
 
-    empty = len([1 for line in ps_out if 'CDT_2D-Lambda' in line]) == 0
+    empty = len(['' for line in ps_out if ' bin/CDT_2D-Lambda' in line]) == 0
     if len(ps_out) > 1 and not empty:
-        print('   LAMBDA      TIME     STATUS     CONFIG', end='')
+        print(' LAMBDA-λ    BETA-β      TIME     STATUS     CONFIG', end='')
         if full_show == '0':
             print()
         elif full_show == '1':
@@ -255,19 +252,20 @@ def show_state(configs, full_show=False):
         elif full_show == '2':
             print('     LIN_HIST   START     DISK US.')
 
-        lambdas_run_all, sim_all = find_running()
+        points_run_all, sim_all = find_running()
 
         d = {}
         for config in configs:
-            lambdas_run_list = []
+            points_run_list = []
             sim_list = []
             for i in range(0, len(sim_all)):
-                if lambdas_run_all[i][1] == config:
-                    lambdas_run_list += [lambdas_run_all[i]]
+                if points_run_all[i][1] == config:
+                    points_run_list += [points_run_all[i]]
                     sim_list += [sim_all[i]]
-            d[config] = lambdas_run_list, sim_list
+            d[config] = points_run_list, sim_list
     else:
         print("There are no running simulations currently.")
+        return
 
     for config in configs:
         try:
@@ -278,98 +276,99 @@ def show_state(configs, full_show=False):
 
         if len(ps_out) > 1 and not empty:
 
-            lambdas_run_list, sim_list = d[config]
+            points_run_list, sim_list = d[config]
 
             for i in range(0, len(sim_list)):
-                lambdas_run = lambdas_run_list[i]
+                points_run = points_run_list[i]
                 sim = sim_list[i]
-                Lambda = lambdas_run[0]
-                l_conf = lambdas_run[1]
-                if Lambda in lambdas_stopped:
+                Point = points_run[0]
+                l_conf = points_run[1]
+                if Point in points_stopped:
                     state = 'killed'
                 else:
                     state = 'running'
-                print(str(Lambda).rjust(9), sim[0].rjust(11), ' ',
-                      state.ljust(10), l_conf.ljust(11), end='')
+                print(str(Point[0]).rjust(9), str(Point[1]).rjust(9),
+                      sim[0].rjust(11), ' ', state.ljust(10), l_conf.ljust(11),
+                      end='')
                 if full_show == '0':
                     print()
                 elif full_show == '1':
                     print(sim[1].rjust(4), ' ', sim[2].ljust(8),
                           sim[3].ljust(8))
                 elif full_show == '2':
-                    Lambda_dir = 'output/' + config + '/Lambda' + \
-                                 str(Lambda) + '/'
-                    with open(Lambda_dir + 'state.json', 'r') as state_file:
+                    Point_dir = 'output/' + config + '/' + \
+                                point_dir(Point) + '/'
+                    with open(Point_dir + 'state.json', 'r') as state_file:
                         state = json.load(state_file)
                     lin_hist = state['linear-history']
                     start = state['start_time']
-                    disk_us = popen('du -hs ' + Lambda_dir).read().split()[0]
+                    disk_us = popen('du -hs ' + Point_dir).read().split()[0]
                     print(str(lin_hist).ljust(9), start[-8:].ljust(10),
                           disk_us.rjust(8))
 
-            lambdas_run = [x[0] for x in lambdas_run_list if x[1] == config]
+            points_run = [x[0] for x in points_run_list if x[1] == config]
             l_aux = []
-            for Lambda in lambdas_stopped:
-                if Lambda in lambdas_run:
-                    l_aux += [Lambda]
-            lambdas_stopped = l_aux
+            for Point in points_stopped:
+                if Point in points_run:
+                    l_aux += [Point]
+            points_stopped = l_aux
         else:
-            lambdas_stopped = []
+            points_stopped = []
 
         with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
-            pickle.dump(lambdas_stopped, stop_file)
+            pickle.dump(points_stopped, stop_file)
 
     if len(ps_out) > 1 and not empty:
         clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
         print('\n [CLOCK: ' + clock + ']')
 
-def stop(lambdas_old, config, is_all):
+def stop(points_old, config, is_all):
     # @todo: distinguere fra processi 'data' e 'test'
     # si fa con un argomento config che viene da args.is_data
     import pickle
-    from lib.utils import find_running
+    from lib.utils import find_running, point_dir
 
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+    points_run, _ = find_running()
+    points_run = [x[0] for x in points_run if x[1] == config]
 
     try:
         with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
-            lambdas_stopped = pickle.load(stop_file)
+            points_stopped = pickle.load(stop_file)
     except FileNotFoundError:
-        lambdas_stopped = []
+        points_stopped = []
 
     l_aux = []
-    for Lambda in lambdas_stopped:
-        if Lambda in lambdas_run:
-            l_aux += [Lambda]
-    lambdas_stopped = l_aux
+    for Point in points_stopped:
+        if Point in points_run:
+            l_aux += [Point]
+    points_stopped = l_aux
 
-    lambdas_stopping = []
-    lambdas_notstop = []
-    for Lambda in lambdas_old:
-        if Lambda in lambdas_run and Lambda not in lambdas_stopped:
-            lambdas_stopped += [Lambda]
-            lambdas_stopping += [Lambda]
+    points_stopping = []
+    points_notstop = []
+    for Point in points_old:
+        if Point in points_run and Point not in points_stopped:
+            points_stopped += [Point]
+            points_stopping += [Point]
             from os import system
             from time import time
             from datetime import datetime
             sf = '%d-%m-%Y %H:%M:%S'
             system('echo ' + datetime.fromtimestamp(time()).strftime(sf) +
-                   ' > output/' + config + '/Lambda' + str(Lambda) + '/stop')
+                   ' > output/' + config + '/' + point_dir(Point) + '/stop')
             # forse '.stop' anzichè 'stop'
         else:
-            lambdas_notstop += [Lambda]
+            points_notstop += [Point]
 
     with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
-        pickle.dump(lambdas_stopped, stop_file)
+        pickle.dump(points_stopped, stop_file)
 
-    if len(lambdas_stopping) > 0:
-        print("Simulations for following λ just stopped: ", lambdas_stopping)
-    if len(lambdas_notstop) > 0 and not is_all:
-        print("Simulations for following λ were not running: ",
-              lambdas_notstop)
+    if len(points_stopping) > 0:
+        print("Simulations for following (λ, β) just stopped: ", points_stopping)
+    if len(points_notstop) > 0 and not is_all:
+        print("Simulations for following (λ, β) were not running: ",
+              points_notstop)
 
-def show(lambdas_old, config, disk_usage=''):
+def show(points_old, config, disk_usage=''):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 

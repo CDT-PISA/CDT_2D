@@ -23,10 +23,10 @@ import lib.parser
 # Useful on running
 
 def data(points_old, points_new, config, linear_history, time, steps,
-         force, timelength, fake_run, debug):
+         force, time_length, fake_run, debug):
     from lib.data import launch
     launch(points_old, points_new, config, linear_history, time, steps,
-           force, timelength, fake_run, debug)
+           force, time_length, fake_run, debug)
 
 def state(configs, full_show=False):
     from lib.data import show_state
@@ -219,12 +219,23 @@ def main():
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
+    # Further parsing (not supported by `argparse`)
+    wo_point = ['state', 'config', 'new-conf', 'reset']
+    if hasattr(args, 'is_all') and args.is_all:
+        if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
+           any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
+            parser.error('° chosen together with (λ, β).')
+    else:
+        if args.command not in wo_point:
+            if not all([hasattr(args, x) for x in ['lamda', 'beta']]):
+                parser.error('(λ, β) point not specified.')
+
     # Supplies missing arguments
-    if not hasattr(args, 'lambda'):
+    if not hasattr(args, 'lamda') or args.lamda is None:
         lambdas = []
     else:
-        lambdas = args.lambda
-    if not hasattr(args, 'beta'):
+        lambdas = args.lamda
+    if not hasattr(args, 'beta') or args.beta is None:
         betas = []
     else:
         betas = args.beta
@@ -240,7 +251,7 @@ def main():
     if args.is_data:
         args.config = 'data'
 
-    if not args.command == 'state':
+    if args.command not in wo_point:
         from lib.utils import points_recast
 
         points_old, points_new = points_recast(lambdas, betas, args.range,

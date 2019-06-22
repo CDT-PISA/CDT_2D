@@ -9,8 +9,8 @@ from re import search
 from platform import node
 from math import floor, log10
 
-def point_dir(Point):
-    """Standardizes directories' names.
+def point_str(Point):
+    """Standardizes Point's representation.
 
     Return `None` if `Point` is not representing a point in parameters' space.
 
@@ -23,7 +23,6 @@ def point_dir(Point):
     -------
     str
         Directory name of the corresponding point.
-
     """
     try:
         assert len(Point) == 2
@@ -33,19 +32,60 @@ def point_dir(Point):
     except (AssertionError, ValueError):
         return None
 
+def point_dir(Point):
+    """Standardizes directories' names.
+
+    At the present time it's a wrapper of `point_str` function.
+
+    Parameters
+    ----------
+    Point : tuple
+         (λ, β) floats.
+
+    Returns
+    -------
+    str
+        Directory name of the corresponding point.
+    """
+    return point_str(Point)
+
+
+def str_point(point_name):
+    """Decodes points' representation.
+
+    It has to be opposite to point_dir:
+        str_point(point_str) = id
+    if there are no multiple simulations for the same point also:
+        point_str(str_point) = id
+
+    Return `None` if the name is not a proper `point_name`
+
+    Parameters
+    ----------
+    point_name : str
+       String representation of the corresponding point.
+
+    Returns
+    -------
+    tuple
+         (λ, β) floats.
+    """
+    if all([x in point_name for x in ['Lambda', '_Beta']]):
+        p = point_name.split('Lambda')[1].split('_Beta')
+        return float(p[0]), float(p[1])
+    else:
+        return None
+
 def dir_point(dir_name):
     """Decodes directories' names.
 
-    It has to be opposite to point_dir:
-        dir_point(point_dir) = id
-    if there are no multiple simulations for the same point also:
-        point_dir(dir_point) = id
+    Similar to point_dir, now it's a wrapper of str_point.
 
     Return `None` if the name is not a proper `dir_name`
 
     Parameters
     ----------
-    dir_name : str
+    point_name : str
        Directory name of the corresponding point.
 
     Returns
@@ -53,11 +93,7 @@ def dir_point(dir_name):
     tuple
          (λ, β) floats.
     """
-    if all([x in dir_name for x in ['Lambda', '_Beta']]):
-        p = dir_name.split('Lambda')[1].split('_Beta')
-        return float(p[0]), float(p[1])
-    else:
-        return None
+    return str_point(dir_name)
 
 def find_all_availables(config='data', dir_decode=dir_point):
     """Find all lambdas for which a simulation has been already run
@@ -173,6 +209,9 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
     if is_all:
         points = all_points
     else:
+        lambda_extremes = None
+        beta_extremes = None
+
         if range == '':
             if len(lambda_list) != len(beta_list):
                 raise ValueError('λ and β must be of the same length, if \
@@ -181,7 +220,6 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
         else:
             from numpy import linspace
             if 'l' in range:
-                lambda_extremes = None
                 if len(lambda_list) == 3:
                     lambdas = list(linspace(*lambda_list))
                 elif len(lambda_list) == 2:
@@ -192,7 +230,6 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
             else:
                 lambdas = lambda_list
             if 'b' in range:
-                beta_extremes = None
                 if len(beta_list) == 3:
                     betas = list(linspace(*beta_list))
                 elif len(beta_list) == 2:
@@ -210,7 +247,7 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
             else:
                 raise ValueError('Only some intervals specified, \
                                   not the whole rectangle')
-        else:
+        elif range != '':
             points = points_grid(lambdas, betas)
 
     if len(points) > 0:
@@ -233,25 +270,37 @@ def find_running():
         (lambdas, config) for running simulations.
     list
         other infos to be printed by `cdt2d state`
+
+    Example
+    -------
+    An example of output from ``ps -fu user``
+
+    ::
+        UID    PID  PPID  C STIME TTY          TIME CMD
+        user  1350     1  0 15:44 pts/1    00:00:00 python3 \
+            /home/user/projects/CDT_2D/output/test/Lambda0.1_Beta1.0\
+            /launch_Lambda0.1_Beta1.0.py 1 0.1 1.0 80 1800 false No
+        user  1358  1350 98 15:44 pts/1    00:00:56 bin/CDT_2D-\
+            Lambda0.1_Beta1.0_run1 1 0.1 1.0 80 360s false None 0
     """
     from os import environ
 
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
         ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-#        lambdas_run = [float(line.split()[-6]) \
-#                       for line in ps_out[1:] if 'CDT_2D-Lambda' in line]
+
         points_run = []
         sim_info = []
         PPID_list = []
         for line in ps_out[1:]:
-            if 'CDT_2D-Lambda' in line:
+            if ' bin/CDT_2D-Lambda' in line:
                 pinfos = line.split()
-                Lambda = float(pinfos[-7])
+                Lambda = float(pinfos[9])
+                Beta = float(pinfos[10])
                 start_time = pinfos[6]
                 run_id = pinfos[8]
                 PID = pinfos[1]
                 PPID = pinfos[2]
-                points_run += [[Lambda]]
+                points_run += [[(Lambda, Beta)]]
                 sim_info += [[start_time, run_id, PID, PPID]]
                 PPID_list += [PPID]
 
@@ -334,9 +383,12 @@ def end_parser(end_condition):
 
     Returns
     -------
-    type
-        Description of returned object.
-
+    str
+        End condition for the subrun, in the format readable by simulations.
+    int
+        End condition for the run, as the number of seconds or steps.
+    str
+        Type of end_condition {'time'|'steps'}.
     """
     last_char = end_condition[-1]
     if last_char in ['s', 'm', 'h']:

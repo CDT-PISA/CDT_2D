@@ -27,7 +27,7 @@ def main():
 
     # is necessary to recompile each run
     # because on the grid the node could be different
-    exe_name = "CDT_2D-Lambda" + Lambda_str + "_Beta" + Beta_str +
+    exe_name = "CDT_2D-Lambda" + Lambda_str + "_Beta" + Beta_str +\
                "_run" + run_num
 
     chdir(project_folder + "build")

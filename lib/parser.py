@@ -76,7 +76,7 @@ def define_parser(launcher_path, version):
 
     # run command
 
-    run_cmd = {'LAMBDA': '--lambda',
+    run_cmd = {'LAMBDA': '--lamda',
                'BETA': '--beta',
                'RANGE': '--range',
                'CONFIG': '--config',
@@ -90,7 +90,7 @@ def define_parser(launcher_path, version):
     cmds = update_cmds(cmds, run_cmd)
 
     run_sub = subparsers.add_parser('run', help='run')
-    run_sub.add_argument('-l', '--lambda', nargs='+', type=float, required=True,
+    run_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help='λ values')
     run_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
                          help='β values')
@@ -160,14 +160,12 @@ def define_parser(launcher_path, version):
     # stop command
 
     stop_sub = subparsers.add_parser('stop', help='stop')
-    stop_sub.add_argument('-l', '--lambda', nargs='+', type=float,
-                          required=True, help='λ values')
-    stop_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
-                          help='β values')
-    lambdas = stop_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
+    points = stop_sub.add_argument_group()
+    points.add_argument('-l', '--lamda', nargs='+', type=float, help='λ values')
+    points.add_argument('-b', '--beta', nargs='+', type=float, help='β values')
+    points.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
-    lambdas.add_argument('-°', dest='is_all', action='store_true',
+    points.add_argument('-°', dest='is_all', action='store_true',
                          help="all (the '-' in front is not needed)")
     stop_sub.add_argument('-@', dest='is_data', action='store_true',
                           help="data configuration flag \
@@ -178,7 +176,7 @@ def define_parser(launcher_path, version):
     # show command
 
     show_sub = subparsers.add_parser('show', help='show')
-    show_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           help='λ values')
     show_sub.add_argument('-b', '--beta', nargs='+', type=float,
                           help='β values')
@@ -200,7 +198,7 @@ def define_parser(launcher_path, version):
     # plot command
 
     plot_sub = subparsers.add_parser('plot', help='plot')
-    plot_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    plot_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           required=True, help='λ values')
     plot_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
                           help='β values')
@@ -215,7 +213,7 @@ def define_parser(launcher_path, version):
     # fit command
 
     fit_sub = subparsers.add_parser('fit', help='fit')
-    fit_sub.add_argument('-l', '--lambda', nargs='+', type=float, required=True,
+    fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help='λ values')
     fit_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
                          help='β values')
@@ -240,7 +238,7 @@ def define_parser(launcher_path, version):
     # recovery command
 
     recovery_sub = tools_sub.add_parser('recovery', help='recovery')
-    recovery_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    recovery_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                               required=True, help='λ values')
     recovery_sub.add_argument('-b', '--beta', nargs='+', type=float,
                               required=True, help='β values')
@@ -262,7 +260,7 @@ def define_parser(launcher_path, version):
     # info command
 
     info_sub = tools_sub.add_parser('info', help='info on a sim')
-    info_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    info_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           required=True, help='λ values')
     info_sub.add_argument('-b', '--beta', nargs='+', type=float,
                           required=True, help='β values')
@@ -275,7 +273,7 @@ def define_parser(launcher_path, version):
     # thermalization command
 
     therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation')
-    therm_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    therm_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                            required=True, help='λ values')
     therm_sub.add_argument('-b', '--beta', nargs='+', type=float,
                            required=True, help='β values')
@@ -292,7 +290,7 @@ def define_parser(launcher_path, version):
 
     launch_sub = tools_sub.add_parser('up-launch',
                                       help='update launch/make_script')
-    launch_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    launch_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
     launch_sub.add_argument('-b', '--beta', nargs='+', type=float,
                             required=True, help='β values')
@@ -316,7 +314,7 @@ def define_parser(launcher_path, version):
     # autoremove command
 
     remove_sub = tools_sub.add_parser('autoremove', help='autoremove')
-    remove_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    remove_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
     remove_sub.add_argument('-b', '--beta', nargs='+', type=float,
                             required=True, help='β values')
@@ -341,7 +339,7 @@ def define_parser(launcher_path, version):
 
     remote_sub = tools_sub.add_parser('remote',
                                       help='upload/download sim dirs')
-    remote_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    remote_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
     remote_sub.add_argument('-b', '--beta', nargs='+', type=float,
                             required=True, help='β values')
@@ -358,7 +356,7 @@ def define_parser(launcher_path, version):
     remote_sub.add_argument('-f', '--force', action='store_true', help='force')
     load = remote_sub.add_mutually_exclusive_group()
     load.add_argument('-u', '--upload', action='store_true',
-                      p='update make_script instead')
+                      help='update make_script instead')
     load.add_argument('-d', '--download', action='store_true',
                       help='update both launch_script and make_script')
     load.add_argument('-s', '--show', action='store_true',
@@ -397,7 +395,7 @@ def define_parser(launcher_path, version):
     # clear command
 
     clear_sub = tools_sub.add_parser('clear', help='clear')
-    clear_sub.add_argument('-l', '--lambda', nargs='+', type=float,
+    clear_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                            required=True, help='λ values')
     clear_sub.add_argument('-b', '--beta', nargs='+', type=float,
                            required=True, help='β values')

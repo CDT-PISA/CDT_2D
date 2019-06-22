@@ -202,7 +202,7 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
                  Lambda,
                  Beta,
                  time_length,
-                 end_condition,
+                 end_partial,
                  debug_flag,
                  last_check,
                  linear_history]
@@ -214,7 +214,8 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
 
     # lo eseguo solo se non è termalizzato
     # serve appunto a controllare se termalizza
-    if linear_history == '0':
+    end_condition = int(end_condition)
+    if not linear_history != '0':  # i.e. `if not linear_history:`
         rerun = 0
         if end_type == 'time':
             end_run = (time() - start_record) > end_condition
