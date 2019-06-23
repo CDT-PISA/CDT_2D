@@ -220,8 +220,8 @@ int main(int argc, char* argv[]){
                         universe.steps_done = 0;
                 }
                 j++;
-                volume_stream << iter_from_beginning << " " << universe.list2.size();
-                volume_stream << " " << universe.total_gauge_action() << " " << universe.topological_charge() << endl;
+                volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
+                //volume_stream << " " << universe.total_gauge_action() << " " << universe.topological_charge();
                 
                 if(j == profile_ratio){
                     j=0;
