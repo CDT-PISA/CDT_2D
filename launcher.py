@@ -213,6 +213,8 @@ def main():
     except (AssertionError, IndexError):
         # if not file adds support for some special keyword
         sys.argv = ['-' + x if x in ['°', '@'] else x for x in sys.argv]
+        sys.argv = [str(float(x)) if x[0] == '-' and x[1].isdigit() else x
+                    for x in sys.argv]
 
     # Arguments retrieval
     if(node() == 'Paperopoli'):
