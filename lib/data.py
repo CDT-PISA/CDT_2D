@@ -487,13 +487,13 @@ def show(points_old, config, disk_usage=''):
                 print(a, ' │ ', b, ' │ ', c, '  │ ', d)
             print()
 
-def plot(lambdas_old, config):
+def plot(points_old, config):
     from matplotlib.pyplot import figure, show
     from numpy import loadtxt
-    from lib.utils import find_running
+    from lib.utils import find_running, point_dir
 
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+    points_run, _ = find_running()
+    points_run = [x[0] for x in points_run if x[1] == config]
     color_cycle = ['xkcd:carmine', 'xkcd:teal', 'xkcd:peach', 'xkcd:mustard',
                    'xkcd:cerulean']
     n_col = len(color_cycle)
@@ -501,12 +501,12 @@ def plot(lambdas_old, config):
     canvases = []
     props = []
     i = -1
-    for Lambda in lambdas_old:
+    for Point in points_old:
         i += 1
-        vol_file = ('output/' + config + '/Lambda' + str(Lambda) +
+        vol_file = ('output/' + config + '/' + point_dir(Point) +
                     '/history/volumes.txt')
-        indices, volumes, gauge_action, topological_charge = \
-            loadtxt(vol_file, unpack=True)
+        indices, volumes = loadtxt(vol_file, unpack=True)
+        # , gauge_action, topological_charge
 
         fig = figure()
         ax = fig.add_subplot(111)
@@ -516,11 +516,11 @@ def plot(lambdas_old, config):
 
         fig.set_size_inches(7, 5)
         ax.plot(indices, volumes, color=color_cycle[i % n_col])
-        if Lambda in lambdas_run:
+        if Point in points_run:
             run_t = ', running'
         else:
             run_t = ''
-        ax.set_title('λ = ' + str(Lambda) + run_t)
+        ax.set_title('λ = ' + str(Point[0]) + ', β = ' + str(Point[1]) + run_t)
 
         def on_key(event):
             i = canvases.index(event.canvas)
