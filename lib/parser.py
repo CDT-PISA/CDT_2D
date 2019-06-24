@@ -216,6 +216,9 @@ def define_parser(launcher_path, version):
                           (the '-' in front is not needed)")
     stop_sub.add_argument('-c', '--config', choices=configs, default='test',
                           help='config')
+    stop_sub.add_argument('--pid', type=int, default=None,
+                          help='hard kill with PID')
+    stop_sub.add_argument('-f', '--force', action='store_true', help='force')
 
     # show command
 

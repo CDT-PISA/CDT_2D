@@ -32,12 +32,12 @@ def state(configs, full_show=False):
     from lib.data import show_state
     show_state(configs, full_show)
 
-def stop(points_old, points_new, config, is_all):
+def stop(points_old, points_new, config, is_all, pid, force):
     from lib.data import stop
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
-    stop(points_old, config, is_all)
+    stop(points_old, config, is_all, pid, force)
 
 # Useful offline
 
@@ -273,7 +273,8 @@ def main():
         state(args.config, args.full_show)
 
     elif args.command == 'stop':
-        stop(points_old, points_new, args.config, args.is_all)
+        stop(points_old, points_new, args.config, args.is_all,
+             args.pid, args.force)
 
     elif args.command == 'show':
         show(points_old, args.config, args.disk_usage)
