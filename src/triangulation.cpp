@@ -703,7 +703,19 @@ void Triangulation::load(ifstream& input)
                 x.dync_triangle()->transition_id = -1;
         }
     }
-        
+     
+    // set ownership
+    
+    for(auto x : list0){
+        x->owner = this;
+    }
+    for(auto x : list1){
+        x->owner = this;
+    }
+    for(auto x : list2){
+        x->owner = this;
+    }
+    
 }
 
 // ##### ADJACENCY LIST #####

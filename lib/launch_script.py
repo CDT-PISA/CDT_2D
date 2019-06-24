@@ -11,7 +11,7 @@ from os import remove, stat, scandir
 from os.path import isfile
 from sys import argv
 from re import split
-from subprocess import Popen, CalledProcessError
+from subprocess import run, CalledProcessError
 from datetime import datetime
 from time import time
 import json
@@ -22,15 +22,12 @@ def run_sim(exe_name, arguments):
     out = open('stdout.txt', 'a')
     err = open('stderr.txt', 'a')
 
-    #out_f = open('stdout.txt', 'w')
-    #sim = Popen(["bin/ciao"] + arguments)
-
     succesful = True
     try:
-        sim = Popen(["bin/" + exe_name] + arguments, stdout = out, stderr = err)
-        sim.wait()
+        sim = run(["bin/" + exe_name] + arguments, stdout = out, stderr = err)
+        sim.check_returncode()
     except CalledProcessError as e:
-        print("Error '{0}' occured. Arguments {1}.".format(e, e.args))
+        print(f"Error:\n{e.returncode}\n\n")
         succesful = False
 
     out.close()
@@ -56,6 +53,7 @@ def recovery_sim(run_id, succesful):
             from numpy import savetxt
             vol_file = loadtxt('history/volumes.txt', dtype=int)
             pro_file = loadtxt('history/profiles.txt', dtype=int)
+            pro_file = loadtxt('history/gauge.txt', dtype=int)
             vol_file = vol_file[vol_file[:,0] < iter_done]
             pro_file = pro_file[pro_file[:,0] < iter_done]
             savetxt('history/volumes.txt', vol_file, fmt='%d',
