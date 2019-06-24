@@ -161,32 +161,34 @@ GaugeElement Vertex::looparound(bool debug_flag)
     }
     */
     
-   Triangle *current = start;
-   bool first_round = true;
-   while(*current != *start || first_round){
-       first_round = false;
-       
-       if(debug_flag)
-           cout << "\t" << id << " " << current->id; cout.flush();
-       
-       GaugeElement current_previous = current->edges()[previous_idx].dync_edge()->gauge_element();
-       
-       // ORIENTAZIONE
-       ///@todo
-       if(previous_idx == 0 || (previous_idx == 2 && current->is12()))
-           current_previous = current_previous.dagger();
-       
-       Plaquette *= current_previous.dagger();
-       // to be multiplied correctly the element has to be taken in the direction of travel
-       // I took the inverse, therefore I add the dagger
-       
-       if(debug_flag)
-           cout << "\t" << id << "a\n"; cout.flush();
-       
-       previous = current;
-       current = next(current, previous_idx);
-   }
+    Triangle *current = start;
+    bool first_round = true;
+    while(*current != *start || first_round){
+        first_round = false;
+        
+        if(debug_flag)
+            cout << "\t" << id << " " << current->id; cout.flush();
+        
+        GaugeElement current_previous = current->edges()[previous_idx].dync_edge()->gauge_element();
+        
+        // ORIENTAZIONE
+        ///@todo
+        if(previous_idx == 0 || (previous_idx == 2 && current->is12()))
+            current_previous = current_previous.dagger();
+        
+        Plaquette *= current_previous.dagger();
+        // to be multiplied correctly the element has to be taken in the direction of travel
+        // I took the inverse, therefore I add the dagger
+        
+        if(debug_flag)
+            cout << "\t" << id << "a\n"; cout.flush();
+        
+        previous = current;
+        current = next(current, previous_idx);
+    }
 
+    if(debug_flag)
+        cout << "END PLAQUETTE CALCULATION" << endl << endl;
     return Plaquette;
 }
 
@@ -217,7 +219,15 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
     
     Triangle *previous = edge_t[0];
     
-    int previous_idx = start->find_element(owner->list2[previous->position()], SimplexType::_triangle);
+    if(debug_flag){
+        cout << "ciao 0 " << endl;
+        cout << previous->position() << endl;
+        cout << owner->list2.size() << endl;
+        cout << owner->list2[0]->id << endl;
+        cout << owner->beta << endl;
+        cout << *owner->list2[previous->position()].dync_triangle() << endl;
+    }
+    int previous_idx = start->find_element(owner->list2[previous->position()], SimplexType::_triangle, debug_flag);
     
     if(debug_flag){
         cout << "previous: " << previous_idx << endl;
@@ -248,8 +258,10 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
             cout << current_previous << endl << Staple << endl;
     }
     
-    if(debug_flag)
+    if(debug_flag){
         cout << Staple << endl;
+        cout << "END STAPLE CALCULATION" << endl << endl;
+    }
     
     return Staple;
 }

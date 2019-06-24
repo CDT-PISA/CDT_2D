@@ -154,6 +154,10 @@ int main(int argc, char* argv[]){
     auto time_ref = chrono::system_clock::now();
     auto start_time = time_ref;
     
+    // and a first check
+    if(debug_flag)
+        universe.is_consistent();
+    
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
     long i=0;

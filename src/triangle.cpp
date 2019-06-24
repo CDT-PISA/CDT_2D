@@ -79,7 +79,7 @@ Label* Triangle::edges(){ return e; }
 
 Label* Triangle::adjacent_triangles(){ return t; }
 
-int Triangle::find_element(Label lab_Element, SimplexType type)
+int Triangle::find_element(Label lab_Element, SimplexType type, bool debug_flag)
 {
     int pos;
     int lab_id = lab_Element->id;
@@ -104,9 +104,6 @@ int Triangle::find_element(Label lab_Element, SimplexType type)
     }else{
         throw runtime_error("SimplexType not recognized");
     }
-   
-
-        
         
     if(pos == 3)
         throw runtime_error("Element not found in triangle " + to_string(this->id));

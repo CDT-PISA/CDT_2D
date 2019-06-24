@@ -87,6 +87,10 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     Vertex* v_lab3 = lab_v3.dync_vertex();
     
     if(debug_flag){
+        cout << endl;
+        cout << "╔═══════════════════════╗" << endl;
+        cout << "║BEGINNING OF move_22_1:║" << endl;
+        cout << "╚═══════════════════════╝" << endl;
         cout << " (time " << v_lab0->time() << ")" << endl;
         cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
@@ -272,10 +276,10 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     }
     
     if(debug_flag){
-        cout << "\t\t---\n";
-        cout << "------------------------" << endl;
-        cout << "AT THE END OF move_22_1:" << endl;
-        cout << "------------------------" << endl;
+        cout << endl;
+        cout << "┌────────────────────────┐" << endl;
+        cout << "│AT THE END OF move_22_1:│ " << endl;
+        cout << "└────────────────────────┘" << endl;
         cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
@@ -754,6 +758,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Edge* e_lab7 = lab_e7.dync_edge();
     
     if(debug_flag){
+        cout << endl;
+        cout << "╔═════════════════════╗" << endl;
+        cout << "║BEGINNING OF move_24:║" << endl;
+        cout << "╚═════════════════════╝" << endl;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) v0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
@@ -834,8 +842,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice
     
     if(debug_flag){
-        cout << "\t\t---\n";
-        cout << " at the the end of move_24:" << endl;
+        cout << endl;
+        cout << "┌──────────────────────┐" << endl;
+        cout << "│AT THE END OF move_24:│ " << endl;
+        cout << "└──────────────────────┘" << endl;;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) v0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
@@ -958,6 +968,10 @@ void Triangulation::move_42(int cell, bool debug_flag)
     
     /// @todo
     if(debug_flag){
+        cout << endl;
+        cout << "╔═════════════════════╗" << endl;
+        cout << "║BEGINNING OF move_42:║" << endl;
+        cout << "╚═════════════════════╝" << endl;
         cout << " (time " << v_lab0->time() << ")" << endl;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
@@ -1093,9 +1107,10 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }
     
     if(debug_flag){
-        cout << "----------------------" << endl;
-        cout << "AT THE END OF move_42:" << endl;
-        cout << "----------------------" << endl;
+        cout << endl;
+        cout << "┌──────────────────────┐" << endl;
+        cout << "│AT THE END OF move_42:│ " << endl;
+        cout << "└──────────────────────┘" << endl;;
         cout << " [cell] (triangles) t0: " << lab_t0->id << ", t1: " << lab_t1->id << ", t2: " << lab_t2->id << ", t3: " << lab_t3->id <<  "\t(vertices) \tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id << ", v4: " << lab_v4->id << endl;
         cout << " \t\t\t\t\t\t\t\t\t\t\t   (coordinations)  v0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
         cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << endl;
@@ -1115,8 +1130,13 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     RandomGen r;
     int e_num;
     
-    if(debug_flag)
+    if(debug_flag){
         cout << "gauge move: " << endl;
+        cout << endl;
+        cout << "╔════════════════════════╗" << endl;
+        cout << "║BEGINNING OF move_gauge:║" << endl;
+        cout << "╚════════════════════════╝" << endl;
+    }
     
     // to make testing easier it is possible to specify the "cell" on which operate
     // if it is not specified (cell = -1), as in real runs, the cell is extracted
@@ -1136,6 +1156,12 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     
     e_lab->U.heatbath(Force, debug_flag);
     
+    if(debug_flag){
+        cout << endl;
+        cout << "┌─────────────────────────┐" << endl;
+        cout << "│AT THE END OF move_gauge:│ " << endl;
+        cout << "└─────────────────────────┘" << endl;;
+    }
     // ----- END MOVE -----
 }
 

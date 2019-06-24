@@ -110,7 +110,7 @@ public:
     
     bool is_transition();
     
-    int find_element(Label lab_Element, SimplexType type);
+    int find_element(Label lab_Element, SimplexType type, bool debug_flag = false);
     
     int opposite(int i);
     
