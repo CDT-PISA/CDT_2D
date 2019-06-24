@@ -249,7 +249,11 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         if succesful:
             state['last_checkpoint'] = checkpoints[-1]
         else:
-            state['last_checkpoint'] = checkpoints[-2]
+            if len(checkpoints) >= 2:
+                state['last_checkpoint'] = checkpoints[-2]
+            else:
+                state['last_checkpoint'] = checkpoints[-2]
+                print('Unsuccesful run from the beginning.')
         json.dump(state, state_file, indent=4)
 
     if stat('nohup.out').st_size == 0:
