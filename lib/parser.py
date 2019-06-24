@@ -4,6 +4,7 @@ Parser definition for the CDT_2D simulations' launcher.
 
 from os import chdir, getcwd, scandir
 from os.path import dirname, realpath, exists, isdir
+from inspect import cleandoc
 import argparse
 
 def update_cmds(cmds, subp_cmd):
@@ -31,6 +32,13 @@ def update_cmds(cmds, subp_cmd):
             raise AssertionError('Issue in `parser.py`: keywords must yield' +
                                  'unique commands')
     return {**cmds, **subp_cmd}
+
+def positive_float(value):
+    ivalue = float(value)
+    if ivalue <= 0:
+        msg = f"{value} is an invalid positive float value"
+        raise argparse.ArgumentTypeError(msg)
+    return ivalue
 
 def define_parser(launcher_path, version):
     """Define the parser for the launcher.
@@ -89,11 +97,24 @@ def define_parser(launcher_path, version):
                'STEPS': '--steps'}
     cmds = update_cmds(cmds, run_cmd)
 
-    run_sub = subparsers.add_parser('run', help='run')
+    msg = cleandoc("""
+    ┌───────────┐
+    │RUN COMMAND│
+    └───────────┘
+    Used to launch CDT simulations:
+        - λ is approximately the cosmological constant, and can be any real
+          number
+        - β is $ N/g_ym^2 $, and it must be strictly positive
+
+    Example:
+        cdt2d run -l -1. -b .5""")
+
+    run_sub = subparsers.add_parser('run', help='run', description=msg,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     run_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help='λ values')
-    run_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
-                         help='β values')
+    run_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                         required=True, help='β values')
     run_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     run_sub.add_argument('-@', dest='is_data', action='store_true',
@@ -146,7 +167,17 @@ def define_parser(launcher_path, version):
             else:
                 setattr(namespace, self.dest, values)
 
-    state_sub = subparsers.add_parser('state', help='state')
+    msg = cleandoc("""
+    ┌─────────────┐
+    │STATE COMMAND│
+    └─────────────┘
+    Used to control the status of the running simulations.
+
+    Example:
+        cdt2d state""")
+
+    state_sub = subparsers.add_parser('state', help='state', description=msg,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     state_sub.add_argument('-@', dest='is_data', action='store_true',
                            help="data configuration flag \
                            (the '-' in front is not needed)")
@@ -159,10 +190,23 @@ def define_parser(launcher_path, version):
 
     # stop command
 
-    stop_sub = subparsers.add_parser('stop', help='stop')
+    msg = cleandoc("""
+    ┌────────────┐
+    │STOP COMMAND│
+    └────────────┘
+    Used to stop a running simulations.
+
+    Example:
+        cdt2d stop -l -1. -b .5
+    to stop all running simulations in the chosen config:
+        cdt2d stop °""")
+
+    stop_sub = subparsers.add_parser('stop', help='stop', description=msg,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     points = stop_sub.add_argument_group()
     points.add_argument('-l', '--lamda', nargs='+', type=float, help='λ values')
-    points.add_argument('-b', '--beta', nargs='+', type=float, help='β values')
+    points.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                        help='β values')
     points.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
     points.add_argument('-°', dest='is_all', action='store_true',
@@ -178,7 +222,7 @@ def define_parser(launcher_path, version):
     show_sub = subparsers.add_parser('show', help='show')
     show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           help='λ values')
-    show_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    show_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                           help='β values')
     lambdas = show_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
@@ -197,11 +241,21 @@ def define_parser(launcher_path, version):
 
     # plot command
 
-    plot_sub = subparsers.add_parser('plot', help='plot')
+    msg = cleandoc("""
+    ┌────────────┐
+    │PLOT COMMAND│
+    └────────────┘
+    Used to plot the volume history of a simulation.
+
+    Example:
+        cdt2d plot -l -1. -b .5""")
+
+    plot_sub = subparsers.add_parser('plot', help='plot', description=msg,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     plot_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           required=True, help='λ values')
-    plot_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
-                          help='β values')
+    plot_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                          required=True, help='β values')
     plot_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                           help='range')
     plot_sub.add_argument('-@', dest='is_data', action='store_true',
@@ -215,8 +269,8 @@ def define_parser(launcher_path, version):
     fit_sub = subparsers.add_parser('fit', help='fit')
     fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help='λ values')
-    fit_sub.add_argument('-b', '--beta', nargs='+', type=float, required=True,
-                         help='β values')
+    fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                         required=True, help='β values')
     lambdas = fit_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help='range')
@@ -240,7 +294,7 @@ def define_parser(launcher_path, version):
     recovery_sub = tools_sub.add_parser('recovery', help='recovery')
     recovery_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                               required=True, help='λ values')
-    recovery_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    recovery_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                               required=True, help='β values')
     lambdas = recovery_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
@@ -262,7 +316,7 @@ def define_parser(launcher_path, version):
     info_sub = tools_sub.add_parser('info', help='info on a sim')
     info_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           required=True, help='λ values')
-    info_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    info_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                           required=True, help='β values')
     info_sub.add_argument('-@', dest='is_data', action='store_true',
                           help="data configuration flag \
@@ -275,7 +329,7 @@ def define_parser(launcher_path, version):
     therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation')
     therm_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                            required=True, help='λ values')
-    therm_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    therm_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                            required=True, help='β values')
     therm_sub.add_argument('-@', dest='is_data', action='store_true',
                            help="data configuration flag \
@@ -292,7 +346,7 @@ def define_parser(launcher_path, version):
                                       help='update launch/make_script')
     launch_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
-    launch_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    launch_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                             required=True, help='β values')
     lambdas = launch_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
@@ -316,7 +370,7 @@ def define_parser(launcher_path, version):
     remove_sub = tools_sub.add_parser('autoremove', help='autoremove')
     remove_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
-    remove_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    remove_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                             required=True, help='β values')
     lambdas = remove_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
@@ -341,7 +395,7 @@ def define_parser(launcher_path, version):
                                       help='upload/download sim dirs')
     remote_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                             required=True, help='λ values')
-    remote_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    remote_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                             required=True, help='β values')
     lambdas = remote_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
@@ -397,7 +451,7 @@ def define_parser(launcher_path, version):
     clear_sub = tools_sub.add_parser('clear', help='clear')
     clear_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                            required=True, help='λ values')
-    clear_sub.add_argument('-b', '--beta', nargs='+', type=float,
+    clear_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                            required=True, help='β values')
     lambdas = clear_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',

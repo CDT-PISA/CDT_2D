@@ -164,8 +164,10 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         else
             throw runtime_error("heatbath: Not implemented for N!=1");
         
-        if(isnan(abs(this->tr())) || isinf(abs(this->tr())))
+        if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
+            cerr << "heatbath: a = " << a << endl;
             throw runtime_error("heatbath: invalid numerical value generated");
+        }
         
         // double rho = exp(real((*this * Force).tr()) * beta);
     }    

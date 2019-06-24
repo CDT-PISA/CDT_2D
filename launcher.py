@@ -221,6 +221,9 @@ def main():
         argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
+    if not hasattr(args, 'tools'):
+        args.tools = ''
+
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'reset']
     if hasattr(args, 'is_all') and args.is_all:
@@ -228,7 +231,7 @@ def main():
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
             parser.error('° chosen together with (λ, β).')
     else:
-        if args.command not in wo_point:
+        if all([x not in wo_point for x in [args.command, args.tools]]):
             if not all([hasattr(args, x) for x in ['lamda', 'beta']]):
                 parser.error('(λ, β) point not specified.')
 
@@ -253,7 +256,7 @@ def main():
     if args.is_data:
         args.config = 'data'
 
-    if args.command not in wo_point:
+    if all([x not in wo_point for x in [args.command, args.tools]]):
         from lib.utils import points_recast
 
         points_old, points_new = points_recast(lambdas, betas, args.range,
