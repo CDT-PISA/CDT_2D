@@ -89,7 +89,7 @@ double GaugeElement::partition_function()
     // slightly transform the Force in order to put the integrand in the form
     // exp(tr(Source.dagger * U + U.dagger * Source))
     GaugeElement Force = *this;
-    GaugeElement Source = (Force * beta / 2).dagger();
+    GaugeElement Source = (Force * (beta / 2)).dagger();
     double Z = 1.;
     
     if(N == 1){
@@ -308,17 +308,13 @@ GaugeElement GaugeElement::operator*(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator/(const complex<double>& alpha)
 {
-    GaugeElement quotient;
-    
-    quotient.base_edge = this->base_edge;
-    
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
-            quotient.mat[i][j] /= alpha;
+            this->mat[i][j] /= alpha;
         }
     }
     
-    return quotient;
+    return *this;
 }
 
 GaugeElement GaugeElement::operator-()
