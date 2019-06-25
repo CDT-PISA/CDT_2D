@@ -414,9 +414,12 @@ ostream& operator<<(ostream& os, Triangulation& T){
     
     os << "timelength: " << T.spatial_profile.size() << endl;
     
-    os << endl << "  checking triangulation consistency... " << endl;
-    T.is_consistent(false);
-    os << "  triangulation is consistent!" << endl;
+    os << "space_profile: " << endl;
+    T.print_space_profile(os);
+    
+//     os << endl << "  checking triangulation consistency... " << endl;
+//     T.is_consistent(false);
+//     os << "  triangulation is consistent!" << endl;
     
     return os;
 }

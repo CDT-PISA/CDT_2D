@@ -147,6 +147,17 @@ public:
      */
     ~Triangulation(){}
     
+    /**
+     * I copy assignment e copy constructor sono deletati perché quelli di default
+     * non sono sufficienti e attualmente non sono deletati.
+     * 
+     * In particolare il campo owner dei simplessi deve essere riassegnato quando
+     * si copia una triangolazione, e questo non viene fatto di default (è praticamente
+     * l'unico puntatore nudo di tutta la struttura).
+     */
+    Triangulation& operator=(const Triangulation&) = delete;
+    Triangulation(const Triangulation&) = delete;
+    
     // ##### SIMPLEX MANAGEMENT #####
     
     /**
@@ -264,7 +275,7 @@ public:
      * - usare qualcosa static (o qualche cosa del genere per tenere il file aperto)
      * - aprire in append e stampare una riga intera alla volta
      */ 
-    void print_space_profile(ofstream& output);
+    void print_space_profile(ostream& output);
     
     double total_gauge_action(bool debug_flag = false);
     

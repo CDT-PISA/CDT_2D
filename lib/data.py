@@ -334,21 +334,21 @@ def stop(points_old, config, is_all, pids, force):
 
     running_pids = [ps_i[2] for ps_i in sim_info]
 
-    for pid in pids:
-        if pid in running_pids or force:
-            ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-            for line in ps_out[1:-1]:
-                infos = line.split()
-                ps_pid = int(infos[1])
-                ps_ppid = int(infos[2])
-                if ps_pid == pid or ps_ppid == pid:
-                    if ps_ppid != 1:
-                        system('kill ' + str(ps_ppid))
-                    system('kill ' + str(ps_pid))
-        else:
-            print(f'Invalid PID: {pid}, ' +
-                   'there is no running simulation with that one.')
     if pids:
+        for pid in pids:
+            if pid in running_pids or force:
+                ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
+                for line in ps_out[1:-1]:
+                    infos = line.split()
+                    ps_pid = int(infos[1])
+                    ps_ppid = int(infos[2])
+                    if ps_pid == pid or ps_ppid == pid:
+                        if ps_ppid != 1:
+                            system('kill ' + str(ps_ppid))
+                        system('kill ' + str(ps_pid))
+            else:
+                print(f'Invalid PID: {pid}, ' +
+                       'there is no running simulation with that one.')
         return
 
     try:

@@ -9,12 +9,12 @@
 
 using namespace std;
 
-void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, long i);
+void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i);
 
 template <typename T>
-void print_obs(ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, Triangulation& universe,
-               long iter_from_beginning, long i, long j, long k, int profile_ratio, int gauge_ratio,
-               T& time_ref, float save_interval, int n_chkpt, vector<string>& chkpts);
+void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, Triangulation& universe,
+               long iter_from_beginning, long& i, long& j, long& k, int profile_ratio, int gauge_ratio,
+               float save_interval, int n_chkpt, vector<string>& chkpts);
 
 int dice();
 
@@ -145,8 +145,7 @@ int main(int argc, char* argv[]){
     if(stod(run_id) != 1.){
         string loadfile = "checkpoint/" + last_chkpt;
         
-        Triangulation aux_universe(loadfile);
-        universe = aux_universe;
+        universe.load(loadfile);;
     }
     
     // FIRST SAVE, then begin
@@ -215,8 +214,8 @@ int main(int argc, char* argv[]){
         long iter_from_beginning = universe.iterations_done + i;
         if(linear_history > 0){
             if((iter_from_beginning) % linear_history == 0)
-                print_obs(volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
-                          i, j, k, profile_ratio, gauge_ratio, time_ref, save_interval, n_chkpt, chkpts);
+                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
+                          i, j, k, profile_ratio, gauge_ratio, save_interval, n_chkpt, chkpts);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -225,8 +224,8 @@ int main(int argc, char* argv[]){
                         universe.volume_step *= 2;
                         universe.steps_done = 0;
                 }
-                print_obs(volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
-                          i, j, k, profile_ratio, gauge_ratio, time_ref, save_interval, n_chkpt, chkpts);
+                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
+                          i, j, k, profile_ratio, gauge_ratio, save_interval, n_chkpt, chkpts);
             }
         }
         
@@ -268,7 +267,7 @@ int main(int argc, char* argv[]){
 }
 
 
-void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, long i)
+void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i)
 {
     static int count=-1;
     count++;
@@ -302,9 +301,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation universe, lo
 }
 
 template <typename T>
-void print_obs(ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream,
-               Triangulation& universe, long iter_from_beginning, long i, long j, long k, int profile_ratio, int gauge_ratio,
-               T& time_ref, float save_interval, int n_chkpt, vector<string>& chkpts)
+void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream,
+               Triangulation& universe, long iter_from_beginning, long& i, long& j, long& k, int profile_ratio, int gauge_ratio,
+               float save_interval, int n_chkpt, vector<string>& chkpts)
 {
     j++;
     k++;
@@ -312,17 +311,16 @@ void print_obs(ofstream& volume_stream, ofstream& profile_stream, ofstream& gaug
 
     if(j == profile_ratio){
         j = 0;
-        profile_stream << universe.iterations_done + i << " ";
+        profile_stream << iter_from_beginning << " ";
         universe.print_space_profile(profile_stream);
     }
     if(k == gauge_ratio){
         k = 0;
-//         gauge_stream << iter_from_beginning << " " << universe.total_gauge_action() << " " 
-//                         << universe.topological_charge() << endl;
+        gauge_stream << iter_from_beginning << " " << universe.total_gauge_action() << " " 
+                        << universe.topological_charge() << endl;
     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
-        gauge_stream << endl << from_last.count()/60 << endl;
         time_ref = chrono::system_clock::now();
         
         remove(chkpts[1].c_str());

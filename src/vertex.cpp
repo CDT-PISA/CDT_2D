@@ -219,14 +219,6 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
     
     Triangle *previous = edge_t[0];
     
-    if(debug_flag){
-        cout << "ciao 0 " << endl;
-        cout << previous->position() << endl;
-        cout << owner->list2.size() << endl;
-        cout << owner->list2[0]->id << endl;
-        cout << owner->beta << endl;
-        cout << *owner->list2[previous->position()].dync_triangle() << endl;
-    }
     int previous_idx = start->find_element(owner->list2[previous->position()], SimplexType::_triangle, debug_flag);
     
     if(debug_flag){

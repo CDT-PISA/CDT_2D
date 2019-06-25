@@ -25,6 +25,7 @@
 #include <cmath>
 #include <complex>
 #include <string>
+#include <algorithm>
 #include "randomgenerator.h"
 #include "triangulation.h"
 #include "vertex.h"
@@ -511,7 +512,7 @@ void Triangulation::print_space_profile(char orientation)
 // ##### OBSERVABLES #####
 
 /** @todo quella importante sarà quella che stampa su file, e lo farà stampando i numeri*/
-void Triangulation::print_space_profile(ofstream& output)
+void Triangulation::print_space_profile(ostream& output)
 {
     for(auto x : spatial_profile)
         output << x << " ";
@@ -674,15 +675,20 @@ void Triangulation::load(ifstream& input)
     int TimeLength;
     input.read((char*)&TimeLength, sizeof(TimeLength));
     
-    spatial_profile.resize(TimeLength);
-    
     // space profile
+    spatial_profile.clear();
+    spatial_profile.resize(TimeLength);
+    fill(spatial_profile.begin(), spatial_profile.end(), 0);
+
     for(auto x : list0){
         Vertex v = *x.dync_vertex();
         spatial_profile[v.time()]++;
     }
     
     // transition lists
+    transition1221.clear();
+    transition2112.clear();
+    
     for(auto x : list2){
         Triangle tri = *x.dync_triangle();
         
@@ -706,7 +712,10 @@ void Triangulation::load(ifstream& input)
      
     // set ownership
     
+    cout << *this << endl;
+    
     for(auto x : list0){
+        cout << *x.dync_vertex() << *x.dync_vertex()->near_t.dync_triangle();
         x->owner = this;
     }
     for(auto x : list1){
