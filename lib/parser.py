@@ -228,31 +228,9 @@ def define_parser(launcher_path, version):
                           (the '-' in front is not needed)")
     stop_sub.add_argument('-c', '--config', choices=configs, default='test',
                           help='config')
-    stop_sub.add_argument('--pid', type=int, default=None,
+    stop_sub.add_argument('--pid', nargs='+', type=int, default=None,
                           help='hard kill with PID')
     stop_sub.add_argument('-f', '--force', action='store_true', help='force')
-
-    # show command
-
-    show_sub = subparsers.add_parser('show', help='show')
-    show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                          help='λ values')
-    show_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                          help='β values')
-    lambdas = show_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
-    lambdas.add_argument('-°', dest='is_all', action='store_true',
-                         help="all (the '-' in front is not needed)")
-    show_sub.add_argument('-@', dest='is_data', action='store_true',
-                          help="data configuration flag \
-                          (the '-' in front is not needed)")
-    show_sub.add_argument('-c', '--config', choices=configs, default='test',
-                          help='config')
-    show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
-                          action='store_const', help='show disk usage')
-    show_sub.add_argument('-n', '--number', dest='disk_usage', const='num',
-                          action='store_const', help='show number of files')
 
     # plot command
 
@@ -279,9 +257,37 @@ def define_parser(launcher_path, version):
     plot_sub.add_argument('-c', '--config', choices=configs, default='test',
                           help='config')
 
+    # show command
+
+    show_sub = subparsers.add_parser('show', help='show')
+    show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
+                          help='λ values')
+    show_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                          help='β values')
+    lambdas = show_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
+                         help='range')
+    lambdas.add_argument('-°', dest='is_all', action='store_true',
+                         help="all (the '-' in front is not needed)")
+    show_sub.add_argument('-@', dest='is_data', action='store_true',
+                          help="data configuration flag \
+                          (the '-' in front is not needed)")
+    show_sub.add_argument('-c', '--config', choices=configs, default='test',
+                          help='config')
+    show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
+                          action='store_const', help='show disk usage')
+    show_sub.add_argument('-n', '--number', dest='disk_usage', const='num',
+                          action='store_const', help='show number of files')
+
+    # utilities subparser
+
+    tools = subparsers.add_parser('tools', help='tools for simulation\
+                                  management')
+    tools_sub = tools.add_subparsers(dest='tools')
+
     # fit command
 
-    fit_sub = subparsers.add_parser('fit', help='fit')
+    fit_sub = tools_sub.add_parser('fit', help='fit')
     fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help='λ values')
     fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
@@ -297,12 +303,6 @@ def define_parser(launcher_path, version):
     fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                          help='config')
     fit_sub.add_argument('-s', '--skip', action='store_true', help='skip')
-
-    # utilities subparser
-
-    tools = subparsers.add_parser('tools', help='tools for simulation\
-                                  management')
-    tools_sub = tools.add_subparsers(dest='tools')
 
     # recovery command
 

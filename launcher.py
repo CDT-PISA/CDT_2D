@@ -32,12 +32,12 @@ def state(configs, full_show=False):
     from lib.data import show_state
     show_state(configs, full_show)
 
-def stop(points_old, points_new, config, is_all, pid, force):
+def stop(points_old, points_new, config, is_all, pids, force):
     from lib.data import stop
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
-    stop(points_old, config, is_all, pid, force)
+    stop(points_old, config, is_all, pids, force)
 
 # Useful offline
 
@@ -189,6 +189,10 @@ def main():
     if len(sys.argv) < 2:
         parser.print_usage()
         print("Try 'launcher.py -h/--help' for more information.")
+        return
+    elif sys.argv[1] == 'tools' and len(sys.argv) == 2:
+        print('usage: launcher.py tools [-h] {sub}')
+        print("Try 'launcher.py tools -h/--help' for more information.")
         return
 
     # Input file management

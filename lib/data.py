@@ -322,7 +322,7 @@ def show_state(configs, full_show=False):
         clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
         print('\n [CLOCK: ' + clock + ']')
 
-def stop(points_old, config, is_all, pid, force):
+def stop(points_old, config, is_all, pids, force):
     # @todo: distinguere fra processi 'data' e 'test'
     # si fa con un argomento config che viene da args.is_data
     from os import environ, system, popen
@@ -332,21 +332,23 @@ def stop(points_old, config, is_all, pid, force):
     points_run, sim_info = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
 
-    pids = [ps_i[2] for ps_i in sim_info]
+    running_pids = [ps_i[2] for ps_i in sim_info]
 
-    if pid in pids or force:
-        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-        for line in ps_out[1:-1]:
-            infos = line.split()
-            ps_pid = int(infos[1])
-            ps_ppid = int(infos[2])
-            if ps_pid == pid or ps_ppid == pid:
-                if ps_ppid != 1:
-                    system('kill ' + str(ps_ppid))
-                system('kill ' + str(ps_pid))
-        return
-    else:
-        print('Invalid PID, there is no running simulation with that one.')
+    for pid in pids:
+        if pid in running_pids or force:
+            ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
+            for line in ps_out[1:-1]:
+                infos = line.split()
+                ps_pid = int(infos[1])
+                ps_ppid = int(infos[2])
+                if ps_pid == pid or ps_ppid == pid:
+                    if ps_ppid != 1:
+                        system('kill ' + str(ps_ppid))
+                    system('kill ' + str(ps_pid))
+        else:
+            print(f'Invalid PID: {pid}, ' +
+                   'there is no running simulation with that one.')
+    if pids:
         return
 
     try:
