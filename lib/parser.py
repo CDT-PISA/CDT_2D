@@ -64,8 +64,20 @@ def define_parser(launcher_path, version):
         configs = [x.name for x in scandir('output') if x.is_dir()]
     else:
         configs = []
+    # ┏━━━━━━━━━━━━━━━━┓
+    # ┗━━━━━━━━━━━━━━━━┛
 
-    parser = argparse.ArgumentParser(description='Manage CDT_2D simulations.')
+    msg = cleandoc("""
+    ┎────────────────┒
+    ┃ CDT2D LAUNCHER ┃
+    ┖────────────────┚
+    Manage CDT_2D simulations.
+
+    To show the help of subcommand 'sub' run:
+        launcher.py sub -h""")
+
+    parser = argparse.ArgumentParser(description=msg,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('--version', action='version', version='CDT_2D ' +
                         'Gauge Fields: ' + version)

@@ -186,6 +186,11 @@ def main():
 
     parser, file_commands = lib.parser.define_parser(__file__, __version__)
 
+    if len(sys.argv) < 2:
+        parser.print_usage()
+        print("Try 'launcher.py -h/--help' for more information.")
+        return
+
     # Input file management
     try:
         # at the present time input files are available only for run command
