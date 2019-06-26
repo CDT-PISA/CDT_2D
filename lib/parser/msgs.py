@@ -6,19 +6,32 @@ from inspect import cleandoc
 
 # GLOBAL
 
-lamda = """λ values"""
+lamda = """λ value. It also accepts a list as input. If --range is available the
+meaning of the list depend on its presence and value (default: it is interpreted
+barely as a list)."""
 
-beta = """β values"""
+beta = """β value. It also accepts a list as input. If --range is available the
+meaning of the list depend on its presence and value (default: it is interpreted
+barely as a list)."""
 
-range = """range"""
+range = """it controls the meaning of parameters' lists. If the letter
+corresponding is present in its argument the list is interpreted as range: a
+list of 3 elements will be read as (start, stop, num), one with 2 elements
+as (start, stop), and it will search for existing simulations in this
+interval"""
 
-config = """config"""
+config = """select the configuration for all simulations. Each simulation
+belongs to a configuration even if it was not specified (the default one is
+called 'test')"""
 
-data = """data configuration flag (the '-' in front is not needed)"""
+data = """data configuration flag (the '-' in front is not needed). It's a
+shortcut for '--config data'."""
 
-force = """force"""
+force = """force the command to do what is requested for, without asking for
+confirmation, or making less controls"""
 
-is_all = """all (the '-' in front is not needed)"""
+is_all = """all (the '-' in front is not needed). Select all the existing
+simulations."""
 
 # RUN
 
@@ -31,10 +44,14 @@ Used to launch CDT simulations:
       number
     - β is $ N/g_ym^2 $, and it must be strictly positive
 
+If more than one λ or β are given the simulations who will be launched
+correspond to the grid with those projections.
+
 Example:
     cdt2d run -l -1. -b .5""")
 
-timelength = """set timelength"""
+timelength = """set timelength of the triangulation (it is meaningful only for
+the first run, from the second on the same of the first is used)"""
 
 fake_run = """if toggled prevents the simulation to start and instead prints
 the command that would be run otherwise"""
@@ -63,7 +80,8 @@ Used to control the status of the running simulations.
 Example:
     cdt2d state""")
 
-full_show = """full-show"""
+full_show = """shows more infos about simulations. The value specifies which
+supplement infos to show (default is 1)."""
 
 # STOP
 
