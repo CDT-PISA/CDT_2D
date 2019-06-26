@@ -6,6 +6,7 @@ from os import chdir, getcwd, scandir
 from os.path import dirname, realpath, exists, isdir
 from inspect import cleandoc
 import argparse
+import lib.parser.msgs
 
 def update_cmds(cmds, subp_cmd):
     """Updates commands' dictionary, checking for keys' conflicts.
@@ -57,6 +58,7 @@ def define_parser(launcher_path, version):
     dict
         The dictionary of commands to decode file inputs.
     """
+
     starting_cwd = getcwd()
     chdir(dirname(realpath(launcher_path)))
 
@@ -109,61 +111,33 @@ def define_parser(launcher_path, version):
                'STEPS': '--steps'}
     cmds = update_cmds(cmds, run_cmd)
 
-    msg = cleandoc("""
-    ┌───────────┐
-    │RUN COMMAND│
-    └───────────┘
-    Used to launch CDT simulations:
-        - λ is approximately the cosmological constant, and can be any real
-          number
-        - β is $ N/g_ym^2 $, and it must be strictly positive
-
-    Example:
-        cdt2d run -l -1. -b .5""")
-
-    run_sub = subparsers.add_parser('run', help='run', description=msg,
+    run_sub = subparsers.add_parser('run', help='run', description=msgs.run,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     run_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
-                         help='λ values')
+                         help=msgs.lamda)
     run_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                         required=True, help='β values')
+                         required=True, help=msgs.beta)
     run_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     run_sub.add_argument('-@', dest='is_data', action='store_true',
-                         help="data configuration flag \
-                         (the '-' in front is not needed)")
+                         help=msgs.data)
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
-                         help='config')
-    run_sub.add_argument('-f', '--force', action='store_true', help='force')
-    run_sub.add_argument('--timelength', nargs=1, type=int,
-                         default=80, help='set timelength')
+                         help=msgs.config)
+    run_sub.add_argument('-f', '--force', action='store_true', help=msgs.force)
+    run_sub.add_argument('--timelength', nargs=1, type=int, default=80,
+                         help=msgs.timelength)
     run_sub.add_argument('-d', '--debug', action='store_true', help='debug')
     run_sub.add_argument('-k', '--fake-run', action='store_true',
-                         help="if toggled prevents the simulation to start \
-                         and instead prints the command that would be run \
-                         otherwise")
+                         help=msgs.fake_run)
     run_sub.add_argument('--lin', '--linear-history', dest='linear_history',
-                         default='0',
-                         help="it takes an integer argument, that if set \
-                         greater then zero let data points be saved at regular \
-                         intervals, instead of at increasing ones (units: \
-                         {k,M,G}) | ex: --linear-history 2k")
+                         default='0', help=msgs.linear_history)
     # run_sub.add_argument('--log-history', dest='linear_history',
     #               action='store_false',
     #               help="if set data points are saved at increasing intervals")
     end_conditions = run_sub.add_mutually_exclusive_group()
-    end_conditions.add_argument('--time', default='30m',
-                                help='if set it specifies the duration of the \
-                                run (default: 30 minutes, units: {s,m,h}) | \
-                                ex: --time 2h')
-    end_conditions.add_argument('--steps', default='0',
-                                help='if set it specifies the length of the \
-                                run in MC steps (is not the default, units: \
-                                | ex: --steps 200M')
-    run_sub.add_argument('--file', help="launch simulation from config file: \
-                          launch with '?' to show the help, else give the \
-                          relative path of a valid CDT_2D valid from your \
-                          PWD")
+    end_conditions.add_argument('--time', default='30m', help=msgs.time)
+    end_conditions.add_argument('--steps', default='0', help=msgs.steps)
+    run_sub.add_argument('--file', help=msgs.file)
 
     # state command
     class ToggleChoiceAction(argparse.Action):
@@ -179,306 +153,292 @@ def define_parser(launcher_path, version):
             else:
                 setattr(namespace, self.dest, values)
 
-    msg = cleandoc("""
-    ┌─────────────┐
-    │STATE COMMAND│
-    └─────────────┘
-    Used to control the status of the running simulations.
-
-    Example:
-        cdt2d state""")
-
-    state_sub = subparsers.add_parser('state', help='state', description=msg,
+    state_sub = subparsers.add_parser('state', help='state',
+                        description=msgs.state,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     state_sub.add_argument('-@', dest='is_data', action='store_true',
-                           help="data configuration flag \
-                           (the '-' in front is not needed)")
+                           help=msgs.data)
     state_sub.add_argument('-c', '--config', choices=configs, default=configs,
                            ifcall='test', action=ToggleChoiceAction,
-                           help='config')
+                           help=msgs.config)
     state_sub.add_argument('-f', '--full-show', choices=['1', '2'], default='0',
                            ifcall='1', action=ToggleChoiceAction,
-                           help='full-show')
+                           help=msgs.full_show)
 
     # stop command
 
-    msg = cleandoc("""
-    ┌────────────┐
-    │STOP COMMAND│
-    └────────────┘
-    Used to stop a running simulations.
-
-    Example:
-        cdt2d stop -l -1. -b .5
-    to stop all running simulations in the chosen config:
-        cdt2d stop °""")
-
-    stop_sub = subparsers.add_parser('stop', help='stop', description=msg,
+    stop_sub = subparsers.add_parser('stop', help='stop', description=msgs.stop,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     points = stop_sub.add_argument_group()
-    points.add_argument('-l', '--lamda', nargs='+', type=float, help='λ values')
+    points.add_argument('-l', '--lamda', nargs='+', type=float, help=msgs.lamda)
     points.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                        help='β values')
+                        help=msgs.beta)
     points.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     points.add_argument('-°', dest='is_all', action='store_true',
-                         help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     stop_sub.add_argument('-@', dest='is_data', action='store_true',
-                          help="data configuration flag \
-                          (the '-' in front is not needed)")
+                          help=msgs.data)
     stop_sub.add_argument('-c', '--config', choices=configs, default='test',
-                          help='config')
+                          help=msgs.config)
     stop_sub.add_argument('--pid', nargs='+', type=int, default=None,
-                          help='hard kill with PID')
-    stop_sub.add_argument('-f', '--force', action='store_true', help='force')
+                          help=msgs.pid)
+    stop_sub.add_argument('-f', '--force', action='store_true', help=msgs.force)
 
     # plot command
 
-    msg = cleandoc("""
-    ┌────────────┐
-    │PLOT COMMAND│
-    └────────────┘
-    Used to plot the volume history of a simulation.
-
-    Example:
-        cdt2d plot -l -1. -b .5""")
-
-    plot_sub = subparsers.add_parser('plot', help='plot', description=msg,
+    plot_sub = subparsers.add_parser('plot', help='plot', description=msgs.plot,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     plot_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                          required=True, help='λ values')
+                          required=True, help=msgs.lamda)
     plot_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                          required=True, help='β values')
+                          required=True, help=msgs.beta)
     plot_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                          help='range')
+                          help=msgs.range)
     plot_sub.add_argument('-@', dest='is_data', action='store_true',
-                          help="data configuration flag \
-                          (the '-' in front is not needed)")
+                          help=msgs.data)
     plot_sub.add_argument('-c', '--config', choices=configs, default='test',
-                          help='config')
+                          help=msgs.config)
 
     # show command
 
-    show_sub = subparsers.add_parser('show', help='show')
+    show_sub = subparsers.add_parser('show', help='show', description=msgs.show,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                          help='λ values')
+                          help=msgs.lamda)
     show_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                          help='β values')
+                          help=msgs.beta)
     lambdas = show_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                         help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     show_sub.add_argument('-@', dest='is_data', action='store_true',
-                          help="data configuration flag \
-                          (the '-' in front is not needed)")
+                          help=msgs.data)
     show_sub.add_argument('-c', '--config', choices=configs, default='test',
-                          help='config')
+                          help=msgs.config)
     show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
-                          action='store_const', help='show disk usage')
+                          action='store_const', help=msgs.disk_usage)
     show_sub.add_argument('-n', '--number', dest='disk_usage', const='num',
-                          action='store_const', help='show number of files')
+                          action='store_const', help=msgs.disk_number)
 
     # utilities subparser
 
-    tools = subparsers.add_parser('tools', help='tools for simulation\
-                                  management')
+    tools = subparsers.add_parser('tools', help=msgs.tools)
     tools_sub = tools.add_subparsers(dest='tools')
-
-    # fit command
-
-    fit_sub = tools_sub.add_parser('fit', help='fit')
-    fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
-                         help='λ values')
-    fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                         required=True, help='β values')
-    lambdas = fit_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
-    lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
-    fit_sub.add_argument('-@', dest='is_data', action='store_true',
-                         help="data configuration flag \
-                         (the '-' in front is not needed)")
-    fit_sub.add_argument('-c', '--config', choices=configs, default='test',
-                         help='config')
-    fit_sub.add_argument('-s', '--skip', action='store_true', help='skip')
 
     # recovery command
 
-    recovery_sub = tools_sub.add_parser('recovery', help='recovery')
+    recovery_sub = tools_sub.add_parser('recovery', help='recovery',
+                        description=msgs.recovery,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     recovery_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                              required=True, help='λ values')
+                              required=True, help=msgs.lamda)
     recovery_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                              required=True, help='β values')
+                              required=True, help=msgs.beta)
     lambdas = recovery_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     recovery_sub.add_argument('-@', dest='is_data', action='store_true',
-                              help="data configuration flag \
-                              (the '-' in front is not needed)")
+                              help=msgs.data)
     recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
-                              help='config')
+                              help=msgs.config)
     recovery_sub.add_argument('-f', '--force', action='store_true',
-                              help='force')
+                              help=msgs.force)
     recovery_sub.add_argument('-F', '--FORCE', action='store_true',
-                              help='very forced')
+                              help=msgs.very_force)
 
     # info command
 
-    info_sub = tools_sub.add_parser('info', help='info on a sim')
+    info_sub = tools_sub.add_parser('info', help='info on a sim',
+                        description=msgs.info,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     info_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                          required=True, help='λ values')
+                          required=True, help=msgs.lamda)
     info_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                          required=True, help='β values')
+                          required=True, help=msgs.beta)
     info_sub.add_argument('-@', dest='is_data', action='store_true',
-                          help="data configuration flag \
-                          (the '-' in front is not needed)")
+                          help=msgs.data)
     info_sub.add_argument('-c', '--config', choices=configs, default='test',
-                          help='config')
+                          help=msgs.config)
 
     # thermalization command
 
-    therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation')
+    therm_sub = tools_sub.add_parser('set-therm', help='set thermalisation',
+                        description=msgs.therm,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     therm_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                           required=True, help='λ values')
+                           required=True, help=msgs.lamda)
     therm_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                           required=True, help='β values')
+                           required=True, help=msgs.beta)
     therm_sub.add_argument('-@', dest='is_data', action='store_true',
-                           help="data configuration flag \
-                           (the '-' in front is not needed)")
+                           help=msgs.data)
     therm_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
-    therm_sub.add_argument('-f', '--force', action='store_true', help='force')
+                           help=msgs.config)
+    therm_sub.add_argument('-f', '--force', action='store_true',
+                           help=msgs.force)
     therm_sub.add_argument('-t', '--is-therm', default='True',
-                           choices=['True', 'False'], help='thermalization')
+                           choices=['True', 'False'], help=msgs.is_therm)
 
-    # launcher update command
+    # update launcher command
 
     launch_sub = tools_sub.add_parser('up-launch',
-                                      help='update launch/make_script')
+                  help='update launch/make_script', description=msgs.up_launch,
+                  formatter_class=argparse.RawDescriptionHelpFormatter)
     launch_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help='λ values')
+                            required=True, help=msgs.lamda)
     launch_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help='β values')
+                            required=True, help=msgs.beta)
     lambdas = launch_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     launch_sub.add_argument('-@', dest='is_data', action='store_true',
-                            help="data configuration flag \
-                            (the '-' in front is not needed)")
+                            help=msgs.data)
     launch_sub.add_argument('-c', '--config', choices=configs, default='test',
-                            help='config')
-    launch_sub.add_argument('-f', '--force', action='store_true', help='force')
+                            help=msgs.config)
+    launch_sub.add_argument('-f', '--force', action='store_true',
+                            help=msgs.force)
     script = launch_sub.add_mutually_exclusive_group()
-    script.add_argument('-m', '--make', action='store_true',
-                        help='update make_script instead')
-    script.add_argument('--both', action='store_true',
-                        help='update both launch_script and make_script')
+    script.add_argument('-m', '--make', action='store_true', help=msgs.make)
+    script.add_argument('--both', action='store_true', help=msgs.both)
 
     # autoremove command
 
-    remove_sub = tools_sub.add_parser('autoremove', help='autoremove')
+    remove_sub = tools_sub.add_parser('autoremove', help='autoremove',
+                        description=msgs.autoremove,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     remove_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help='λ values')
+                            required=True, help=msgs.lamda)
     remove_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help='β values')
+                            required=True, help=msgs.beta)
     lambdas = remove_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     remove_sub.add_argument('-@', dest='is_data', action='store_true',
-                            help="data configuration flag \
-                            (the '-' in front is not needed)")
+                            help=msgs.data)
     remove_sub.add_argument('-c', '--config', choices=configs, default='test',
-                            help='config')
-    remove_sub.add_argument('-f', '--force', action='store_true', help='force')
+                            help=msgs.config)
+    remove_sub.add_argument('-f', '--force', action='store_true',
+                            help=msgs.force)
     what = remove_sub.add_mutually_exclusive_group()
     what.add_argument('--bin', ifcall='0', action=ToggleChoiceAction,
-                      help='remove older bins')
+                      help=msgs.bin)
     what.add_argument('--check', ifcall='0', action=ToggleChoiceAction,
-                      help='remove older checkpoints')
+                      help=msgs.check)
 
     # upload/download command
 
-    remote_sub = tools_sub.add_parser('remote',
-                                      help='upload/download sim dirs')
+    remote_sub = tools_sub.add_parser('remote', help='upload/download sim dirs',
+                        description=msgs.remote,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     remote_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help='λ values')
+                            required=True, help=msgs.lamda)
     remote_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help='β values')
+                            required=True, help=msgs.beta)
     lambdas = remote_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     remote_sub.add_argument('-@', dest='is_data', action='store_true',
-                            help="data configuration flag \
-                            (the '-' in front is not needed)")
+                            help=msgs.data)
     remote_sub.add_argument('-c', '--config', choices=configs, default='test',
-                            help='config')
-    remote_sub.add_argument('-f', '--force', action='store_true', help='force')
-    load = remote_sub.add_mutually_exclusive_group()
+                            help=msgs.config)
+    remote_sub.add_argument('-f', '--force', action='store_true',
+                            help=msgs.force)
+    load = remote_sub.add_mutually_exclusive_group(required=True)
     load.add_argument('-u', '--upload', action='store_true',
-                      help='update make_script instead')
+                      help=msgs.upload)
     load.add_argument('-d', '--download', action='store_true',
-                      help='update both launch_script and make_script')
+                      help=msgs.download)
     load.add_argument('-s', '--show', action='store_true',
-                      help='show list of sims on remote')
+                      help=msgs.remote_show)
 
     # config command
 
-    config_sub = tools_sub.add_parser('config', help='edit project\'s \
-                                      configuration file')
+    config_sub = tools_sub.add_parser('config',
+        help='edit project\'s configuration file', description=msgs.config_cmd,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     configs_arg = config_sub.add_mutually_exclusive_group()
     configs_arg.add_argument('-e', '--email', action=ToggleChoiceAction,
                              default=None, ifcall='-',
-                             help='set receiver email')
+                             help=msgs.email)
     configs_arg.add_argument('-r', '--remote', action=ToggleChoiceAction,
-                             default=None, ifcall='-', help='set rclone remote')
+                             default=None, ifcall='-', help=msgs.rclone_remote)
     configs_arg.add_argument('-p', '--path', action=ToggleChoiceAction,
-                             default=None, ifcall='-', help='set rclone path')
+                             default=None, ifcall='-', help=msgs.rclone_path)
     configs_arg.add_argument('-n', '--node', action=ToggleChoiceAction,
-                             default=None, ifcall='-', help='set node name')
+                             default=None, ifcall='-', help=msgs.node)
     config_sub.add_argument('-s', '--show', action='store_true',
-                            help='show config_file')
+                            help=msgs.show_config)
 
     # new configuration command
 
-    new_conf_sub = tools_sub.add_parser('new-conf', help='create new config')
+    new_conf_sub = tools_sub.add_parser('new-conf', help='create new config',
+                      description=msgs.new_conf,
+                      formatter_class=argparse.RawDescriptionHelpFormatter)
     new_conf_sub.add_argument('name', nargs=1, type=str)
 
     # reset configuration command
 
     reset_conf_sub = tools_sub.add_parser('reset',
-                                          help='reset or delete config')
+                      help='reset or delete config', description=msgs.reset,
+                      formatter_class=argparse.RawDescriptionHelpFormatter)
     reset_conf_sub.add_argument('name', choices=configs)
     reset_conf_sub.add_argument('-d', '--delete', action='store_true',
-                                help='defintely delete config')
+                                help=msgs.delete)
 
     # clear command
 
-    clear_sub = tools_sub.add_parser('clear', help='clear')
+    clear_sub = tools_sub.add_parser('clear', help='clear',
+                        description=msgs.clear,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
     clear_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                           required=True, help='λ values')
+                           required=True, help=msgs.lamda)
     clear_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                           required=True, help='β values')
+                           required=True, help=msgs.beta)
     lambdas = clear_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help='range')
+                         help=msgs.range)
     lambdas.add_argument('-°', dest='is_all', action='store_true',
-                                    help="all (the '-' in front is not needed)")
+                         help=msgs.is_all)
     clear_sub.add_argument('-@', dest='is_data', action='store_true',
-                           help="data configuration flag \
-                           (the '-' in front is not needed)")
+                           help=msgs.data)
     clear_sub.add_argument('-c', '--config', choices=configs, default='test',
-                           help='config')
-    clear_sub.add_argument('-f', '--force', action='store_true', help='force')
+                           help=msgs.config)
+    clear_sub.add_argument('-f', '--force', action='store_true',
+                           help=msgs.force)
+
+    # analysis subparser
+
+    analysis = subparsers.add_parser('analysis', help=msgs.analysis)
+    analysis_sub = analysis.add_subparsers(dest='analysis')
+
+    # fit command
+
+    fit_sub = analysis_sub.add_parser('fit', help='fit',
+                        description=msgs.fit,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
+                         help=msgs.lamda)
+    fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                         required=True, help=msgs.beta)
+    lambdas = fit_sub.add_mutually_exclusive_group()
+    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
+                         help=msgs.range)
+    lambdas.add_argument('-°', dest='is_all', action='store_true',
+                         help=msgs.is_all)
+    fit_sub.add_argument('-@', dest='is_data', action='store_true',
+                         help=msgs.data)
+    fit_sub.add_argument('-c', '--config', choices=configs, default='test',
+                         help=msgs.config)
+    fit_sub.add_argument('-s', '--skip', action='store_true', help=msgs.skip)
 
     chdir(starting_cwd)
 
