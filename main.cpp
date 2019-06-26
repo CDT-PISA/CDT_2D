@@ -165,7 +165,7 @@ int main(int argc, char* argv[]){
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
         
-        if( run_id != "1" ){
+        if( run_id != "1" and i%int(2e5)==0){
             cout << "limited_step: " << limited_step << "last_step: " << last_step << "i: " << i << endl;
             cout << "size: " << universe.list2.size() << endl;
         }

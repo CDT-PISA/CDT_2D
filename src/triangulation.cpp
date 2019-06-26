@@ -712,10 +712,9 @@ void Triangulation::load(ifstream& input)
      
     // set ownership
     
-    cout << *this << endl;
+//    cout << *this << endl;
     
     for(auto x : list0){
-        cout << *x.dync_vertex() << *x.dync_vertex()->near_t.dync_triangle();
         x->owner = this;
     }
     for(auto x : list1){
