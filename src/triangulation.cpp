@@ -420,6 +420,7 @@ void Triangulation::remove_edge(Label lab_e)
             e_lab->v[i] = lab;
         }
         e_lab->near_t = lab;
+        e_lab->U.base_edge = lab;
         
         list1.pop_back();
     }
