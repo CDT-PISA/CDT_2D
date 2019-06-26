@@ -397,7 +397,7 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     delta_Sg += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) *beta_N;
     
     double reject_trial = r.next();
-    double reject_ratio = min(1.0,static_cast<double>(num_t)/(num_t + x));
+    double reject_ratio = min(1.0,exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
     
     if(reject_trial > reject_ratio)
         return; // if not rejected goes on, otherwise it returns with nothing done
