@@ -672,12 +672,39 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Edge* e_lab4 = lab_e4.dync_edge();   //        * *       
                                          //         *        
     
+    double plaq_contrib_0_bef = v_lab0->action_contrib();
+    double plaq_contrib_1_bef = v_lab1->action_contrib();
+    double plaq_contrib_2_bef = v_lab2->action_contrib();
+    double plaq_contrib_3_bef = v_lab3->action_contrib();
+
+
+    double dS_plaq_contrib_0_bef = plaq_contrib_0_bef/v_lab0->coord_num;
+    double dS_plaq_contrib_1_bef = plaq_contrib_1_bef/v_lab1->coord_num;
+    double dS_plaq_contrib_2_bef = plaq_contrib_2_bef/v_lab2->coord_num;
+    double dS_plaq_contrib_3_bef = plaq_contrib_3_bef/v_lab3->coord_num;
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
-    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    GaugeElement gt0(e_lab0->gauge_element());
+    tri_lab0->gauge_transform(gt0);
+
+
+    double plaq_contrib_0_interm = v_lab0->action_contrib();
+    double plaq_contrib_1_interm = v_lab1->action_contrib();
+    double plaq_contrib_2_interm = v_lab2->action_contrib();
+    double plaq_contrib_3_interm = v_lab3->action_contrib();
+
+    if(   abs(plaq_contrib_0_interm-plaq_contrib_0_bef)>1e-10
+       or abs(plaq_contrib_1_interm-plaq_contrib_1_bef)>1e-10    
+       or abs(plaq_contrib_2_interm-plaq_contrib_2_bef)>1e-10    
+       or abs(plaq_contrib_3_interm-plaq_contrib_3_bef)>1e-10    
+            ){
+        throw runtime_error("gauge_transform inconsistent (interm)");
+    }
+
     
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
+    double Sbef = total_gauge_action();
     delta_Sg_hat += (v_lab1->action_contrib(debug_flag) / v_lab1->coordination()) * beta_N;
     delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
     delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
@@ -693,6 +720,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     
     if(reject_trial > reject_ratio){
+        tri_lab0->gauge_transform(gt0.dagger());
         if(debug_flag){
             cout << endl;
         }
@@ -851,7 +879,6 @@ void Triangulation::move_24(int cell, bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
-    
     // ___ extraction of GaugeElement on link 6 ___
     e_lab6->U.heatbath(Force, debug_flag);
     /* the other links don't need to be extracted:
@@ -864,6 +891,48 @@ void Triangulation::move_24(int cell, bool debug_flag)
      */
     
     // ----- END MOVE -----
+
+    double plaq_contrib_0_aft = v_lab0->action_contrib();
+    double plaq_contrib_1_aft = v_lab1->action_contrib();
+    double plaq_contrib_2_aft = v_lab2->action_contrib();
+    double plaq_contrib_3_aft = v_lab3->action_contrib();
+
+    if(   abs(plaq_contrib_0_aft-plaq_contrib_0_bef)>1e-10
+       or abs(plaq_contrib_2_aft-plaq_contrib_2_bef)>1e-10    
+       or abs(plaq_contrib_3_aft-plaq_contrib_3_bef)>1e-10    
+            ){
+        cout<<"plaq contribs:"<<endl;
+        cout<<"id bef  aft"<<endl;
+        cout<<0<<" "<<plaq_contrib_0_bef<<" "<<plaq_contrib_0_aft<<endl;
+        cout<<2<<" "<<plaq_contrib_2_bef<<" "<<plaq_contrib_2_aft<<endl;
+        cout<<3<<" "<<plaq_contrib_3_bef<<" "<<plaq_contrib_3_aft<<endl;
+        throw runtime_error("gauge_transform inconsistent (aft)");
+    }
+
+    double dS_plaq_contrib_0_aft = plaq_contrib_0_aft/v_lab0->coord_num;
+    double dS_plaq_contrib_1_aft = plaq_contrib_1_aft/v_lab1->coord_num;
+    double dS_plaq_contrib_2_aft = plaq_contrib_2_aft/v_lab2->coord_num;
+    double dS_plaq_contrib_3_aft = plaq_contrib_3_aft/v_lab3->coord_num;
+    double dS_plaq_contrib_4_aft = v_lab4->action_contrib()/v_lab4->coord_num;
+
+    cout<<"dS_plaq_contribs:"<<endl;
+    cout<<"id dS_plaq"<<endl;
+    cout<<"0 "<<(dS_plaq_contrib_0_aft-dS_plaq_contrib_0_bef)*beta_N<<endl;
+    cout<<"1 "<<(dS_plaq_contrib_1_aft-dS_plaq_contrib_1_bef)*beta_N<<endl;
+    cout<<"2 "<<(dS_plaq_contrib_2_aft-dS_plaq_contrib_2_bef)*beta_N<<endl;
+    cout<<"3 "<<(dS_plaq_contrib_3_aft-dS_plaq_contrib_3_bef)*beta_N<<endl;
+    cout<<"4 "<<(dS_plaq_contrib_4_aft)*beta_N<<endl;
+    double dS_plaq_contrib_tot_aft = (dS_plaq_contrib_0_aft+dS_plaq_contrib_1_aft+dS_plaq_contrib_2_aft+dS_plaq_contrib_3_aft+dS_plaq_contrib_4_aft-(dS_plaq_contrib_0_bef+dS_plaq_contrib_1_bef+dS_plaq_contrib_2_bef+dS_plaq_contrib_3_bef))*beta_N;
+    cout<<"tot "<<dS_plaq_contrib_tot_aft<<endl;
+
+    double delta_Sg_force = - real((e_lab6->gauge_element() * Force).tr())*beta;
+    cout<<"tot+force "<<dS_plaq_contrib_tot_aft+delta_Sg_force<<endl;
+    double Saft = total_gauge_action();
+    double mag_force = abs(Force.tr());
+    double phase_force = arg(Force.tr());
+    double phase_link = arg(e_lab6->gauge_element().tr());
+    cout<<"phase_link = "<<phase_link<<"; mag_force = "<<mag_force<<"; phase_force = "<<phase_force<<endl;
+    cout<<"dS = "<<Saft-Sbef<<"; dS_hat = "<<delta_Sg_hat<<"; dS_force = "<<delta_Sg_force<<"; dS_tot = "<<delta_Sg_hat + delta_Sg_force<<endl;
     
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are inserted on the right, and transitions are represented by right members of the cell) */
 }
@@ -985,9 +1054,12 @@ void Triangulation::move_42(int cell, bool debug_flag)
     //  - the upper triangle with G, the gauge element on e0
     //  - the right triangle with G, the gauge element on e3
     // this element (G) will be transform with G.dagger()
-    tri_lab1->gauge_transform(e_lab1->gauge_element().dagger());
-    tri_lab0->gauge_transform(e_lab0->gauge_element());
-    tri_lab3->gauge_transform(e_lab3->gauge_element());
+    GaugeElement gt1(e_lab1->gauge_element().dagger());
+    GaugeElement gt0(e_lab0->gauge_element());
+    GaugeElement gt3(e_lab3->gauge_element());
+    tri_lab1->gauge_transform(gt1);
+    tri_lab0->gauge_transform(gt0);
+    tri_lab3->gauge_transform(gt3);
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge2_t[2] = {tri_lab2, tri_lab3};
@@ -1022,6 +1094,9 @@ void Triangulation::move_42(int cell, bool debug_flag)
     double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
     
     if(reject_trial > reject_ratio){
+        tri_lab1->gauge_transform(gt1.dagger());
+        tri_lab0->gauge_transform(gt0.dagger());
+        tri_lab3->gauge_transform(gt3.dagger());
         if(debug_flag){
             cout << endl;
         }
