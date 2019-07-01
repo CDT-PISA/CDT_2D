@@ -1,4 +1,11 @@
-/** @file */
+/** @file main.cpp
+ * # CDT 2D - gaugefields
+ * 
+ * This is the simulation program that realises MCMC for CDT simulations
+ * in the presence of gauge dynamics on the triangulation.
+ * 
+ * The algorithm used is a mixed one (Metropolis and heatbath).
+ */
 #include <iostream>
 #include <cstdio>
 #include <chrono>
@@ -9,6 +16,15 @@
 
 using namespace std;
 
+
+/**
+* @brief save wrapper for Triangulation's method
+* 
+* @param chkpts list of names for checkpoints
+* @param n_chkpt checkpoint's name position in chkpts
+* @param universe the triangulation
+* @param i current number of iterations
+*/
 void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i);
 
 template <typename T>
