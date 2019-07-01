@@ -712,8 +712,11 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
-    GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
+    GaugeElement Staple = v_lab1->looparound(edge0_t, true);
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
+    
+    cout << "STAPLE vs LOOPAROUND" << endl << Staple << real(Staple.tr()) << "   " << real(v_lab1->looparound(true).tr()) << endl;
+    cout << "edge["<< tri_lab1->e[2]->id <<"]: " << (tri_lab1->e[2].dync_edge()->U.tr()) << endl;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(volume) / (2*(num40+1)) ));

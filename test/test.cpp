@@ -75,14 +75,14 @@ int main(){
 //    cout<<"Q_f = "<<uni.topological_charge()<<endl;     
 
     for(int i=0; i<100; ++i){
-        cout<<10*i<<" "<<uni.topological_charge()<<endl;     
+        cout<<10*i<<" "<<uni.topological_charge()<<endl;
 
         if(i==50){
         
             for(auto& lb : uni.list1){
                 Edge * edg = lb.dync_edge();
-            GaugeElement gl(edg->U);
-            edg->U = gl.dagger();
+                GaugeElement gl(edg->U);
+                edg->U = gl.dagger();
             }
         }
 
