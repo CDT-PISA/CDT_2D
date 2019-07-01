@@ -468,7 +468,7 @@ void Triangulation::unitarize()
 /** @todo implementare quella carina orizzontale */
 void Triangulation::print_space_profile()
 {
-
+ 
 }
 
 void Triangulation::print_space_profile(char orientation)

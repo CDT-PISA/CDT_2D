@@ -705,17 +705,15 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     double Sbef = total_gauge_action();
-    delta_Sg_hat += ( v_lab1->action_contrib(debug_flag) / v_lab1->coordination() ) * beta_N;
-    delta_Sg_hat += ( v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
-    delta_Sg_hat += ( v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
-    delta_Sg_hat += beta_N / 4;
+    double delta_Sg_hat1 = ( v_lab1->action_contrib(debug_flag) / v_lab1->coordination() ) * beta_N;
+    double delta_Sg_hat2 = ( v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
+    double delta_Sg_hat3 = ( v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
+    delta_Sg_hat += delta_Sg_hat1 + delta_Sg_hat2 + delta_Sg_hat3 + beta_N / 4;
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
-    
-    cout << "STAPLE vs LOOPAROUND" << endl << real(Staple.tr()) << "   " << real(v_lab1->looparound().tr()) << endl;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(volume) / (2*(num40+1)) ));
@@ -935,6 +933,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double phase_link = arg(e_lab6->gauge_element().tr());
     cout<<"phase_link = "<<phase_link<<"; mag_force = "<<mag_force<<"; phase_force = "<<phase_force<<endl;
     cout<<"dS = "<<Saft-Sbef<<"; dS_hat = "<<delta_Sg_hat<<"; dS_force = "<<delta_Sg_force<<"; dS_tot = "<<delta_Sg_hat + delta_Sg_force<<endl;
+    
+    cout << "dS_hat1 = " << delta_Sg_hat1 <<" dS_hat2 = "<<delta_Sg_hat2<<" dS_hat3 = "<<delta_Sg_hat3<<endl;
+    
+    
     
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are inserted on the right, and transitions are represented by right members of the cell) */
 }
