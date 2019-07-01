@@ -308,13 +308,16 @@ GaugeElement GaugeElement::operator*(const complex<double>& alpha)
 
 GaugeElement GaugeElement::operator/(const complex<double>& alpha)
 {
+    GaugeElement aux;
+    aux = *this;
+    
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
-            this->mat[i][j] /= alpha;
+            aux.mat[i][j] = this->mat[i][j] / alpha;
         }
     }
     
-    return *this;
+    return aux;
 }
 
 GaugeElement GaugeElement::operator-()
