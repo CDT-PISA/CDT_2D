@@ -261,7 +261,7 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
 double Vertex::action_contrib(bool debug_flag)
 {
     GaugeElement Plaquette = this->looparound(debug_flag);
-    return 2 * ( Plaquette.N - real(Plaquette.tr()) );
+    return  real(Plaquette.tr()) - Plaquette.N;
 }
 
 // ##### FILE I/O #####
