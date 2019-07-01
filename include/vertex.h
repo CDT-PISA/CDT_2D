@@ -116,6 +116,9 @@ public:
      */
     GaugeElement looparound(Triangle *edge_t[2], bool debug_flag = false);
     
+    /**
+     * @brief correspond to \tilde{\Pi} in the original document
+     */
     double action_contrib(bool debug_flag = false);
     
     // ##### FILE I/O #####

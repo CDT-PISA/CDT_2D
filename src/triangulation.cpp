@@ -519,12 +519,12 @@ double Triangulation::total_gauge_action(bool debug_flag)
         if(debug_flag)
             cout << lab_v->position() << "\n"; cout.flush();
         
-        GaugeElement plaq = lab_v.dync_vertex()->looparound(debug_flag);
+        double contrib = lab_v.dync_vertex()->action_contrib(debug_flag);
         
         if(debug_flag)
             cout << lab_v->position() << "ciao\n"; cout.flush();
         
-        S += beta * N * real(-(plaq - 1).tr())/lab_v.dync_vertex()->coord_num;
+        S += - beta * N * contrib /lab_v.dync_vertex()->coord_num;
     }
     
     return S;
