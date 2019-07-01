@@ -679,8 +679,8 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     delta_Sg_hat += (v_lab1->action_contrib(debug_flag) / v_lab1->coordination()) * beta_N;
-    delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() + 1)*v_lab2->coordination()) * beta_N;
-    delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() + 1)*v_lab3->coordination()) * beta_N;
+    delta_Sg_hat += (v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
+    delta_Sg_hat += (v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
     delta_Sg_hat += beta_N / 4;
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
@@ -1003,8 +1003,8 @@ void Triangulation::move_42(int cell, bool debug_flag)
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     delta_Sg_hat -= ((real(Force.tr()) / Force.N  - 1) / v_lab1->coordination()) * beta_N;
-    delta_Sg_hat -= (v_lab2->action_contrib(debug_flag) / (v_lab2->coordination() - 1)*v_lab2->coordination()) * beta_N;
-    delta_Sg_hat -= (v_lab3->action_contrib(debug_flag) / (v_lab3->coordination() - 1)*v_lab3->coordination()) * beta_N;
+    delta_Sg_hat -= (v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
+    delta_Sg_hat -= (v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
     delta_Sg_hat -= beta_N / 4;
     // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
     // (because the "new" edges have id as gauge_element)

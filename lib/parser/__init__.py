@@ -111,7 +111,8 @@ def define_parser(launcher_path, version):
                'STEPS': '--steps'}
     cmds = update_cmds(cmds, run_cmd)
 
-    run_sub = subparsers.add_parser('run', help='run', description=msgs.run,
+    run_sub = subparsers.add_parser('run', help=msgs.run_h,
+                        description=msgs.run,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     run_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
                          help=msgs.lamda)
@@ -153,7 +154,7 @@ def define_parser(launcher_path, version):
             else:
                 setattr(namespace, self.dest, values)
 
-    state_sub = subparsers.add_parser('state', help='state',
+    state_sub = subparsers.add_parser('state', help=msgs.state_h,
                         description=msgs.state,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     state_sub.add_argument('-@', dest='is_data', action='store_true',
@@ -167,7 +168,8 @@ def define_parser(launcher_path, version):
 
     # stop command
 
-    stop_sub = subparsers.add_parser('stop', help='stop', description=msgs.stop,
+    stop_sub = subparsers.add_parser('stop', help=msgs.stop_h,
+                        description=msgs.stop,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     points = stop_sub.add_argument_group()
     points.add_argument('-l', '--lamda', nargs='+', type=float, help=msgs.lamda)
@@ -187,7 +189,8 @@ def define_parser(launcher_path, version):
 
     # plot command
 
-    plot_sub = subparsers.add_parser('plot', help='plot', description=msgs.plot,
+    plot_sub = subparsers.add_parser('plot', help=msgs.plot_h,
+                        description=msgs.plot,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     plot_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           required=True, help=msgs.lamda)
@@ -202,7 +205,8 @@ def define_parser(launcher_path, version):
 
     # show command
 
-    show_sub = subparsers.add_parser('show', help='show', description=msgs.show,
+    show_sub = subparsers.add_parser('show', help=msgs.show_h,
+                        description=msgs.show,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     show_sub.add_argument('-l', '--lamda', nargs='+', type=float,
                           help=msgs.lamda)

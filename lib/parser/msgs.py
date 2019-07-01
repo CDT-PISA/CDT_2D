@@ -35,6 +35,8 @@ simulations."""
 
 # RUN
 
+run_h = """launch single or multiple simulations"""
+
 run = cleandoc("""
 ┌───────────┐
 │RUN COMMAND│
@@ -71,6 +73,8 @@ else give the relative path of a valid CDT_2D valid from your PWD"""
 
 # STATE
 
+state_h = """show the state of running simulations"""
+
 state = cleandoc("""
 ┌─────────────┐
 │STATE COMMAND│
@@ -84,6 +88,8 @@ full_show = """shows more infos about simulations. The value specifies which
 supplement infos to show (default is 1)."""
 
 # STOP
+
+stop_h = """stops running simulations"""
 
 stop = cleandoc("""
 ┌────────────┐
@@ -100,6 +106,8 @@ pid = """hard kill with PID"""
 
 # PLOT
 
+plot_h = """plots the volume history"""
+
 plot = cleandoc("""
 ┌────────────┐
 │PLOT COMMAND│
@@ -110,6 +118,8 @@ Example:
     cdt2d plot -l -1. -b .5""")
 
 # SHOW
+
+show_h = """shows the existing simulations and basic infos"""
 
 show = cleandoc("""
 ┌────────────┐
@@ -128,7 +138,7 @@ disk_number = """show number of files"""
 #     TOOLS
 # --------------
 
-tools = """tools for simulation management"""
+tools = """further tools for simulations' management"""
 
 # RECOVERY
 
