@@ -519,12 +519,12 @@ double Triangulation::total_gauge_action(bool debug_flag)
         if(debug_flag)
             cout << lab_v->position() << "\n"; cout.flush();
         
-        double contrib = lab_v.dync_vertex()->action_contrib(debug_flag);
+        double contrib = lab_v.dync_vertex()->gauge_action_contrib(debug_flag);
         
         if(debug_flag)
             cout << lab_v->position() << "ciao\n"; cout.flush();
         
-        S += - beta * N * contrib /lab_v.dync_vertex()->coord_num;
+        S += - beta * N * contrib;
     }
     
     return S;
@@ -538,12 +538,34 @@ double Triangulation::topological_charge(bool debug_flag)
     double charge = 0;
     
     for(auto lab_v: list0){
-        GaugeElement plaq = lab_v.dync_vertex()->looparound(debug_flag);
+        GaugeElement Plaquette = lab_v.dync_vertex()->looparound(debug_flag);
         
-        charge += arg(plaq.tr()) / (2 * pi());
+        charge += arg(Plaquette.tr()) / (2 * pi());
     }
     
     return charge;
+}
+
+vector<double> Triangulation::gauge_action_top_charge(bool debug_flag)
+{
+    double S = 0;
+    double charge = 0;
+    
+    for(auto lab_v: list0){
+        if(debug_flag)
+            cout << lab_v->position() << endl;
+        vector<double> v_vert = lab_v.dync_vertex()->gauge_action_top_charge_densities(debug_flag);
+        
+        S += - (beta * N) * v_vert[0];
+        charge += v_vert[1];
+    }
+    
+    vector<double> v;
+    
+    v.push_back(S);
+    v.push_back(charge);
+    
+    return v;
 }
 
 

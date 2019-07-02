@@ -119,7 +119,16 @@ public:
     /**
      * @brief correspond to \tilde{\Pi} in the original document
      */
-    double action_contrib(bool debug_flag = false);
+    double Pi_tilde(bool debug_flag = false);
+    
+    /**
+     * @brief its the gauge action contribute of the Plaquette around the Vertex
+     */
+    double gauge_action_contrib(bool debug_flag = false);
+    
+    double topological_charge_density(bool debug_flag = false);
+    
+    vector<double> gauge_action_top_charge_densities(bool debug_flag = false);
     
     // ##### FILE I/O #####
     

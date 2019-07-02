@@ -281,6 +281,14 @@ public:
     
     double topological_charge(bool debug_flag = false);
     
+    /**
+     * @brief [gauge action, topological_charge]
+     * 
+     * the reason to have a further function is that is really more efficient than
+     * calling the other two separately
+     */
+    vector<double> gauge_action_top_charge(bool debug_flag = false);
+    
     // ##### FILE I/O #####
     
     void save(string filename);
@@ -291,11 +299,15 @@ public:
     
     void load(ifstream& input);
     
-    // ##### ADJACENCY LIST #####
+    // ##### ADJACENCY LIST & CO. #####
     
-    void produce_adjacency_list(string filename);
+    void binary_adjacency_list(string filename);
     
-    void produce_adjacency_list(ofstream& input);
+    void binary_adjacency_list(ofstream& output);
+    
+    void text_adjacency_and_observables(string filename);
+    
+    void text_adjacency_and_observables(ofstream& output);
     
     // ##### DEBUG #####
     

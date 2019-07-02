@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <complex>
 #include "vertex.h"
 #include "edge.h"
 #include "triangle.h"
@@ -47,38 +48,6 @@ int Vertex::coordination(){ return coord_num; }
 Label Vertex::adjacent_triangle(){ return near_t; }
     
 // ##### GAUGE #####
-
-//  Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
-//      debug_flag=true;
-//      
-//      if(debug_flag){
-//          cout << "vertex: " << this->position() << endl;
-//          cout << "current: " << current->position() << endl;
-//      }
-//      
-//      int bond_idx = current->find_element(owner->list0[this->position()], SimplexType::_vertex);
-//      
-//      if(debug_flag)
-//          cout << "bond: " << bond_idx << endl;
-//      
-//      int next_idx = 0;
-//      // I'd want to consider previous_idx == 0
-//      // to do this I translate to that reference frame 
-//      // to interpret the result I translate back in the original frame
-//      next_idx = ( (3 - ((bond_idx - previous_idx+3) % 3)) + previous_idx) % 3;
-//      
-//      if(debug_flag)
-//          cout << "next: " << next_idx << endl;
-//      
-//      Triangle *next = current->adjacent_triangles()[next_idx].dync_triangle();
-//      previous_idx = (4 - next_idx) % 3; // is the `opposite` function: 1 <--> 0, 2 <--> 2
-//      
-//      if(debug_flag){
-//          next->print_elements();
-//      }
-//      
-//      return next;
-//  }
 
 Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
     if(debug_flag){
@@ -272,10 +241,39 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
     return Staple;
 }
 
-double Vertex::action_contrib(bool debug_flag)
+double Vertex::Pi_tilde(bool debug_flag)
 {
     GaugeElement Plaquette = this->looparound(debug_flag);
     return real(Plaquette.tr()) / Plaquette.N - 1;
+}
+
+double Vertex::gauge_action_contrib(bool debug_flag)
+{
+    return Pi_tilde(debug_flag) / coord_num;
+}
+
+constexpr double pi() { return atan(1)*4; }
+
+double Vertex::topological_charge_density(bool debug_flag)
+{
+    GaugeElement Plaquette = this->looparound(debug_flag);
+    return arg(Plaquette.tr()) / (2 * pi());
+}
+
+vector<double> Vertex::gauge_action_top_charge_densities(bool debug_flag)
+{
+    GaugeElement Plaquette = this->looparound(debug_flag);
+    double gauge_action_density;
+    double charge_density;
+    
+    gauge_action_density = ( real(Plaquette.tr()) / Plaquette.N - 1 ) / coord_num;
+    charge_density = arg(Plaquette.tr()) / (2 * pi());
+    
+    vector<double> v;
+    v.push_back(gauge_action_density);
+    v.push_back(charge_density);
+    
+    return v;
 }
 
 // ##### FILE I/O #####
