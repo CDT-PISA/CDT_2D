@@ -84,6 +84,14 @@ Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
 }
 
 GaugeElement Vertex::looparound(bool debug_flag)
+{
+    vector<int> v;
+    v.push_back(-1);
+    
+    return looparound(v, debug_flag);
+}
+
+GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
 {   
     /**
      * @image html RotLoop.png "Loop orientations" width=500cm
@@ -96,6 +104,10 @@ GaugeElement Vertex::looparound(bool debug_flag)
         cout << "bond: " << this->position() << endl;
         cout << endl;
     }
+    
+    int initial_size = triangle_list.size();
+    if(initial_size > 1)
+        throw runtime_error("looparound: triangle_list is supposed to be an empty vector");
     
     GaugeElement Plaquette;
     Vertex bond = *this;
@@ -139,6 +151,9 @@ GaugeElement Vertex::looparound(bool debug_flag)
             cout << "\t previous: " << current->t[previous_idx]->id;
             cout << " current: " << current->position() << endl;
         }
+        
+        if(initial_size == 0)
+            triangle_list.push_back(current->id);
         
         GaugeElement current_previous = current->edges()[previous_idx].dync_edge()->gauge_element();
         
@@ -201,7 +216,6 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
         previous->print_elements();
         cout << "---------------" << endl;
     }
-    
 
 
     Triangle *current = next(start,previous_idx);
@@ -262,7 +276,15 @@ double Vertex::topological_charge_density(bool debug_flag)
 
 vector<double> Vertex::gauge_action_top_charge_densities(bool debug_flag)
 {
-    GaugeElement Plaquette = this->looparound(debug_flag);
+    vector<int> v;
+    v.push_back(-1);
+    
+    return gauge_action_top_charge_densities(v, debug_flag);
+}
+
+vector<double> Vertex::gauge_action_top_charge_densities(vector<int>& triangle_list, bool debug_flag)
+{
+    GaugeElement Plaquette = this->looparound(triangle_list, debug_flag);
     double gauge_action_density;
     double charge_density;
     

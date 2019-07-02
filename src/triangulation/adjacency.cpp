@@ -33,13 +33,52 @@ void Triangulation::text_adjacency_and_observables(string filename)
 /// @todo stampare un json
 void Triangulation::text_adjacency_and_observables(std::ofstream& output)
 {
-    int len=list2.size();
-    output << len;
+    string indent = "    ";
     
-    for(auto x: list2){
-        for(int i=0; i<3; i++){
-            int pos = x.dync_triangle()->t[i]->id;
-            output << pos << " ";
+    
+    output << "{" << endl;
+    output << indent << "\"volume\": " << list2.size() << "," << endl;
+    
+    vector<double> gauge_action_contributions(list2.size(), 0.);
+    vector<double> topological_charge_densities(list2.size(), 0.);
+    
+    for(auto x: list0){
+        vector<int> adjacent_triangles;
+        vector<double> v = x.dync_vertex()->gauge_action_top_charge_densities(adjacent_triangles);
+        int coord = x.dync_vertex()->coordination();
+        
+        for(int i: adjacent_triangles){
+            gauge_action_contributions[i] += - (beta * N) * (v[0] / coord);
+            topological_charge_densities[i] += v[1] / coord;
         }
     }
+    
+    output << indent << "\"nodes\": [" << endl;
+    for(auto x: list2){
+        int i = x->id;
+        
+        output << indent << indent << "{" << endl;
+        output << indent << indent << indent << "\"slab_time\": " << x.dync_triangle()->slab_index() << "," << endl;
+        output << indent << indent << indent << "\"adjacents\": [ ";
+        for(int i=0; i<3; i++){
+            int pos = x.dync_triangle()->t[i]->id;
+            output << pos;
+            if(i != 2)
+                output << ",";
+            output << " ";
+        }
+        output << "]," << endl;
+        output << indent << indent << indent << "\"gauge_action\": " << gauge_action_contributions[i] << "," << endl;
+        output << indent << indent << indent << "\"topological_charge\": " << topological_charge_densities[i] << "," << endl;
+        output << indent << indent << "}," << endl;
+    }
+    output << indent << "]," << endl;
+    
+    output << "}" << endl;
+    
+    double sum = 0.;
+    for(int i=0; i<gauge_action_contributions.size(); i++)
+        sum += gauge_action_contributions[i];
+    
+    cout << sum << " " << total_gauge_action() << endl;
 }

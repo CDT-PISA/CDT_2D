@@ -110,6 +110,7 @@ public:
      * @brief return a Plaquette
      */
     GaugeElement looparound(bool debug_flag = false);
+    GaugeElement looparound(vector<int>& triangle_list, bool debug_flag = false);
     
     /**
      * @brief return a Staple
@@ -129,6 +130,7 @@ public:
     double topological_charge_density(bool debug_flag = false);
     
     vector<double> gauge_action_top_charge_densities(bool debug_flag = false);
+    vector<double> gauge_action_top_charge_densities(vector<int>& triangle_list, bool debug_flag = false);
     
     // ##### FILE I/O #####
     

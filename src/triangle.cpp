@@ -69,6 +69,14 @@ bool Triangle::is_transition()
         return true;
 }
 
+int Triangle::slab_index()
+{
+    if(is12())
+        return v[2].dync_vertex()->time();
+    else
+        return v[0].dync_vertex()->time();
+}
+
 /**
 * @todo in questi metodi (Triangle::vertices Triangle::adjacent_triangles) devo inserire un controllo degli errori più stringente:\n
 * gli "empty triangle" possiedono solo liste vuote, per cui se provo a fare l'accesso a quelle devo comunicare che c'è un errore, perché il triangolo è in costruzione (o faccio fallire l'esecuzione, o come minimo stampo un log)

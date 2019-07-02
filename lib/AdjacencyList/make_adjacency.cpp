@@ -58,5 +58,6 @@ int main(int argc, char* argv[]){
     
     cout << "Saving adjacency list in:" << endl << adj_list << endl;
     
-    triang.produce_adjacency_list(adj_list);
+//     triang.binary_adjacency_list(adj_list);
+    triang.text_adjacency_and_observables(adj_list);
 }

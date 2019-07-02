@@ -105,10 +105,10 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     
     double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg += ( v_lab0->action_contrib(debug_flag) / ((v_lab0->coordination() + 1)*v_lab0->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1)*v_lab2->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab1->action_contrib(debug_flag) / ((v_lab1->coordination() - 1)*v_lab1->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() - 1)*v_lab3->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() + 1)*v_lab0->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1)*v_lab2->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() - 1)*v_lab1->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0, exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
@@ -391,10 +391,10 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     
     double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg -= ( v_lab0->action_contrib(debug_flag) / ( (v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab2->action_contrib(debug_flag) / ( (v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab1->action_contrib(debug_flag) / ( (v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab3->action_contrib(debug_flag) / ( (v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ( (v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ( (v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ( (v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ( (v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();
     double reject_ratio = min(1.0,exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x));
@@ -672,10 +672,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Edge* e_lab4 = lab_e4.dync_edge();   //        * *       
                                          //         *        
     
-    double plaq_contrib_0_bef = v_lab0->action_contrib();
-    double plaq_contrib_1_bef = v_lab1->action_contrib();
-    double plaq_contrib_2_bef = v_lab2->action_contrib();
-    double plaq_contrib_3_bef = v_lab3->action_contrib();
+    double plaq_contrib_0_bef = v_lab0->Pi_tilde();
+    double plaq_contrib_1_bef = v_lab1->Pi_tilde();
+    double plaq_contrib_2_bef = v_lab2->Pi_tilde();
+    double plaq_contrib_3_bef = v_lab3->Pi_tilde();
 
 
     double dS_plaq_contrib_0_bef = plaq_contrib_0_bef/v_lab0->coord_num;
@@ -688,10 +688,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     tri_lab0->gauge_transform(gt0);
 
 
-    double plaq_contrib_0_interm = v_lab0->action_contrib();
-    double plaq_contrib_1_interm = v_lab1->action_contrib();
-    double plaq_contrib_2_interm = v_lab2->action_contrib();
-    double plaq_contrib_3_interm = v_lab3->action_contrib();
+    double plaq_contrib_0_interm = v_lab0->Pi_tilde();
+    double plaq_contrib_1_interm = v_lab1->Pi_tilde();
+    double plaq_contrib_2_interm = v_lab2->Pi_tilde();
+    double plaq_contrib_3_interm = v_lab3->Pi_tilde();
 
     if(   abs(plaq_contrib_0_interm-plaq_contrib_0_bef)>1e-10
        or abs(plaq_contrib_1_interm-plaq_contrib_1_bef)>1e-10    
@@ -705,9 +705,9 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     double Sbef = total_gauge_action();
-    double delta_Sg_hat1 = ( v_lab1->action_contrib(debug_flag) / v_lab1->coordination() ) * beta_N;
-    double delta_Sg_hat2 = ( v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
-    double delta_Sg_hat3 = ( v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
+    double delta_Sg_hat1 = ( v_lab1->Pi_tilde(debug_flag) / v_lab1->coordination() ) * beta_N;
+    double delta_Sg_hat2 = ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
+    double delta_Sg_hat3 = ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
     delta_Sg_hat += delta_Sg_hat1 + delta_Sg_hat2 + delta_Sg_hat3 + beta_N / 4;
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
@@ -892,10 +892,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     // ----- END MOVE -----
 
-    double plaq_contrib_0_aft = v_lab0->action_contrib();
-    double plaq_contrib_1_aft = v_lab1->action_contrib();
-    double plaq_contrib_2_aft = v_lab2->action_contrib();
-    double plaq_contrib_3_aft = v_lab3->action_contrib();
+    double plaq_contrib_0_aft = v_lab0->Pi_tilde();
+    double plaq_contrib_1_aft = v_lab1->Pi_tilde();
+    double plaq_contrib_2_aft = v_lab2->Pi_tilde();
+    double plaq_contrib_3_aft = v_lab3->Pi_tilde();
 
     if(   abs(plaq_contrib_0_aft-plaq_contrib_0_bef)>1e-10
        or abs(plaq_contrib_2_aft-plaq_contrib_2_bef)>1e-10    
@@ -913,7 +913,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     double dS_plaq_contrib_1_aft = plaq_contrib_1_aft/v_lab1->coord_num;
     double dS_plaq_contrib_2_aft = plaq_contrib_2_aft/v_lab2->coord_num;
     double dS_plaq_contrib_3_aft = plaq_contrib_3_aft/v_lab3->coord_num;
-    double dS_plaq_contrib_4_aft = v_lab4->action_contrib()/v_lab4->coord_num;
+    double dS_plaq_contrib_4_aft = v_lab4->Pi_tilde()/v_lab4->coord_num;
 
     cout<<"dS_plaq_contribs:"<<endl;
     cout<<"id dS_plaq"<<endl;
@@ -1077,9 +1077,9 @@ void Triangulation::move_42(int cell, bool debug_flag)
     
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
-    delta_Sg_hat -= ( v_lab1->action_contrib(debug_flag) / v_lab1->coordination() ) * beta_N;
-    delta_Sg_hat -= ( v_lab2->action_contrib(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
-    delta_Sg_hat -= ( v_lab3->action_contrib(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
+    delta_Sg_hat -= ( v_lab1->Pi_tilde(debug_flag) / v_lab1->coordination() ) * beta_N;
+    delta_Sg_hat -= ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
+    delta_Sg_hat -= ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
     delta_Sg_hat -= beta_N / 4;
     // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
     // (because the "new" edges have id as gauge_element)
