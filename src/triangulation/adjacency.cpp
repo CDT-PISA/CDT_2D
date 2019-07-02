@@ -40,6 +40,7 @@ void Triangulation::text_adjacency_and_observables(std::ofstream& output)
     output << indent << "\"volume\": " << list2.size() << "," << endl;
     
     vector<double> gauge_action_contributions(list2.size(), 0.);
+    vector<double> pi_tilde_list(list2.size(), 0.);
     vector<double> topological_charge_densities(list2.size(), 0.);
     
     for(auto x: list0){
@@ -49,6 +50,7 @@ void Triangulation::text_adjacency_and_observables(std::ofstream& output)
         
         for(int i: adjacent_triangles){
             gauge_action_contributions[i] += - (beta * N) * (v[0] / coord);
+            pi_tilde_list[i] += v[0];   // it would be Pi_tilde / coord, but v[0] = Pi_tilde / coord
             topological_charge_densities[i] += v[1] / coord;
         }
     }
@@ -69,16 +71,11 @@ void Triangulation::text_adjacency_and_observables(std::ofstream& output)
         }
         output << "]," << endl;
         output << indent << indent << indent << "\"gauge_action\": " << gauge_action_contributions[i] << "," << endl;
+        output << indent << indent << indent << "\"pi_tilde\": " << pi_tilde_list[i] << "," << endl;
         output << indent << indent << indent << "\"topological_charge\": " << topological_charge_densities[i] << "," << endl;
         output << indent << indent << "}," << endl;
     }
     output << indent << "]," << endl;
     
     output << "}" << endl;
-    
-    double sum = 0.;
-    for(int i=0; i<gauge_action_contributions.size(); i++)
-        sum += gauge_action_contributions[i];
-    
-    cout << sum << " " << total_gauge_action() << endl;
 }

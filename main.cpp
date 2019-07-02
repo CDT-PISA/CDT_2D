@@ -28,9 +28,10 @@ using namespace std;
 void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i);
 
 template <typename T>
-void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, Triangulation& universe,
-               long iter_from_beginning, long& i, long& j, long& k, int profile_ratio, int gauge_ratio,
-               float save_interval, int n_chkpt, vector<string>& chkpts);
+void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream,
+               Triangulation& universe, long iter_from_beginning, long& i,
+               int profile_ratio, int gauge_ratio, int adjacencies_ratio, 
+               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
 int dice();
 
@@ -157,6 +158,7 @@ int main(int argc, char* argv[]){
     
     int profile_ratio = 4;
     int gauge_ratio = 16;
+    int adjacencies_ratio = 128;
     
     if(stod(run_id) != 1.){
         string loadfile = "checkpoint/" + last_chkpt;
@@ -176,8 +178,6 @@ int main(int argc, char* argv[]){
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
     long i=0;
-    long j=0;
-    long k=0;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
         
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]){
         if(linear_history > 0){
             if((iter_from_beginning) % linear_history == 0)
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
-                          i, j, k, profile_ratio, gauge_ratio, save_interval, n_chkpt, chkpts);
+                          i, profile_ratio, gauge_ratio, adjacencies_ratio, save_interval, run_id, n_chkpt, chkpts);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -241,7 +241,7 @@ int main(int argc, char* argv[]){
                         universe.steps_done = 0;
                 }
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, universe, iter_from_beginning,
-                          i, j, k, profile_ratio, gauge_ratio, save_interval, n_chkpt, chkpts);
+                          i, profile_ratio, gauge_ratio, adjacencies_ratio, save_interval, run_id, n_chkpt, chkpts);
             }
         }
         
@@ -318,11 +318,18 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 
 template <typename T>
 void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream,
-               Triangulation& universe, long iter_from_beginning, long& i, long& j, long& k, int profile_ratio, int gauge_ratio,
-               float save_interval, int n_chkpt, vector<string>& chkpts)
+               Triangulation& universe, long iter_from_beginning, long& i,
+               int profile_ratio, int gauge_ratio, int adjacencies_ratio, 
+               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts)
 {
+    static int j = 0;
+    static int k = 0;
+    static int h = 0;
+    static int n = 0;
+    
     j++;
     k++;
+    h++;
     volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
 
     if(j == profile_ratio){
@@ -332,8 +339,13 @@ void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, o
     }
     if(k == gauge_ratio){
         k = 0;
-        gauge_stream << iter_from_beginning << " " << universe.total_gauge_action() << " " 
-                        << universe.topological_charge() << endl;
+        vector<double> v = universe.gauge_action_top_charge();
+        gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << endl;
+    }
+    if(h == adjacencies_ratio){
+        h = 0;
+        universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json");
+        n++;
     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
