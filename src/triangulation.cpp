@@ -583,6 +583,7 @@ void Triangulation::save(ofstream& output)
     output.write((char*)&volume_step, sizeof(volume_step));
     output.write((char*)&steps_done, sizeof(steps_done));
     output.write((char*)&iterations_done, sizeof(iterations_done));
+    rng_state.write(output);
     
     output.write((char*)&lambda, sizeof(lambda));
     output.write((char*)&beta, sizeof(beta));
@@ -640,6 +641,7 @@ void Triangulation::load(ifstream& input)
     input.read((char*)&volume_step, sizeof(volume_step));
     input.read((char*)&steps_done, sizeof(steps_done));
     input.read((char*)&iterations_done, sizeof(iterations_done));
+    rng_state.read(input);
     
     input.read((char*)&lambda, sizeof(lambda));
     input.read((char*)&beta, sizeof(beta));
@@ -685,7 +687,10 @@ void Triangulation::load(ifstream& input)
     for(int i=0; i<n_tri; i++)
         list2[i].dync_triangle()->read(input, list0, list1, list2);
     
-    // further structures recostruction
+    // FURTHER STRUCTURES RECOSTRUCTION
+    
+    RandomGen r;
+    r.set_state(rng_state);
     
     int TimeLength;
     input.read((char*)&TimeLength, sizeof(TimeLength));

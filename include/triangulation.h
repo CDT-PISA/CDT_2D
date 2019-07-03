@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include "label.h"
+#include "randomgenerator.h"
 using namespace std;
 
 class Vertex;
@@ -118,11 +119,13 @@ public: /// @todo deve essere private (forse?)
     vector<Label> transition2112;    
     
 public:
-    // SERVICE'S (they count simulation's steps and iterations)
+    // RUNS CONTINUITY
     
     long volume_step;
     long steps_done;
     long iterations_done;
+    
+    generator_state rng_state;
     
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     

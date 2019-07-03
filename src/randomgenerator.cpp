@@ -22,6 +22,17 @@
 
 using namespace std;
 
+void generator_state::write(ostream& output)
+{
+    output.write((char*)&state, sizeof(state));
+}
+
+void generator_state::read(istream& input)
+{
+    input.read((char*)&state, sizeof(state));
+}
+
+
 #define SEED 1145
 
 pcg32 RandomGen::rng;

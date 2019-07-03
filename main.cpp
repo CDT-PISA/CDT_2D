@@ -112,7 +112,6 @@ int main(int argc, char* argv[]){
             last_step *= 1e6;
         else if(last_char == 'G')
             last_step *= 1e9L;
-        
     }
     
     
@@ -163,7 +162,7 @@ int main(int argc, char* argv[]){
     if(stod(run_id) != 1.){
         string loadfile = "checkpoint/" + last_chkpt;
         
-        universe.load(loadfile);;
+        universe.load(loadfile);
     }
     
     // FIRST SAVE, then begin
