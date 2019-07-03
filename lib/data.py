@@ -177,6 +177,9 @@ def launch(points_old, points_new, config, linear_history, time, steps,
         # set debug_flag for c++ (in c++ style)
         debug_flag = str(debug).lower()
 
+        # set flag for adjacencies
+        adj_flag = False
+
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
         exe_name = "CDT_2D-" + Point_str + "_run" + str(run_num)
@@ -189,6 +192,7 @@ def launch(points_old, points_new, config, linear_history, time, steps,
                      debug_flag,
                      last_check,
                      linear_history,
+                     adj_flag,
                      end_partial,
                      end_type,
                      exe_name]
