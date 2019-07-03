@@ -104,9 +104,9 @@ public:
     */
     Label* adjacent_triangles();
     
-    bool is12();
+    bool is12() const;
     
-    bool is21();
+    bool is21() const;
     
     bool is_transition();
     

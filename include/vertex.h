@@ -98,13 +98,15 @@ public:
     
     // ##### GAUGE #####
     
+    bool orientation_convention(const Triangle& pointed, int from);
+    
     /**
      * @param current current triangle in the loop
      * @param previous_idx the index of previous triangle in the loop in the internal array of current
      * 
      * ATTENTION: is not a pure function, it modifies the previous_idx for future uses
      */
-    Triangle *next(Triangle *current, int& previous_idx, bool debug_flag = false);
+    Triangle* next(Triangle* current, int& previous_idx, bool debug_flag = false);
     
     /**
      * @brief return a Plaquette
@@ -115,7 +117,7 @@ public:
     /**
      * @brief return a Staple
      */
-    GaugeElement looparound(Triangle *edge_t[2], bool debug_flag = false);
+    GaugeElement looparound(Triangle* edge_t[2], bool debug_flag = false);
     
     /**
      * @brief correspond to \tilde{\Pi} in the original document

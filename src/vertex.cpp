@@ -49,7 +49,12 @@ Label Vertex::adjacent_triangle(){ return near_t; }
     
 // ##### GAUGE #####
 
-Triangle *Vertex::next(Triangle *current, int& previous_idx, bool debug_flag){
+bool Vertex::orientation_convention(const Triangle& pointed, int from)
+{
+    return from == 0 || (from == 2 && pointed.is21());
+}
+
+Triangle* Vertex::next(Triangle* current, int& previous_idx, bool debug_flag){
     if(debug_flag){
         cout << "vertex: " << this->position() << endl;
         cout << "previous_idx: " << previous_idx << endl;
@@ -142,7 +147,7 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     }
     */
     
-    Triangle *current = start;
+    Triangle* current = start;
     bool first_round = true;
     while(*current != *start || first_round){
         first_round = false;
@@ -159,7 +164,7 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
         
         // ORIENTAZIONE
         ///@todo
-        if(previous_idx == 0 || (previous_idx == 2 && current->is12()))
+        if(not orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
         Plaquette *= current_previous.dagger();
@@ -182,7 +187,7 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     return Plaquette;
 }
 
-GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
+GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
 {
     if(debug_flag){
         cout << endl << endl;
@@ -199,17 +204,21 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
     // that owns it)
     GaugeElement Staple(this->owner->list1[0]);
     Vertex bond = *this;
-    Triangle *start = edge_t[1];
+    Triangle* start = edge_t[1];
+    Triangle* previous = edge_t[0];
+    int previous_idx = start->find_element(owner->list2[previous->position()], SimplexType::_triangle, debug_flag);
+    
+    if(not orientation_convention(*start, previous_idx)){
+        Triangle* aux = start;
+        start = previous;
+        previous = aux;
+    }                        
     
     if(debug_flag){
         cout << "---------------" << endl;
         cout << "start: " << start->position() << endl;
         start->print_elements();
     }
-    
-    Triangle *previous = edge_t[0];
-    
-    int previous_idx = start->find_element(owner->list2[previous->position()], SimplexType::_triangle, debug_flag);
     
     if(debug_flag){
         cout << "previous: " << previous_idx << endl;
@@ -232,7 +241,7 @@ GaugeElement Vertex::looparound(Triangle *edge_t[2], bool debug_flag)
         
         // ORIENTAZIONE
         ///@todo
-        if(previous_idx == 0 || (previous_idx == 2 && current->is12()))
+        if(not orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
         Staple *= current_previous.dagger();

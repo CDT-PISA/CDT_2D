@@ -46,7 +46,7 @@ Triangle::Triangle(const int& list_position, const Label (&vertices)[3], const L
     }    
 }
 
-bool Triangle::is12()
+bool Triangle::is12() const
 {
     if(type == TriangleType::_12)
         return true;
@@ -56,7 +56,7 @@ bool Triangle::is12()
         throw runtime_error("TriangleType not recognized");
 }
 
-bool Triangle::is21()
+bool Triangle::is21() const
 {
     return not is12();
 }
