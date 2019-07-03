@@ -36,6 +36,7 @@ void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, o
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
 int dice();
+int dice(double move22, double move24);
 
 int main(int argc, char* argv[]){
     
@@ -373,11 +374,13 @@ void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, o
 
 int dice()
 {
+    dice(0.1, 0.2);
+}
+
+int dice(double move22, double move24)
+{
     static RandomGen r;
     int dice = 0;
-    
-    double move22 = 0.1;
-    double move24 = 0.2;
     
     double extraction = r.next();
     if(extraction < move22)

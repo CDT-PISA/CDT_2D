@@ -42,6 +42,8 @@ def launch(points_old, points_new, config, linear_history, time, steps,
     from shutil import copyfile
     from re import split, sub
     from platform import node
+    from time import time
+    from datetime import datetime
     import json
     from subprocess import Popen
     from lib.utils import find_running, point_dir, point_str
@@ -80,6 +82,7 @@ def launch(points_old, points_new, config, linear_history, time, steps,
         print()
 
     project_folder = getcwd()
+    arg_strs = {}
 
     for Point in points:
         chdir(project_folder + '/output/' + config)
@@ -220,10 +223,27 @@ def launch(points_old, points_new, config, linear_history, time, steps,
     #            make_script.wait()
     #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
     #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
-            elif(node()[0:4] == 'r000'):
-                print('support for marconi still missing')
             else:
-                raise NameError('Node not recognized (known nodes in data.py)')
+                arg_strs[Point] = arg_str
+    if(node()[0:4] == 'r000'):
+        raise RuntimeError('support for marconi still missing')
+
+        chdir(project_folder + '/output/' + config)
+        points_chunks = [points[48*i:48*(i+1)]
+                         for i in range(len(points)//48 + 1)]
+        i = 0
+        for chunk in points_chunks:
+            i += 1
+            launch_name = lambda p: 'launch_' + point_str(p) + '.py'
+            points_launchers = [launch_name(p) + ' ' + arg_strs[p]
+                                for p in chunk]
+            time = datetime.fromtimestamp(time())\
+                                 .strftime('%d-%m-%Y_%H:%M:%S')
+            jobname = f'CDT_2D_{i}_{time}'
+            with open('../../lib/cdt2d_marco.sh', 'r') as sbatch:
+                chunk_script = eval('f"' + sbatch + '"')
+    else:
+        raise NameError('Node not recognized (known nodes in data.py)')
 
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms
