@@ -148,7 +148,7 @@ def end_mail(run_num, Lambda, Beta):
 
 def main(run_num, Lambda, Beta, time_length, end_condition,
              debug_flag, last_check, linear_history,
-             end_partial, end_type, exe_name, adj_flag):
+             adj_flag, end_partial, end_type, exe_name):
     """All parameters are considered to be string.
 
     Parameters
