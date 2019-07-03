@@ -9,6 +9,13 @@
 
 using namespace std;
 
+struct generator_state
+{
+    uint64_t state;
+    
+    generator_state(uint64_t i) : state(i) {}
+};
+
 class RandomGen
 {
 private:
@@ -30,6 +37,10 @@ public:
     double next();
     
     void really_rand();
+    
+    generator_state get_state();
+    
+    void set_state(generator_state gs);
 };
 
 #endif // RANDOMGEN_H

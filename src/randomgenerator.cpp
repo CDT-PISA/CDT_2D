@@ -58,3 +58,14 @@ void RandomGen::really_rand()
     int j=tval.tv_sec*1000000ULL+tval.tv_usec;
     rng.seed(j);
 }
+
+generator_state RandomGen::get_state()
+{
+    generator_state gs(rng.state);
+    return gs;
+}
+
+void RandomGen::set_state(generator_state gs)
+{
+    rng.state = gs.state;
+}
