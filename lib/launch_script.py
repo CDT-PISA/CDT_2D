@@ -169,14 +169,14 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         Description of parameter `last_check`.
     linear_history : str
         Description of parameter `linear_history`.
+    adj_flag : str
+        Description of parameter `adj_flag`.
     end_partial : str
         Description of parameter `end_partial`.
     end_type : str
         Description of parameter `end_type`.
     exe_name : str
         Description of parameter `exe_name`.
-    adj_flag : str
-        Description of parameter `adj_flag`.
     """
 
     start_mail(run_num, Lambda, Beta)

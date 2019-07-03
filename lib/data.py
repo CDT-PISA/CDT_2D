@@ -178,7 +178,7 @@ def launch(points_old, points_new, config, linear_history, time, steps,
         debug_flag = str(debug).lower()
 
         # set flag for adjacencies
-        adj_flag = False
+        adj_flag = str(False).lower()
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
