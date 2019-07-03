@@ -308,9 +308,9 @@ public:
     
     void binary_adjacency_list(ofstream& output);
     
-    void text_adjacency_and_observables(string filename);
+    void text_adjacency_and_observables(string filename, long iter_num = -1);
     
-    void text_adjacency_and_observables(ofstream& output);
+    void text_adjacency_and_observables(ofstream& output, long iter_num = -1);
     
     // ##### DEBUG #####
     

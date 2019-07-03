@@ -17,6 +17,8 @@
 using namespace std;
 
 
+bool str_to_bool(string str, string error_msg = "");
+
 /**
 * @brief save wrapper for Triangulation's method
 * 
@@ -47,6 +49,7 @@ int main(int argc, char* argv[]){
     string debug_str = argv[6]; /// @todo da sostituire il nome
     string last_chkpt = argv[7];
     string linear_history_str = argv[8];
+    string adj_str = argv[9];
     
     float save_interval = 0.05;//15.; // in minutes
     int n_chkpt = 3;
@@ -65,7 +68,8 @@ int main(int argc, char* argv[]){
     logput << "\tend_condition: " << end_condition << endl;
     logput << "\tdebug_flag: " << debug_str << endl; /// @todo da sostituire il nome
     logput << "\tlast_chkpt: " << last_chkpt << endl;
-    logput << "\tlinear_history: " << linear_history_str<< endl;
+    logput << "\tlinear_history: " << linear_history_str << endl;
+    logput << "\tadj_flag: " << adj_str << endl;
     logput.close();
     
     
@@ -78,18 +82,12 @@ int main(int argc, char* argv[]){
         chkpts.push_back("checkpoint/run" + run_id + "_check" + to_string(i) + ".chkpt");
     
     // CHECK IF DEBUG MODE IS ACTIVATED
-    /// @todo trasformare tutto in direttive preprocessor #ifndef
     
-    bool debug_flag;
+    bool debug_flag = str_to_bool(debug_str, "The 6th argument in function main() must be a bool (it is the \"debug_flag\")");
     
-    const string True = "true";
-    const string False = "false";
-    if(debug_str == True)
-        debug_flag = true;
-    else if(debug_str == False)
-        debug_flag = false;
-    else
-        throw logic_error("The 5th argument in function main() must be a bool (it is the \"debug_flag\")");
+    // CHECK IF ADJIACENCIES ARE TO BE PRINTED
+    
+    bool adj_flag = str_to_bool(adj_str, "The 9th argument in function main() must be a bool (it is the \"adj_flag\")");
     
     // END CONDITION
     
@@ -282,6 +280,19 @@ int main(int argc, char* argv[]){
 }
 
 
+bool str_to_bool(string str, string error_msg)
+{
+    const string True = "true";
+    const string False = "false";
+    
+    if(str == True)
+        return true;
+    else if(str == False)
+        return false;
+    else
+        throw logic_error(error_msg);
+}
+
 void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i)
 {
     static int count=-1;
@@ -343,7 +354,8 @@ void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, o
     }
     if(h == adjacencies_ratio){
         h = 0;
-        universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json");
+        universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json",
+                                                iter_from_beginning);
         n++;
     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;

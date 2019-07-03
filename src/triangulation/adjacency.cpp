@@ -22,22 +22,24 @@ void Triangulation::binary_adjacency_list(std::ofstream& output)
 }
 
 
-void Triangulation::text_adjacency_and_observables(string filename)
+void Triangulation::text_adjacency_and_observables(string filename, long iter_num)
 {
     ofstream of(filename, ios::binary | ios::out);
     
-    text_adjacency_and_observables(of);
+    text_adjacency_and_observables(of, iter_num);
     of.close();
 }
 
 /// @todo stampare un json
-void Triangulation::text_adjacency_and_observables(std::ofstream& output)
+void Triangulation::text_adjacency_and_observables(std::ofstream& output, long iter_num)
 {
     string indent = "    ";
     
     
     output << "{" << endl;
+    output << indent << "\"iter_num\": " << iter_num << "," << endl;
     output << indent << "\"volume\": " << list2.size() << "," << endl;
+    output << indent << "\"n_links\": " << list1.size() << "," << endl;
     
     vector<double> gauge_action_contributions(list2.size(), 0.);
     vector<double> pi_tilde_list(list2.size(), 0.);
