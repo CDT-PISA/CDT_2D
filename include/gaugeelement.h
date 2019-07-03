@@ -89,7 +89,7 @@ public:
     
     double partition_function();
     
-    void random_element(double a = nan(""));
+    GaugeElement random_element(double a = nan(""));
     
     void heatbath(GaugeElement Force, bool debug_flag = false);
     

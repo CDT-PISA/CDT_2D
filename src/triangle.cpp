@@ -129,8 +129,8 @@ int Triangle::opposite(int i){
 
 void Triangle::gauge_transform(GaugeElement G)
 {
-    e[0].dync_edge()->U *= G;
-    e[1].dync_edge()->U *= G.dagger();
+    e[0].dync_edge()->U *= G.dagger();
+    e[1].dync_edge()->U *= G;
     if(this->is12())
         e[2].dync_edge()->U *= G;
     else

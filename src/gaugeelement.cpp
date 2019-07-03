@@ -100,12 +100,15 @@ double GaugeElement::partition_function()
     return Z;
 }
 
-void GaugeElement::random_element(double a)
+GaugeElement GaugeElement::random_element(double a)
 {
     RandomGen r;
     
     double pi = 2 * asin(1);
     
+    GaugeElement ret;
+    ret.set_base(this->base_edge);
+   
     if( N == 1 ){
         // extracted elements' distribution is lorentzian
         
@@ -114,13 +117,14 @@ void GaugeElement::random_element(double a)
         double c = sqrt(a/2);
         double k = atan(c*pi);
         
-        double x = r.next();
+        double x = r.next()*2.-1.;
         double alpha = tan(k * x) / c;
         
-        mat[0][0] = exp(1i * alpha);
+        ret.mat[0][0] = exp(1i * alpha);
     }
     else
         throw runtime_error("random_element: Not implemented for N!=1");
+    return ret;
 }
 
 void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
@@ -147,12 +151,14 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     //     max_rho = exp(abs(Force.tr()) * beta);
     // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
     // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
-    
+   
+    GaugeElement ret;
+    ret.set_base(this->base_edge); 
     while(not accepted){
-        this->random_element(a);
+        ret = random_element(a);
         
         if( N == 1){
-            double alpha = arg(mat[0][0]);
+            double alpha = arg(ret[0][0]);
             double x = r.next();
             double eta;
             if(a >= 0.8)
@@ -171,6 +177,7 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         
         // double rho = exp(real((*this * Force).tr()) * beta);
     }    
+    *this = ret * (Force.dagger()/abs(Force.tr()));
 }
 
 // ##### ALGEBRA #####
