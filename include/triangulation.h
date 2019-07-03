@@ -148,7 +148,7 @@ public:
     /**
      * Destructor
      */
-    ~Triangulation(){}
+    ~Triangulation();
     
     /**
      * I copy assignment e copy constructor sono deletati perché quelli di default

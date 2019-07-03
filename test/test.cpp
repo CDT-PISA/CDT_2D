@@ -42,12 +42,14 @@ int dice()
 }
 
 int main(){
-    GaugeElement G;
+//     GaugeElement G;
+//     
+//     for(int i=0; i<10000; i++){
+//         G.random_element(1.);
+//         cout << arg(G.tr()) << endl;
+//     }
+    Triangulation uni(10, 1.2, 0.2);    
     
-    for(int i=0; i<10000; i++){
-        G.random_element(1.);
-        cout << arg(G.tr()) << endl;
-    }
     
 //     Triangulation uni("./run1_check3.chkpt");
     

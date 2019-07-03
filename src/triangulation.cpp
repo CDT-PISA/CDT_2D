@@ -275,6 +275,44 @@ Triangulation::Triangulation(string filename)
     load(filename);
 }
 
+Triangulation::~Triangulation()
+{
+    transition1221.clear();
+    transition2112.clear();
+    
+    Label lab(nullptr);
+        
+    for(auto x = list0.rbegin(); x != list0.rend(); x++){
+        Vertex* v_lab = x->dync_vertex();
+        
+        v_lab->near_t = lab;
+        
+        list0.pop_back();
+    }
+    for(auto x = list1.rbegin(); x != list1.rend(); x++){
+        Edge* e_lab = x->dync_edge();
+        
+        for(int i=0; i<2; i++){
+            e_lab->v[i] = lab;
+        }
+        e_lab->near_t = lab;
+        e_lab->U.base_edge = lab;
+        
+        list1.pop_back();
+    }
+    for(auto x = list2.rbegin(); x != list2.rend(); x++){
+        Triangle* tri_lab = x->dync_triangle();
+        
+        for(int i=0; i<3; i++){
+            tri_lab->v[i] = lab;
+            tri_lab->e[i] = lab;
+            tri_lab->t[i] = lab;
+        }
+        
+        list2.pop_back();
+    }
+}
+
 // ##### SIMPLEX MANAGEMENT #####
  
 Label Triangulation::create_vertex(const int& Time, const int& coordination_number, const Label& adjacent_triangle)
