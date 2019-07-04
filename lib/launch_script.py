@@ -148,34 +148,39 @@ def end_mail(run_num, Lambda, Beta):
 
 def main(run_num, Lambda, Beta, time_length, end_condition,
              debug_flag, last_check, linear_history,
-             adj_flag, end_partial, end_type, exe_name):
+             adj_flag, move22, move24,
+             end_partial, end_type, exe_name):
     """All parameters are considered to be string.
 
     Parameters
     ----------
-    run_num : str
+    run_num : type
         Description of parameter `run_num`.
-    Lambda : str
+    Lambda : type
         Description of parameter `Lambda`.
-    Beta : str
+    Beta : type
         Description of parameter `Beta`.
-    time_length : str
+    time_length : type
         Description of parameter `time_length`.
-    end_condition : str
+    end_condition : type
         Description of parameter `end_condition`.
-    debug_flag : str
+    debug_flag : type
         Description of parameter `debug_flag`.
-    last_check : str
+    last_check : type
         Description of parameter `last_check`.
-    linear_history : str
+    linear_history : type
         Description of parameter `linear_history`.
-    adj_flag : str
+    adj_flag : type
         Description of parameter `adj_flag`.
-    end_partial : str
+    move22 : type
+        Description of parameter `move22`.
+    move24 : type
+        Description of parameter `move24`.
+    end_partial : type
         Description of parameter `end_partial`.
-    end_type : str
+    end_type : type
         Description of parameter `end_type`.
-    exe_name : str
+    exe_name : type
         Description of parameter `exe_name`.
     """
 
@@ -206,7 +211,9 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
                  debug_flag,
                  last_check,
                  linear_history,
-                 adj_flag]
+                 adj_flag,
+                 move22,
+                 move24]
     run_id = str(run_num)
     log_header(run_id)
     succesful, stopped = run_sim(exe_name, arguments)

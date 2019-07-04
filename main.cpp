@@ -51,6 +51,8 @@ int main(int argc, char* argv[]){
     string last_chkpt = argv[7];
     string linear_history_str = argv[8];
     string adj_str = argv[9];
+    double move22 = stod(argv[10]);
+    double move24 = stod(argv[11]);
     
     float save_interval = 0.05;//15.; // in minutes
     int n_chkpt = 3;
@@ -192,7 +194,7 @@ int main(int argc, char* argv[]){
             cout << i << ") ";
         }
         
-        switch(dice()){
+        switch(dice(move22, move24)){
             case 1:
             {
                 universe.move_22_1(debug_flag);
