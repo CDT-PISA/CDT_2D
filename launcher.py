@@ -194,6 +194,10 @@ def main():
         print('usage: launcher.py tools [-h] {sub}')
         print("Try 'launcher.py tools -h/--help' for more information.")
         return
+    elif sys.argv[1] == 'analysis' and len(sys.argv) == 2:
+        print('usage: launcher.py analysis [-h] {sub}')
+        print("Try 'launcher.py analysis -h/--help' for more information.")
+        return
 
     # Input file management
     try:

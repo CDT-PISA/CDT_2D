@@ -49,8 +49,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     from lib.utils import find_running, point_dir, point_str
     from lib.utils import authorization_request, end_parser
 
-    # points_run, _ = find_running()
-    points_run = []
+    points_run, _ = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
 
     points_old_auth = []   # old ones which will get the authorization to rerun

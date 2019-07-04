@@ -330,8 +330,8 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
     ----------
     what_to_do : type
         Description of parameter `what_to_do`.
-    Lambda : type
-        Description of parameter `Lambda`.
+    Point : type
+        Description of parameter `Point`.
     extra_message : type
         Description of parameter `extra_message`.
 

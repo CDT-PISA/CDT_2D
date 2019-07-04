@@ -291,15 +291,14 @@ def define_parser(launcher_path, version):
     launch_sub = tools_sub.add_parser('up-launch',
                   help='update launch/make_script', description=msgs.up_launch,
                   formatter_class=argparse.RawDescriptionHelpFormatter)
-    launch_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help=msgs.lamda)
-    launch_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help=msgs.beta)
-    lambdas = launch_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help=msgs.range)
-    lambdas.add_argument('-°', dest='is_all', action='store_true',
-                         help=msgs.is_all)
+    points = launch_sub.add_argument_group()
+    points.add_argument('-l', '--lamda', nargs='+', type=float, help=msgs.lamda)
+    points.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                      help=msgs.beta)
+    points.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
+                       help=msgs.range)
+    points.add_argument('-°', dest='is_all', action='store_true',
+                       help=msgs.is_all)
     launch_sub.add_argument('-@', dest='is_data', action='store_true',
                             help=msgs.data)
     launch_sub.add_argument('-c', '--config', choices=configs, default='test',
