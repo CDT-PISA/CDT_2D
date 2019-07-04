@@ -127,7 +127,6 @@ int main(int argc, char* argv[]){
     else if(last_char == 'G')
         linear_history *= 1e9L;
     
-    
     // OPEN OUTPUT FILES
     
     string profile_file = "history/profiles.txt";
@@ -376,7 +375,7 @@ void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, o
 
 int dice()
 {
-    dice(0.1, 0.2);
+    return dice(0.1, 0.2);
 }
 
 int dice(double move22, double move24)

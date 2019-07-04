@@ -4,7 +4,7 @@ Created on Fri Mar 15 10:54:46 2019
 
 @author: alessandro
 """
-def launch(points_old, points_new, config, linear_history, time, steps,
+def launch(points_old, points_new, config, linear_history, end_time, end_steps,
            force, time_length, fake_run, debug):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
@@ -166,16 +166,19 @@ def launch(points_old, points_new, config, linear_history, time, steps,
 
         # ricongiungo le due variabili perché è ancora facile
         # distinguerle dall'ultimo carattere
-        if steps != '0':
-            end_condition = steps
+        if end_steps != '0':
+            end_condition = end_steps
         else:
-            end_condition = time
+            end_condition = end_time
 
         # needed for thermalization loop
         end_partial, end_condition, end_type = end_parser(end_condition)
 
         if linear_history != '0':  # i.e. `if linear_history:`
-            end_partial = end_condition
+            if end_type == 'time':
+                end_partial = str(end_condition) + 's'
+            else:
+                end_partial = end_condition
 
         # set debug_flag for c++ (in c++ style)
         debug_flag = str(debug).lower()
@@ -248,7 +251,7 @@ def launch(points_old, points_new, config, linear_history, time, steps,
             jobname = f'CDT_2D_{i}_{time}'
             with open('../../lib/cdt2d_marco.sh', 'r') as sbatch:
                 chunk_script = eval('f"' + sbatch + '"')
-    else:
+    elif node() not in ['Paperopoli', 'fis-delia.unipi.it', 'gridui3.pi.infn.it']:
         raise NameError('Node not recognized (known nodes in data.py)')
 
 def show_state(configs, full_show=False):

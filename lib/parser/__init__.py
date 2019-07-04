@@ -131,7 +131,7 @@ def define_parser(launcher_path, version):
     run_sub.add_argument('-k', '--fake-run', action='store_true',
                          help=msgs.fake_run)
     run_sub.add_argument('--lin', '--linear-history', dest='linear_history',
-                         default='0', help=msgs.linear_history)
+                         default='0', type=str, help=msgs.linear_history)
     # run_sub.add_argument('--log-history', dest='linear_history',
     #               action='store_false',
     #               help="if set data points are saved at increasing intervals")
