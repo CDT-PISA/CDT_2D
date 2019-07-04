@@ -230,7 +230,10 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         elif end_type == 'steps':
             end_run = iter_done > end_condition
 
-        while succesful and not is_thermalized() and not end_run and not stopped:
+        max_volume_reached = isfile('max_volume_reached') 
+
+        while (succesful and not is_thermalized() and not end_run
+               and not stopped and not max_volume_reached):
             rerun += 1
             run_id = str(run_num) + '.' + str(rerun)
             arguments[0] = run_id

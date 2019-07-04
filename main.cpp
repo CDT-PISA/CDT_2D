@@ -53,6 +53,7 @@ int main(int argc, char* argv[]){
     string adj_str = argv[9];
     double move22 = stod(argv[10]);
     double move24 = stod(argv[11]);
+    int max_volume = stoi(argv[12]);
     
     float save_interval = 0.05;//15.; // in minutes
     int n_chkpt = 3;
@@ -73,6 +74,9 @@ int main(int argc, char* argv[]){
     logput << "\tlast_chkpt: " << last_chkpt << endl;
     logput << "\tlinear_history: " << linear_history_str << endl;
     logput << "\tadj_flag: " << adj_str << endl;
+    logput << "\tmove22: " << move22 << endl;
+    logput << "\tmove24: " << move24 << endl;
+    logput << "\tmax_volume: " << max_volume << endl;
     logput.close();
     
     
@@ -178,7 +182,7 @@ int main(int argc, char* argv[]){
     
     long i=0;
     
-    while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < 1e6){
+    while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < max_volume){
         
         if( run_id != "1" and i%int(2e5)==0){
             cout << "limited_step: " << limited_step << "last_step: " << last_step << "i: " << i << endl;
@@ -269,6 +273,14 @@ int main(int argc, char* argv[]){
         rename(chkpts[j+1].c_str(), chkpts[j].c_str());
     
     save_routine(chkpts, n_chkpt, universe, i);
+    
+    // check for MAX VOLUME REACHING
+    
+    if(universe.list2.size() < max_volume){
+        ofstream iter("max_volume_reached");
+        iter << universe.iterations_done + i;
+        iter.close();
+    }
     
     // COMPLETION MESSAGE
     
