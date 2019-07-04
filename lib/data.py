@@ -189,6 +189,9 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         move22 = 0.1
         move24 = 0.2
 
+        # max volume
+        max_volume = 1e5
+
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
         exe_name = "CDT_2D-" + Point_str + "_run" + str(run_num)
@@ -204,6 +207,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
                      adj_flag,
                      move22,
                      move24,
+                     max_volume,
                      end_partial,
                      end_type,
                      exe_name]

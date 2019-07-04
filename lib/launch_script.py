@@ -148,7 +148,7 @@ def end_mail(run_num, Lambda, Beta):
 
 def main(run_num, Lambda, Beta, time_length, end_condition,
              debug_flag, last_check, linear_history,
-             adj_flag, move22, move24,
+             adj_flag, move22, move24, max_volume,
              end_partial, end_type, exe_name):
     """All parameters are considered to be string.
 
@@ -176,6 +176,8 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         Description of parameter `move22`.
     move24 : type
         Description of parameter `move24`.
+    max_volume : type
+        Description of parameter `max_volume`.
     end_partial : type
         Description of parameter `end_partial`.
     end_type : type
@@ -213,7 +215,8 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
                  linear_history,
                  adj_flag,
                  move22,
-                 move24]
+                 move24,
+                 max_volume]
     run_id = str(run_num)
     log_header(run_id)
     succesful, stopped = run_sim(exe_name, arguments)
@@ -230,7 +233,7 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         elif end_type == 'steps':
             end_run = iter_done > end_condition
 
-        max_volume_reached = isfile('max_volume_reached') 
+        max_volume_reached = isfile('max_volume_reached')
 
         while (succesful and not is_thermalized() and not end_run
                and not stopped and not max_volume_reached):
