@@ -43,11 +43,10 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     from shutil import copyfile
     from re import split, sub
     from platform import node
-    from time import time
-    from datetime import datetime
     import json
-    from lib.utils import find_running, point_dir, point_str
-    from lib.utils import moves_weights, authorization_request, end_parser
+    from lib.utils import (find_running, point_dir, point_str,
+                           moves_weights, authorization_request, end_parser,
+                           launch_script_name, make_script_name)
     from lib.platforms import launch_run
 
     # set moves' weights
@@ -91,9 +90,8 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         chdir(project_folder + '/output/' + config)
 
         dir_name = point_dir(Point)
-        Point_str = point_str(Point)
-        launch_script_name = 'launch_' + Point_str + '.py'
-        make_script_name = 'make_' + Point_str + '.py'
+        launch_script_n = launch_script_name(Point)
+        make_script_n = make_script_name(Point)
 
         if Point in points_old:
             with open(dir_name + "/state.json", "r+") as state_file:
@@ -134,10 +132,10 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
             mkdir(dir_name + "/history")
             mkdir(dir_name + "/bin")
 
-            copyfile('../../lib/launch_script.py', dir_name + '/' +
-                     launch_script_name)
-            copyfile('../../lib/make_script.py', dir_name + '/' +
-                     make_script_name)
+            copyfile('../../lib/scripts/launch_script.py', dir_name + '/' +
+                     launch_script_n)
+            copyfile('../../lib/scripts/make_script.py', dir_name + '/' +
+                     make_script_n)
 
             if fake_run:
                 print('Created simulation directory for: (Lambda= ' +
@@ -194,7 +192,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
-        exe_name = "CDT_2D-" + Point_str + "_run" + str(run_num)
+        exe_name = "CDT_2D-" + point_str(Point) + "_run" + str(run_num)
 
         arguments = [run_num,
                      Point[0],
@@ -219,9 +217,10 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         if fake_run:
             print()
             print(*(["bin/" + exe_name] + arguments[:8]))
+
     if not fake_run:
         from lib.platforms import launch_run
-        launch_run(points, arg_strs)
+        launch_run(points, arg_strs, project_folder, config)
 
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms

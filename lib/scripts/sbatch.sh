@@ -12,11 +12,17 @@
 
 # mkdir -p /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/logs
 
-declare -a launch_strings={points_launchers}
+module load python
 
-for i in "${{launch_strings[@]}}"
+declare -a points_strings={points}
+
+for p in "${{points_strings[@]}}"
 do
-  nohup python3 $PWD/$i &
+    eval $p
+    cd $point_dir
+    python3 $make
+    nohup python3 $PWD/$launch &
+    cd ..
 done
 
 # if [ ! -f /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/data_0/stopfile.txt ]

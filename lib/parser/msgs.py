@@ -74,7 +74,10 @@ else give the relative path of a valid CDT_2D valid from your PWD"""
 adjacencies = """if set save periodically the infos about adjacencies in the
 Triangulation, together with other local infos"""
 
-maxvol = """Max volume (aggiungere descrizione del comportamento)"""
+maxvol = """set the maximum volume reachable for the running Triangulation; if
+the volume is reached the simulation stops, and no further sub_run is submitted,
+so that is like freezed and not runnable anymore (even if it doesn't prevent
+further empty run)"""
 
 moves_weights = """set the weights with which the moves are extracted;
 only two are admissable: the third is set to complete the sum to 1"""

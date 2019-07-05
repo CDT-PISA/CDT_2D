@@ -95,6 +95,12 @@ def dir_point(dir_name):
     """
     return str_point(dir_name)
 
+def launch_script_name(Point):
+    return 'launch_' + point_str(Point) + '.py'
+
+def make_script_name(Point):
+    return 'make_' + point_str(Point) + '.py'
+
 def find_all_availables(config='data', dir_decode=dir_point):
     """Find all lambdas for which a simulation has been already run
 
@@ -214,8 +220,8 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
 
         if range == '':
             if len(lambda_list) != len(beta_list):
-                raise ValueError('λ and β must be of the same length, if \
-                                  neither of these is a range')
+                raise ValueError('λ and β must be of the same length, if '
+                                 'neither of these is a range')
             points = list(zip(lambda_list, beta_list))
         else:
             from numpy import linspace
@@ -225,8 +231,8 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
                 elif len(lambda_list) == 2:
                     lambda_extremes = lambda_list
                 else:
-                    raise ValueError('λ is a range, but its length is neither \
-                                     2 Nor 3')
+                    raise ValueError('λ is a range, but its length is neither '
+                                     '2 Nor 3')
             else:
                 lambdas = lambda_list
             if 'b' in range:
@@ -235,8 +241,8 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
                 elif len(beta_list) == 2:
                     beta_extremes = beta_list
                 else:
-                    raise ValueError('β is a range, but its length is neither \
-                                     2 Nor 3')
+                    raise ValueError('β is a range, but its length is neither '
+                                     '2 Nor 3')
             else:
                 betas = beta_list
 
@@ -245,8 +251,8 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
             if all(extremes):
                 points = [p for p in all_points if inside_rect(p, extremes)]
             else:
-                raise ValueError('Only some intervals specified, \
-                                  not the whole rectangle')
+                raise ValueError('Only some intervals specified, '
+                                 'not the whole rectangle')
         elif range != '':
             points = points_grid(lambdas, betas)
 
