@@ -5,7 +5,8 @@ Created on Fri Mar 15 10:54:46 2019
 @author: alessandro
 """
 def launch(points_old, points_new, config, linear_history, end_time, end_steps,
-           force, time_length, fake_run, debug):
+           force, time_length, adj, move22, move24, move_gauge,
+           fake_run, debug):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -38,16 +39,19 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         descrizione dell'eccezione lanciata
     """
 
-    from os import mkdir, chdir, system, getcwd, scandir
+    from os import mkdir, chdir, getcwd, scandir
     from shutil import copyfile
     from re import split, sub
     from platform import node
     from time import time
     from datetime import datetime
     import json
-    from subprocess import Popen
     from lib.utils import find_running, point_dir, point_str
-    from lib.utils import authorization_request, end_parser
+    from lib.utils import moves_weights, authorization_request, end_parser
+    from lib.platforms import launch_run
+
+    # set moves' weights
+    move22, move24, move_gauge = moves_weights(move22, move24, move_gauge)
 
     points_run, _ = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
@@ -181,13 +185,8 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
         # set debug_flag for c++ (in c++ style)
         debug_flag = str(debug).lower()
-
-        # set flag for adjacencies
-        adj_flag = str(False).lower()
-
-        # moves' weights
-        move22 = 0.1
-        move24 = 0.2
+        # set adj_flag for c++ (in c++ style)
+        adj_flag = str(adj).lower()
 
         # max volume
         max_volume = 1e5
@@ -214,48 +213,14 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         arg_str = ''
         for x in arguments:
             arg_str += ' ' + str(x)
+        arg_strs[Point] = arg_str
 
-        # run scripts that will manage the simulation:
-        # make_script: compiles and returns
-        # launch_script: runs the sim and keeps running until the end
-        make_script = Popen(["python3", make_script_name, str(run_num),
-                            str(Point[0]), str(Point[1])])
-        make_script.wait()
         if fake_run:
             print()
             print(*(["bin/" + exe_name] + arguments[:8]))
-        else:
-            if(node() in ['Paperopoli', 'fis-delia.unipi.it']):
-                system('nohup python3 $PWD/' + launch_script_name + arg_str +
-                       ' &')
-            elif(node() == 'gridui3.pi.infn.it'):
-                print('support for grid still missing')
-    #            make_script = Popen(["python3", make_script_name, str(run_num),
-    #                             str(Lambda)])
-    #            make_script.wait()
-    #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
-    #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
-            else:
-                arg_strs[Point] = arg_str
-    if(node()[0:4] == 'r000'):
-        raise RuntimeError('support for marconi still missing')
-
-        chdir(project_folder + '/output/' + config)
-        points_chunks = [points[48*i:48*(i+1)]
-                         for i in range(len(points)//48 + 1)]
-        i = 0
-        for chunk in points_chunks:
-            i += 1
-            launch_name = lambda p: 'launch_' + point_str(p) + '.py'
-            points_launchers = [launch_name(p) + ' ' + arg_strs[p]
-                                for p in chunk]
-            time = datetime.fromtimestamp(time())\
-                                 .strftime('%d-%m-%Y_%H:%M:%S')
-            jobname = f'CDT_2D_{i}_{time}'
-            with open('../../lib/cdt2d_marco.sh', 'r') as sbatch:
-                chunk_script = eval('f"' + sbatch + '"')
-    elif node() not in ['Paperopoli', 'fis-delia.unipi.it', 'gridui3.pi.infn.it']:
-        raise NameError('Node not recognized (known nodes in data.py)')
+    if not fake_run:
+        from lib.platforms import launch_run
+        launch_run(points, arg_strs)
 
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms

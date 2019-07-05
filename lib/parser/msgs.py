@@ -71,6 +71,18 @@ default, units: | ex: --steps 200M"""
 file = """launch simulation from config file: launch with '?' to show the help,
 else give the relative path of a valid CDT_2D valid from your PWD"""
 
+adjacencies = """if set save periodically the infos about adjacencies in the
+Triangulation, together with other local infos"""
+
+moves_weights = """set the weights with which the moves are extracted;
+only two are admissable: the third is set to complete the sum to 1"""
+
+move22 = """half self-dual move rate (its half because of
+            implementations' details, that provide two 22 moves)"""
+move24 = """volume creation-destruction moves rate (it is the rate of each one
+            not the rate of both together)"""
+moveg = "gauge move rate (heatbath)"
+
 # STATE
 
 state_h = """show the state of running simulations"""

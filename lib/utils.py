@@ -373,6 +373,68 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
 
     return authorized
 
+def moves_weights(move22, move24, move_gauge):
+    """Compute the values of weights in presence of custom ones.
+
+    The default values are supposed to be float, while the custom one must be
+    'list' of length 1.
+    The assumed behaviour is compliant with that of the parser.
+
+    Parameters
+    ----------
+    move22 : float or list
+        The weight of self-dual moves (its doubled in the overall sum of
+        weigths because it's used for two moves).
+    move24 : float or list
+        The weight of volume creation-destruction moves (its doubled in the
+        overall sum of weigths because it's used for two moves).
+    move_gauge : float or list
+        The weight of gauge move.
+
+    Returns
+    -------
+    tuple
+        The same arguments given, after the manipulation.
+
+    Raises
+    ------
+    ValueError
+        If all three arguments are custom (i.e. lists), or the overall sum
+        exceeds 1
+    """
+
+    weights = [move22, move24, move_gauge]
+
+    for i in range(2):
+        if type(weights[i]) == list:
+            weights[i][0] *= 2
+        else:
+            weights[i] *= 2
+
+    custom_w = [x for x in weights if type(x) == list]
+    if len(custom_w) == 3:
+        raise ValueError('Is possible to choose only two of the weights '
+                         'for the three kinds of moves at the same time')
+    elif len(custom_w) != 0:
+        sum_ = sum([x[0] for x in custom_w])
+        if sum_ > 1.:
+            raise ValueError("The overall sum of moves' weights "
+                             "must not exceed 1")
+        weights_values = [x[0] if type(x) == list else x for x in weights]
+        sum_defaults = sum(weights_values) - sum_
+        for i in range(len(weights)):
+            if weights[i] in custom_w:
+                weights[i] = weights[i][0]
+            else:
+                weights[i] *= (1. - sum_) / sum_defaults
+
+    for i in range(2):
+        if type(weights[i]) == list:
+            weights[i] = weights[i][0] / 2
+        else:
+            weights[i] /= 2
+    return weights
+
 def end_parser(end_condition):
     """Short summary.
 
