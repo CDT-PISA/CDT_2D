@@ -74,6 +74,8 @@ else give the relative path of a valid CDT_2D valid from your PWD"""
 adjacencies = """if set save periodically the infos about adjacencies in the
 Triangulation, together with other local infos"""
 
+maxvol = """Max volume (aggiungere descrizione del comportamento)"""
+
 moves_weights = """set the weights with which the moves are extracted;
 only two are admissable: the third is set to complete the sum to 1"""
 

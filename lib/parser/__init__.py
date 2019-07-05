@@ -34,6 +34,13 @@ def update_cmds(cmds, subp_cmd):
                                  'unique commands')
     return {**cmds, **subp_cmd}
 
+def positive_int(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        msg = f"{value} is an invalid positive int value"
+        raise argparse.ArgumentTypeError(msg)
+    return ivalue
+
 def positive_float(value):
     ivalue = float(value)
     if ivalue <= 0:
@@ -151,6 +158,8 @@ def define_parser(launcher_path, version):
     end_conditions.add_argument('--steps', default='0', help=msgs.steps)
     run_sub.add_argument('--adj', '--adjacencies', dest='adj_flag',
                          action='store_true', help=msgs.adjacencies)
+    run_sub.add_argument('--vol', '--max-volume', dest='max_volume',
+                         type=positive_float, nargs=1, help=msgs.maxvol)
     moves_weights = run_sub.add_argument_group("moves' weights",
                                         description=msgs.moves_weights)
     moves_weights.add_argument('--move22', nargs=1, type=non_negative_float,

@@ -5,7 +5,7 @@ Created on Fri Mar 15 10:54:46 2019
 @author: alessandro
 """
 def launch(points_old, points_new, config, linear_history, end_time, end_steps,
-           force, time_length, adj, move22, move24, move_gauge,
+           force, time_length, adj, max_volume, move22, move24, move_gauge,
            fake_run, debug):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
@@ -188,8 +188,9 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         # set adj_flag for c++ (in c++ style)
         adj_flag = str(adj).lower()
 
-        # max volume
-        max_volume = 1e5
+        # max_volume
+        max_volume = int(max_volume[0]
+                         if type(max_volume) == list else max_volume)
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
