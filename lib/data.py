@@ -46,7 +46,8 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     import json
     from lib.utils import (find_running, point_dir, point_str,
                            moves_weights, authorization_request, end_parser,
-                           launch_script_name, make_script_name)
+                           launch_script_name, make_script_name,
+                           config_dir, project_folder)
     from lib.platforms import launch_run
 
     # set moves' weights
@@ -83,11 +84,10 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     if len(points) > 0:
         print()
 
-    project_folder = getcwd()
     arg_strs = {}
 
     for Point in points:
-        chdir(project_folder + '/output/' + config)
+        chdir(config_dir(config))
 
         dir_name = point_dir(Point)
         launch_script_n = launch_script_name(Point)
@@ -132,10 +132,10 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
             mkdir(dir_name + "/history")
             mkdir(dir_name + "/bin")
 
-            copyfile('../../lib/scripts/launch_script.py', dir_name + '/' +
-                     launch_script_n)
-            copyfile('../../lib/scripts/make_script.py', dir_name + '/' +
-                     make_script_n)
+            make_template = project_folder() + '/lib/scripts/make_script.py'
+            launch_template = project_folder() + '/lib/scripts/launch_script.py'
+            copyfile(make_template, dir_name + '/' + make_script_n)
+            copyfile(launch_template, dir_name + '/' + launch_script_n)
 
             if fake_run:
                 print('Created simulation directory for: (Lambda= ' +
@@ -194,7 +194,8 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         # could be different from run_node
         exe_name = "CDT_2D-" + point_str(Point) + "_run" + str(run_num)
 
-        arguments = [run_num,
+        arguments = [project_folder(),
+                     run_num,
                      Point[0],
                      Point[1],
                      time_length,
@@ -220,7 +221,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
     if not fake_run:
         from lib.platforms import launch_run
-        launch_run(points, arg_strs, project_folder, config)
+        launch_run(points, arg_strs, config)
 
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms
@@ -231,7 +232,7 @@ def show_state(configs, full_show=False):
     from platform import node
     from datetime import datetime
     from time import time
-    from lib.utils import find_running, point_dir
+    from lib.utils import find_running, point_dir, config_dir
 
     if not type(configs) == list:
         configs = [configs]
@@ -270,7 +271,7 @@ def show_state(configs, full_show=False):
 
     for config in configs:
         try:
-            with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
+            with open(config_dir(config) + '/pstop.pickle', 'rb') as stop_file:
                 points_stopped = pickle.load(stop_file)
         except FileNotFoundError:
             points_stopped = []
@@ -297,7 +298,7 @@ def show_state(configs, full_show=False):
                     print(sim[1].rjust(4), ' ', sim[2].ljust(8),
                           sim[3].ljust(8))
                 elif full_show == '2':
-                    Point_dir = 'output/' + config + '/' + \
+                    Point_dir = config_dir(config) + '/' + \
                                 point_dir(Point) + '/'
                     with open(Point_dir + 'state.json', 'r') as state_file:
                         state = json.load(state_file)
@@ -316,7 +317,7 @@ def show_state(configs, full_show=False):
         else:
             points_stopped = []
 
-        with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
+        with open(config_dir(config) + '/pstop.pickle', 'wb') as stop_file:
             pickle.dump(points_stopped, stop_file)
 
     if len(ps_out) > 1 and not empty:
@@ -328,10 +329,16 @@ def stop(points_old, config, is_all, pids, force):
     # si fa con un argomento config che viene da args.is_data
     from os import environ, system, popen
     import pickle
-    from lib.utils import find_running, point_dir
+    from lib.utils import find_running, point_dir, config_dir
 
     points_run, sim_info = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
+    # if config or not is_all:
+    #     if not config:
+    #         config = 'test'
+    #     points_run = [x[0] for x in points_run if x[1] == config]
+    # else:
+    #     points_run = [x[0] for x in points_run]
 
     running_pids = [ps_i[2] for ps_i in sim_info]
 
@@ -353,7 +360,7 @@ def stop(points_old, config, is_all, pids, force):
         return
 
     try:
-        with open('output/' + config + '/pstop.pickle', 'rb') as stop_file:
+        with open(config_dir(config) + '/pstop.pickle', 'rb') as stop_file:
             points_stopped = pickle.load(stop_file)
     except FileNotFoundError:
         points_stopped = []
@@ -375,12 +382,13 @@ def stop(points_old, config, is_all, pids, force):
             from datetime import datetime
             sf = '%d-%m-%Y %H:%M:%S'
             system('echo ' + datetime.fromtimestamp(time()).strftime(sf) +
-                   ' > output/' + config + '/' + point_dir(Point) + '/stop')
+                   ' > ' + config_dir(config) + '/' + point_dir(Point) +
+                   '/stop')
             # forse '.stop' anzichè 'stop'
         else:
             points_notstop += [Point]
 
-    with open('output/' + config + '/pstop.pickle', 'wb') as stop_file:
+    with open(config_dir(config) + '/pstop.pickle', 'wb') as stop_file:
         pickle.dump(points_stopped, stop_file)
 
     if len(points_stopping) > 0:
@@ -407,19 +415,21 @@ def show(points_old, config, disk_usage=''):
     """
     from textwrap import wrap
     from numpy import histogram, median
-    from lib.utils import eng_not
+    from lib.utils import eng_not, config_dir
 
-    if len(lambdas_old) == 0:
+    if len(points_old) == 0:
         print("There are no folders currently.")
     else:
         print('┌' + '─' * (len(config) + 9) + '┐')
         print('│ ' + config.upper() + ' CONFIG │')
         print('╰' + '─' * (len(config) + 9) + '┘\n')
-        num = str(len(lambdas_old))
+        num = str(len(points_old))
         print("  " + num + " λ values in the range requested:")
-        for x in wrap(str(lambdas_old), width=65, initial_indent=' '*3,
+        for x in wrap(str(points_old), width=65, initial_indent=' '*3,
                       subsequent_indent=' '*4):
             print(x)
+
+        lambdas_old = [p[0] for p in points_old]
 
         if disk_usage == '':
             hist_lambda = histogram(lambdas_old, 20)
@@ -443,7 +453,7 @@ def show(points_old, config, disk_usage=''):
             from os import popen, chdir
             from lib.utils import color_mem, color_lambda
 
-            chdir('output/' + config)
+            chdir(config_dir(config))
 
             x = popen('du -hd 1').read().split('\n')
             x[:-1].sort(key=lambda x: x.split()[0])
@@ -460,19 +470,20 @@ def show(points_old, config, disk_usage=''):
                 v = y[i].split()
                 u = z[i].split()
                 t = a[i].split()
-                dim += [[w[1], w[0], v[0], u[0], t[0]]]
+                s = ', '.join(w[1].split('_Beta'))
+                dim += [[s, w[0], v[0], u[0], t[0]]]
 
-            print('\n', ' '*3, '┌', '─'*49, '╮', sep='')
-            print(' '*3, '│ LAMBDA  │  SIZE  │  CHECK  │  BIN.  │  HISTORY  │',
-                  sep='')
-            print(' '*3, '╰', '─'*9, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
+            print('\n', ' '*3, '┌', '─'*56, '╮', sep='')
+            print(' '*3, '│  POINT (λ, β)  │  SIZE  │  CHECK  │  BIN.  │  ',
+                  'HISTORY  │', sep='')
+            print(' '*3, '╰', '─'*16, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
                    '┼', '─'*11, '┘', sep='')
             for l in dim:
                 b = color_mem(l[1].ljust(4), size=True)
                 c = color_mem(l[2].ljust(4))
                 d = color_mem(l[3].ljust(4))
                 e = color_mem(l[4].ljust(4))
-                a = color_lambda(l[0].rjust(11), [b, c, d, e])
+                a = color_lambda(l[0].rjust(18), [b, c, d, e])
                 print(a, ' │ ', b, ' │  ', c, ' │ ', d, ' │  ', e)
             print()
             print('The overall disk used is: ', x[-2].split()[0])
@@ -481,7 +492,7 @@ def show(points_old, config, disk_usage=''):
             from os import popen, chdir
             from lib.utils import color_mem, color_num, color_lambda
 
-            chdir('output/' + config)
+            chdir(config_dir(config))
 
             x = popen('du -hd 1').read().split('\n')
 
@@ -492,26 +503,27 @@ def show(points_old, config, disk_usage=''):
                                   '/checkpoint/ | wc -l').read()))
                 u = str(int(popen('ls -1q Lambda' + w[1] +
                                   '/bin/ | wc -l').read()))
-                dim += [[w[1], w[0], v, u]]
+                s = ', '.join(w[1].split('_Beta'))
+                dim += [[s, w[0], v, u]]
             dim.sort(key=lambda x: x[0])
 
-            print('\n', ' '*3, '┌', '─'*37, '╮', sep='')
-            print(' '*3, '│ LAMBDA  │  SIZE  │  CHECK  │  BIN.  │',
+            print('\n', ' '*3, '┌', '─'*44, '╮', sep='')
+            print(' '*3, '│  POINT (λ, β)  │  SIZE  │  CHECK  │  BIN.  │',
                   sep='')
-            print(' '*3, '╰', '─'*9, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
+            print(' '*3, '╰', '─'*16, '┼', '─'*8, '┼', '─'*9, '┼', '─'*8,
                   '┘', sep='')
             for l in dim:
                 b = color_mem(l[1].ljust(4), size=True)
                 c = color_num(l[2].rjust(4))
                 d = color_num(l[3].rjust(4))
-                a = color_lambda(l[0].rjust(11), [b, c, d])
+                a = color_lambda(l[0].rjust(18), [b, c, d])
                 print(a, ' │ ', b, ' │ ', c, '  │ ', d)
             print()
 
 def plot(points_old, config):
     from matplotlib.pyplot import figure, show
     from numpy import loadtxt
-    from lib.utils import find_running, point_dir
+    from lib.utils import find_running, point_dir, config_dir
 
     points_run, _ = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
@@ -524,7 +536,7 @@ def plot(points_old, config):
     i = -1
     for Point in points_old:
         i += 1
-        vol_file = ('output/' + config + '/' + point_dir(Point) +
+        vol_file = (config_dir(config) + '/' + point_dir(Point) +
                     '/history/volumes.txt')
         indices, volumes = loadtxt(vol_file, unpack=True)
         # , gauge_action, topological_charge

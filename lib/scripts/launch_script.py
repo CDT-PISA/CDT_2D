@@ -189,9 +189,6 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     start_mail(run_num, Lambda, Beta)
 
     # IMPORT FROM LIB
-    from sys import path
-    from os.path import realpath
-    path += [realpath('../../..')] # CDT_2D project_folder
     from lib.analysis import is_thermalized
 
     with open('state.json', 'r') as state_file:
@@ -285,5 +282,8 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     end_mail(run_num, Lambda, Beta)
 
 if __name__ == "__main__":
-    args = argv[1:]
+    from sys import path
+    path += [argv[1]] # CDT_2D project_folder
+
+    args = argv[2:]
     main(*args)

@@ -354,6 +354,8 @@ def find_running():
             Lambda0.1_Beta1.0_run1 1 0.1 1.0 80 360s false None 0
     """
     from os import environ
+    from os.path import basename
+    from lib.utils import find_configs
 
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
         ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
@@ -374,6 +376,13 @@ def find_running():
                 sim_info += [[start_time, run_id, PID, PPID]]
                 PPID_list += [PPID]
 
+        configs = find_configs()
+        if isinstance(configs, dict):
+            configs_aux = {v:k for k,v in configs.items()}
+        else:
+            output_path = project_folder() + '/output/'
+            configs_aux = {output_path + c: c for c in configs}
+
         for line in ps_out[1:]:
             pinfos = line.split()
             if len(pinfos) > 0:
@@ -383,7 +392,9 @@ def find_running():
                     continue
 
                 from re import split
-                config = split('.*/output|/', pinfos[8])[2]
+                path = split('/Lambda', pinfos[8])[0]
+                config = configs_aux[path]
+
                 points_run[i] += [config]
 
     else:

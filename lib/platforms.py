@@ -9,26 +9,29 @@ attualmente serve solo per gestire i vari lanci"""
 
 def local_launch(points, arg_strs):
     from os import system, chdir
+    from os.path import abspath
     from subprocess import Popen
-    from lib.utils import point_dir, launch_script_name, make_script_name
+    from lib.utils import (point_dir, launch_script_name, make_script_name,
+                           project_folder)
+
+    dirs = {Point: abspath(point_dir(Point)) for Point in points}
 
     for Point in points:
-        dir_name = point_dir(Point)
-        chdir(dir_name)
+        chdir(dirs[Point])
 
         arg_str = arg_strs[Point]
-        run_num = int(arg_str.split()[0])
+        run_num = int(arg_str.split()[1])
 
-        launch_script_name = launch_script_name(Point)
-        make_script_name = make_script_name(Point)
+        launch_script_n = launch_script_name(Point)
+        make_script_n = make_script_name(Point)
 
-        make_script = Popen(["python3", make_script_name, str(run_num),
-                             str(Point[0]), str(Point[1])])
+        make_script = Popen(["python3", make_script_n, str(run_num),
+                             str(Point[0]), str(Point[1]), project_folder()])
         make_script.wait()
-        system('nohup python3 $PWD/' + launch_script_name + arg_str + ' &')
+        system('nohup python3 $PWD/' + launch_script_n + arg_str + ' &')
 
 def lsf_launch(points, arg_strs):
-    pass
+    raise NotImplementedError('missing implementation for lsf')
 #            make_script = Popen(["python3", make_script_name, str(run_num),
 #                             str(Lambda)])
 #            make_script.wait()
@@ -39,7 +42,8 @@ def slurm_launch(points, arg_strs):
     from os import system, chdir, chmod
     from time import time
     from datetime import datetime
-    from lib.utils import point_dir, launch_script_name, make_script_name
+    from lib.utils import (point_dir, launch_script_name, make_script_name,
+                           project_folder)
 
     # raise RuntimeError('support for marconi still missing')
 
@@ -49,8 +53,9 @@ def slurm_launch(points, arg_strs):
     for chunk in points_chunks:
         i += 1
         def make_str(p):
-            run_num = int(arg_strs[p].split()[0])
-            make_args = str(run_num) + ' ' + str(p[0]) + ' ' + str(p[1])
+            run_num = int(arg_strs[p].split()[1])
+            make_args = str(run_num) + ' ' + str(p[0]) + ' ' + str(p[1]) +\
+                        project_folder()
             return make_script_name(p) + ' ' + make_args
         def launch_str(p):
             return launch_script_name(p) + arg_strs[p]
@@ -68,7 +73,8 @@ def slurm_launch(points, arg_strs):
 
         time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y_%H:%M:%S')
         jobname = f'CDT2D_{time}--{i}'
-        with open('../../lib/scripts/sbatch.sh', 'r') as sbatch_template:
+        scripts_dir = project_folder() + '/lib/scripts'
+        with open(scripts_dir + '/sbatch.sh', 'r') as sbatch_template:
             chunk_script = eval('f"""' + sbatch_template.read() + '"""')
         with open(jobname + '.sh', 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
@@ -100,17 +106,17 @@ def is_slurm():
     else:
         return False
 
-def launch_run(points, arg_strs, project_folder, config):
-    from os import chdir
-    chdir(project_folder + '/output/' + config)
+def launch_run(points, arg_strs, config):
+    from os import chdir, listdir
+    from lib.utils import config_dir
+    chdir(config_dir(config))
 
-    slurm_launch(points, arg_strs)
-    return
+    print(listdir())
 
     if is_local():
         local_launch(points, arg_strs)
     elif is_lsf():
-        print('support for grid still missing')
+        lsf_launch(points, arg_strs)
     elif is_slurm():
         slurm_launch(points, arg_strs)
     else:
