@@ -12,7 +12,7 @@
 
 # mkdir -p /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/logs
 
-module load python
+module load python/3.6.4
 
 declare -a points_strings={points}
 

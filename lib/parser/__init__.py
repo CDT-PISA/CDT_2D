@@ -159,7 +159,8 @@ def define_parser(launcher_path, version):
     run_sub.add_argument('--adj', '--adjacencies', dest='adj_flag',
                          action='store_true', help=msgs.adjacencies)
     run_sub.add_argument('--vol', '--max-volume', dest='max_volume',
-                         type=positive_float, nargs=1, help=msgs.maxvol)
+                         type=positive_float, nargs=1, default=1e5,
+                         help=msgs.maxvol)
     moves_weights = run_sub.add_argument_group("moves' weights",
                                         description=msgs.moves_weights)
     moves_weights.add_argument('--move22', nargs=1, type=non_negative_float,
