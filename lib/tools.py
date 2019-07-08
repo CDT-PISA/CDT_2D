@@ -356,24 +356,26 @@ def new_conf(name, path):
     if not path:
         if isdir(name):
             print(msg_exist)
+            return
         else:
             path = abspath(name)
             mkdir(path)
-
     else:
         if name in configs.keys() or abspath(path) in configs.values():
             print(msg_exist)
+            return
         else:
             if basename(path) != name:
                 print('At the present time names different from target '
                       'directories are not available.')
                 return
-
             try:
                 mkdir(path)
             except FileNotFoundError:
                 print('Invalid path given.')
                 return
+
+    print(f"Created config '{name}' at path:\n  {path}")
 
     configs = {**configs, name: abspath(path)}
     with open('configs.json', 'w') as config_file:
@@ -403,9 +405,9 @@ def reset_conf(name, delete=False):
     from os.path import isdir
     from os import chdir, mkdir
     from shutil import rmtree
-    from lib.utils import authorization_request
+    from lib.utils import authorization_request, project_folder
 
-    chdir('output')
+    chdir(project_folder() + '/output')
 
     if isdir(name):
         if delete:
@@ -422,51 +424,54 @@ def reset_conf(name, delete=False):
         print('The requested configuration does not exist.\n' +
               'If you want to create it, please use the specific command.')
 
-def clear_data(lambdas, config='test', force=False):
-    """Remove data for a given value of lambda
+def clear_data(points, config='test', force=False):
+    """Remove data for a given value of point
 
     Parameters
     ----------
-    Lambda : float
+    Point : float
         the parameter of the simulation whose data you want to remove
     """
     from shutil import rmtree
-    from lib.utils import find_all_availables, find_running,\
-                          authorization_request, config_dir
+    from lib.utils import (find_all_availables, find_running,
+                          authorization_request, config_dir, point_str,
+                          point_dir)
 
-    lambdas_run, _ = find_running()
-    lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
+    points_run, _ = find_running()
+    points_run = [x[0] for x in points_run if x[1] == config]
 
-    lambdas_req_run = [x for x in lambdas if x in lambdas_run]
-    lambdas_clearable = [x for x in lambdas if x not in lambdas_run]
-    if len(lambdas_req_run) > 0:
+    points_req_run = [x for x in points if x in points_run]
+    points_clearable = [x for x in points if x not in points_run]
+    if len(points_req_run) > 0:
         print("Simulations for following λ are running: ",
-              lambdas_req_run, '\n so they are not clearable')
-    if len(lambdas_req_run) > 0 and len(lambdas_clearable) > 0:
+              points_req_run, '\n so they are not clearable')
+    if len(points_req_run) > 0 and len(points_clearable) > 0:
         print()
 
-    if len(lambdas_clearable) == 0:
+    if len(points_clearable) == 0:
         print("No λ found in the requested range.")
 
-    for Lambda in lambdas_clearable:
+    for Point in points_clearable:
         try:
             if not config == 'test' and not force:
                 what_to_do = "to remove simulation folder"
-                authorized = authorization_request(what_to_do, Lambda)
+                authorized = authorization_request(what_to_do, Point)
             else:
                 authorized = True
             if authorized:
-                rmtree(config_dir(config) + "/Lambda"+str(Lambda))
+                rmtree(config_dir(config) + "/" + point_dir(Point))
                 if force:
-                    print("(λ = " + str(Lambda) + ") ", end='')
+                    print("(λ = ", Point[0], ", β = ", Point[1], ") ", sep='',
+                          end='')
                 print("Simulation folder removed.")
         except FileNotFoundError:
-            all_lambdas = find_all_availables()
-            raise ValueError("A folder with the given lambda doesn't exist"+
-                             "\n\t\t\t all_lambdas: " + str(all_lambdas))
+            all_points = find_all_availables()
+            raise ValueError("A folder with the given point doesn't exist"+
+                             "\n\t\t\t all_points: " + str(all_points))
 
 def rm_conf(config, force):
-    from os import rmdir
+    from os import rmdir, remove
+    from os.path import isfile
     import json
     from lib.utils import points_recast, config_dir, project_folder
 
@@ -474,6 +479,8 @@ def rm_conf(config, force):
     clear_data(points_old, config, force)
 
     path = config_dir(config)
+    if isfile(path + '/pstop.pickle'):
+        remove(path + '/pstop.pickle')
     rmdir(path)
     print(f"Removed config '{config}' at path:\n  {path}")
 
