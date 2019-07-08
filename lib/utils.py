@@ -95,6 +95,70 @@ def dir_point(dir_name):
     """
     return str_point(dir_name)
 
+def project_folder():
+    """Tell the absolute path to project folder.
+
+    Returns
+    -------
+    str
+        CDT_2D project folder path.
+    """
+    from os.path import dirname, realpath
+
+    dir_path = dirname(realpath(__file__))
+    return realpath(dir_path + '/..')
+
+def find_configs():
+    """Find available configs.
+
+    Returns
+    -------
+    dict or list
+        container of config names, if it is a dict values are paths associate
+        to those names.
+    """
+    from os.path import abspath
+    import json
+
+    output_path = project_folder() + '/output'
+    config_path = output_path + '/configs.json'
+    try:
+        with open(config_path, 'r') as config_file:
+            configs = json.load(config_file)
+    except FileNotFoundError:
+        configs = [x.name for x in scandir(output_path) if x.is_dir()]
+
+    return configs
+
+def config_dir(config):
+    """Retrieves config directory's path.
+
+    Parameters
+    ----------
+    config : str
+        Name of the configuration to select.
+
+    Returns
+    -------
+    str
+        Path of the requested directory.
+    """
+    configs = find_configs()
+
+    if isinstance(configs, dict):
+        try:
+            path = configs[config]
+        except IndexError:
+            raise FileNotFoundError('Config dir not found.')
+    else:
+        if config in configs:
+            output_path = project_folder() + '/output'
+            path = output_path + '/' + config
+        else:
+            raise FileNotFoundError('Config dir not found.')
+
+    return path
+
 def launch_script_name(Point):
     return 'launch_' + point_str(Point) + '.py'
 
@@ -118,9 +182,9 @@ def find_all_availables(config='data', dir_decode=dir_point):
     list
         a list of the existing values of lambda
     """
-    config_dir = "output/" + config
+    c_dir = config_dir(config)
 
-    directories = [x.name for x in scandir(config_dir) if x.is_dir()]
+    directories = [x.name for x in scandir(c_dir) if x.is_dir()]
     all_availables = [dir_decode(x) for x in directories
                       if dir_decode(x) is not None]
     all_availables.sort()

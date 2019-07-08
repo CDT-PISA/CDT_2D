@@ -22,7 +22,8 @@ interval"""
 
 config = """select the configuration for all simulations. Each simulation
 belongs to a configuration even if it was not specified (the default one is
-called 'test')"""
+called 'test').
+To show all the available configs use the command 'cdt2d tools show-confs'"""
 
 data = """data configuration flag (the '-' in front is not needed). It's a
 shortcut for '--config data'."""
@@ -272,6 +273,21 @@ new_conf = cleandoc("""
 
 Example:
     ...""")
+
+path = " "
+
+# SHOW_CONFS
+
+show_confs = cleandoc("""
+┌──────────────────┐
+│SHOW_CONFS COMMAND│
+└──────────────────┘
+...
+
+Example:
+    ...""")
+
+show_paths = "show paths too"
 
 # RESET
 

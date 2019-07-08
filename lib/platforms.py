@@ -73,7 +73,7 @@ def slurm_launch(points, arg_strs):
         with open(jobname + '.sh', 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
         chmod(jobname + '.sh', 0o777)
-        system('./' + jobname + '.sh')
+        system('sbatch ' + jobname + '.sh')
 
 local_machines = ['Paperopoli', 'fis-delia.unipi.it']
 lsf = ['gridui3.pi.infn.it']

@@ -326,18 +326,78 @@ def config(email=None, remote=None, path=None, show=False):
     with open('config.json', 'w') as config_file:
         json.dump(configurations, config_file, indent=4)
 
-def new_conf(name):
-    from os.path import isdir
-    from os import chdir, mkdir
+def new_conf(name, path):
+    from os.path import isdir, isfile, abspath, basename
+    from os import chdir, mkdir, listdir
+    from inspect import cleandoc
+    import json
 
     chdir('output')
 
-    if isdir(name):
-        print('The requested configuration already exists.\n' +
-              'If you want to reset it, please use the specific command.'
-              + '\n  (that at the present moment does not exist)')
+    msg_exist = cleandoc("""The requested configuration already exists.
+                If you want to reset it, please use the specific command.""")
+
+    # check for configs file in output folder
+    dirs = [d for d in listdir() if isdir(d)]
+    paths = [abspath(d) for d in dirs]
+    if not isfile('configs.json'):
+        with open('configs.json', 'w') as config_file:
+            configs = dict(zip(dirs, paths))
+            json.dump(configs, config_file, indent=4)
     else:
-        mkdir(name)
+        with open('configs.json', 'r') as config_file:
+            configs = json.load(config_file)
+
+        for d in dirs:
+            if d not in configs.keys():
+                configs[d] = d
+
+    # actually creates requested folder
+    if not path:
+        if isdir(name):
+            print(msg_exist)
+        else:
+            path = abspath(name)
+            mkdir(path)
+
+    else:
+        if name in configs.keys() or abspath(path) in configs.values():
+            print(msg_exist)
+        else:
+            if basename(path) != name:
+                print('At the present time names different from target '
+                      'directories are not available.')
+                return
+
+            try:
+                mkdir(path)
+            except FileNotFoundError:
+                print('Invalid path given.')
+                return
+
+    configs = {**configs, name: abspath(path)}
+    with open('configs.json', 'w') as config_file:
+        json.dump(configs, config_file, indent=4)
+
+def show_confs(paths):
+    from lib.utils import find_configs, project_folder
+    import pprint as pp
+
+    configs = find_configs()
+
+    if paths:
+        if not isinstance(configs, dict):
+            paths = [project_folder() + '/output/' + c for c in configs]
+            configs = dict(zip(configs, paths))
+
+        for name, path in sorted(configs.items(), key=lambda x: x[0].lower()):
+            print(name, path, sep=':\n\t')
+    else:
+        if isinstance(configs, dict):
+            configs = list(configs.keys())
+
+        for name in sorted(configs, key=str.lower):
+            print(name)
 
 def reset_conf(name, delete=False):
     from os.path import isdir
@@ -372,7 +432,7 @@ def clear_data(lambdas, config='test', force=False):
     """
     from shutil import rmtree
     from lib.utils import find_all_availables, find_running,\
-                          authorization_request
+                          authorization_request, config_dir
 
     lambdas_run, _ = find_running()
     lambdas_run = [x[0] for x in lambdas_run if x[1] == config]
@@ -396,7 +456,7 @@ def clear_data(lambdas, config='test', force=False):
             else:
                 authorized = True
             if authorized:
-                rmtree("output/" + config + "/Lambda"+str(Lambda))
+                rmtree(config_dir(config) + "/Lambda"+str(Lambda))
                 if force:
                     print("(λ = " + str(Lambda) + ") ", end='')
                 print("Simulation folder removed.")
@@ -404,3 +464,23 @@ def clear_data(lambdas, config='test', force=False):
             all_lambdas = find_all_availables()
             raise ValueError("A folder with the given lambda doesn't exist"+
                              "\n\t\t\t all_lambdas: " + str(all_lambdas))
+
+def rm_conf(config, force):
+    from os import rmdir
+    import json
+    from lib.utils import points_recast, config_dir, project_folder
+
+    points_old, _ = points_recast([], [], '', True, config, 'tools')
+    clear_data(points_old, config, force)
+
+    path = config_dir(config)
+    rmdir(path)
+    print(f"Removed config '{config}' at path:\n  {path}")
+
+    with open(project_folder() + '/output/configs.json', 'r') as config_file:
+        configs = json.load(config_file)
+
+    del configs[config]
+
+    with open(project_folder() + '/output/configs.json', 'w') as config_file:
+        json.dump(configs, config_file, indent=4)

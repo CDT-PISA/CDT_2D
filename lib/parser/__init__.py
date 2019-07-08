@@ -2,11 +2,12 @@
 Parser definition for the CDT_2D simulations' launcher.
 """
 
-from os import chdir, getcwd, scandir
-from os.path import dirname, realpath, exists, isdir
+from os import chdir, getcwd, scandir, listdir
+from os.path import dirname, realpath, exists, isdir, isfile
 from inspect import cleandoc
 import argparse
 import lib.parser.msgs
+from lib.utils import project_folder
 
 def update_cmds(cmds, subp_cmd):
     """Updates commands' dictionary, checking for keys' conflicts.
@@ -74,12 +75,21 @@ def define_parser(launcher_path, version):
     """
 
     starting_cwd = getcwd()
-    chdir(dirname(realpath(launcher_path)))
+    chdir(project_folder())
 
-    if exists('./output') and isdir('./output'):
-        configs = [x.name for x in scandir('output') if x.is_dir()]
+    if exists('output') and isdir('output'):
+        if isfile('output/configs.json'):
+            import json
+
+            with open('output/configs.json', 'r') as config_file:
+                configs_d = json.load(config_file)
+            configs = list(configs_d.keys())
+        else:
+            configs = [x.name for x in scandir('output') if x.is_dir()]
     else:
         configs = []
+
+    meta_configs = '{...}' if len(configs) > 5 else None
     # ┏━━━━━━━━━━━━━━━━┓
     # ┗━━━━━━━━━━━━━━━━┛
 
@@ -141,6 +151,7 @@ def define_parser(launcher_path, version):
     run_sub.add_argument('-@', dest='is_data', action='store_true',
                          help=msgs.data)
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
+                         metavar=meta_configs,
                          help=msgs.config)
     run_sub.add_argument('-f', '--force', action='store_true', help=msgs.force)
     run_sub.add_argument('--timelength', nargs=1, type=int, default=80,
@@ -191,6 +202,7 @@ def define_parser(launcher_path, version):
     state_sub.add_argument('-@', dest='is_data', action='store_true',
                            help=msgs.data)
     state_sub.add_argument('-c', '--config', choices=configs, default=configs,
+                           metavar=meta_configs,
                            ifcall='test', action=ToggleChoiceAction,
                            help=msgs.config)
     state_sub.add_argument('-f', '--full-show', choices=['1', '2'], default='0',
@@ -213,6 +225,7 @@ def define_parser(launcher_path, version):
     stop_sub.add_argument('-@', dest='is_data', action='store_true',
                           help=msgs.data)
     stop_sub.add_argument('-c', '--config', choices=configs, default='test',
+                          metavar=meta_configs,
                           help=msgs.config)
     stop_sub.add_argument('--pid', nargs='+', type=int, default=None,
                           help=msgs.pid)
@@ -232,6 +245,7 @@ def define_parser(launcher_path, version):
     plot_sub.add_argument('-@', dest='is_data', action='store_true',
                           help=msgs.data)
     plot_sub.add_argument('-c', '--config', choices=configs, default='test',
+                          metavar=meta_configs,
                           help=msgs.config)
 
     # show command
@@ -251,6 +265,7 @@ def define_parser(launcher_path, version):
     show_sub.add_argument('-@', dest='is_data', action='store_true',
                           help=msgs.data)
     show_sub.add_argument('-c', '--config', choices=configs, default='test',
+                          metavar=meta_configs,
                           help=msgs.config)
     show_sub.add_argument('-d', '--disk-usage', default='', const='disk',
                           action='store_const', help=msgs.disk_usage)
@@ -279,6 +294,7 @@ def define_parser(launcher_path, version):
     recovery_sub.add_argument('-@', dest='is_data', action='store_true',
                               help=msgs.data)
     recovery_sub.add_argument('-c', '--config', choices=configs, default='test',
+                              metavar=meta_configs,
                               help=msgs.config)
     recovery_sub.add_argument('-f', '--force', action='store_true',
                               help=msgs.force)
@@ -297,6 +313,7 @@ def define_parser(launcher_path, version):
     info_sub.add_argument('-@', dest='is_data', action='store_true',
                           help=msgs.data)
     info_sub.add_argument('-c', '--config', choices=configs, default='test',
+                          metavar=meta_configs,
                           help=msgs.config)
 
     # thermalization command
@@ -311,6 +328,7 @@ def define_parser(launcher_path, version):
     therm_sub.add_argument('-@', dest='is_data', action='store_true',
                            help=msgs.data)
     therm_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           metavar=meta_configs,
                            help=msgs.config)
     therm_sub.add_argument('-f', '--force', action='store_true',
                            help=msgs.force)
@@ -333,6 +351,7 @@ def define_parser(launcher_path, version):
     launch_sub.add_argument('-@', dest='is_data', action='store_true',
                             help=msgs.data)
     launch_sub.add_argument('-c', '--config', choices=configs, default='test',
+                            metavar=meta_configs,
                             help=msgs.config)
     launch_sub.add_argument('-f', '--force', action='store_true',
                             help=msgs.force)
@@ -357,6 +376,7 @@ def define_parser(launcher_path, version):
     remove_sub.add_argument('-@', dest='is_data', action='store_true',
                             help=msgs.data)
     remove_sub.add_argument('-c', '--config', choices=configs, default='test',
+                            metavar=meta_configs,
                             help=msgs.config)
     remove_sub.add_argument('-f', '--force', action='store_true',
                             help=msgs.force)
@@ -383,6 +403,7 @@ def define_parser(launcher_path, version):
     remote_sub.add_argument('-@', dest='is_data', action='store_true',
                             help=msgs.data)
     remote_sub.add_argument('-c', '--config', choices=configs, default='test',
+                            metavar=meta_configs,
                             help=msgs.config)
     remote_sub.add_argument('-f', '--force', action='store_true',
                             help=msgs.force)
@@ -418,6 +439,17 @@ def define_parser(launcher_path, version):
                       description=msgs.new_conf,
                       formatter_class=argparse.RawDescriptionHelpFormatter)
     new_conf_sub.add_argument('name', nargs=1, type=str)
+    new_conf_sub.add_argument('-p', '--path', type=str,
+                              default=None, help=msgs.path)
+
+    # show available configurations command
+
+    show_confs_sub = tools_sub.add_parser('show-confs',
+                    help='create new config',
+                    description=msgs.new_conf,
+                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    show_confs_sub.add_argument('-p', '--paths', action='store_true',
+                              help=msgs.show_paths)
 
     # reset configuration command
 
@@ -427,6 +459,16 @@ def define_parser(launcher_path, version):
     reset_conf_sub.add_argument('name', choices=configs)
     reset_conf_sub.add_argument('-d', '--delete', action='store_true',
                                 help=msgs.delete)
+
+    # remove configuration command
+
+    rm_conf_sub = tools_sub.add_parser('rm-conf', help='remove config',
+                        description=msgs.clear,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    rm_conf_sub.add_argument('config', choices=configs, metavar=meta_configs,
+                             help=msgs.config)
+    rm_conf_sub.add_argument('-f', '--force', action='store_true',
+                             help=msgs.force)
 
     # clear command
 
@@ -445,6 +487,7 @@ def define_parser(launcher_path, version):
     clear_sub.add_argument('-@', dest='is_data', action='store_true',
                            help=msgs.data)
     clear_sub.add_argument('-c', '--config', choices=configs, default='test',
+                           metavar=meta_configs,
                            help=msgs.config)
     clear_sub.add_argument('-f', '--force', action='store_true',
                            help=msgs.force)
@@ -471,6 +514,7 @@ def define_parser(launcher_path, version):
     fit_sub.add_argument('-@', dest='is_data', action='store_true',
                          help=msgs.data)
     fit_sub.add_argument('-c', '--config', choices=configs, default='test',
+                         metavar=meta_configs,
                          help=msgs.config)
     fit_sub.add_argument('-s', '--skip', action='store_true', help=msgs.skip)
 

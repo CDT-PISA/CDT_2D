@@ -162,15 +162,25 @@ def config(email, remote, path, show):
     # per testare la validità del path inserito
     config(email, remote, path, show)
 
-def new_conf(name):
+def new_conf(name, path):
     from lib.tools import new_conf
 
-    new_conf(name[0])
+    new_conf(name[0], path)
+
+def show_confs(paths):
+    from lib.tools import show_confs
+
+    show_confs(paths)
 
 def reset_conf(name, delete=False):
     from lib.tools import reset_conf
 
     reset_conf(name, delete)
+
+def rm_conf(config, force):
+    from lib.tools import rm_conf
+
+    rm_conf(config, force)
 
 def clear(points_old, points_new, config, force):
     from lib.tools import clear_data
@@ -240,7 +250,7 @@ def main():
         args.tools = ''
 
     # Further parsing (not supported by `argparse`)
-    wo_point = ['state', 'config', 'new-conf', 'reset']
+    wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
@@ -319,9 +329,13 @@ def main():
         elif args.tools == 'config':
             config(args.email, args.remote, args.path, args.show)
         elif args.tools == 'new-conf':
-            new_conf(args.name)
+            new_conf(args.name, args.path)
+        elif args.tools == 'show-confs':
+            show_confs(args.paths)
         elif args.tools == 'reset':
             reset_conf(args.name, args.delete)
+        elif args.tools == 'rm-conf':
+            rm_conf(args.config, args.force)
         elif args.tools == 'clear':
             clear(points_old, points_new, args.config, args.force)
 
