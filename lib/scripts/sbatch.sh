@@ -25,6 +25,8 @@ do
     cd ..
 done
 
+wait
+
 # if [ ! -f /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/data_0/stopfile.txt ]
 # then 
 #   sbatch $0
