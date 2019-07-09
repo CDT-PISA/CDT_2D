@@ -86,14 +86,14 @@ int main(){
     for(int i=0; i<1000; ++i){
 //         cout<<10*i<<" "<<uni.topological_charge()<<endl;
 
-        if(i==50){
-        
-            for(auto& lb : uni.list1){
-                Edge * edg = lb.dync_edge();
-                GaugeElement gl(edg->U);
-                edg->U = gl.dagger();
-            }
-        }
+//        if(i==50){
+//        
+//            for(auto& lb : uni.list1){
+//                Edge * edg = lb.dync_edge();
+//                GaugeElement gl(edg->U);
+//                edg->U = gl.dagger();
+//            }
+//        }
 
         switch(dice()){
             case 1:
@@ -126,7 +126,7 @@ int main(){
                 break;
             }
         }
-//        cout<<i<<" "<<uni.topological_charge()<<endl;     
+        cout<<i<<" "<<uni.topological_charge()<<endl;     
        for(int s = 0; s < 10; ++s){
 //        cout<<10*i+s<<" "<<uni.topological_charge()<<endl;     
            uni.move_gauge();

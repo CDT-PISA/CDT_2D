@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(cdt_2d)
+ 
+# SET(CMAKE_C_COMPILER /cineca/prod/opt/compilers/gnu/7.3.0/none/bin/gcc)
+SET(CMAKE_CXX_COMPILER g++)
+SET(CMAKE_CXX_FLAGS "-std=c++17 -O3")
 
 # Bring the headers into the project
 include_directories(include)
@@ -20,8 +24,8 @@ add_library(cdt_2d_lib STATIC ${SOURCES})
 add_executable(cdt_2d main.cpp)
 target_link_libraries(cdt_2d cdt_2d_lib)
 
-set_property(TARGET cdt_2d PROPERTY CXX_STANDARD 17)
-set_property(TARGET cdt_2d_lib PROPERTY CXX_STANDARD 17)
+# set_property(TARGET cdt_2d PROPERTY CXX_STANDARD 17)
+# set_property(TARGET cdt_2d_lib PROPERTY CXX_STANDARD 17)
 
 install(TARGETS cdt_2d RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 # install(TARGETS cdt_2d RUNTIME DESTINATION ~/projects/CDT_2D/bin CONFIGURATIONS Release)
