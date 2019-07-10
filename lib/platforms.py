@@ -54,8 +54,8 @@ def slurm_launch(points, arg_strs):
         i += 1
         def make_str(p):
             run_num = int(arg_strs[p].split()[1])
-            make_args = str(run_num) + ' ' + str(p[0]) + ' ' + str(p[1]) + ' '\
-                        project_folder()
+            make_args = str(run_num) + ' ' + str(p[0]) + ' ' + str(p[1]) + \
+                        ' ' + project_folder()
             return make_script_name(p) + ' ' + make_args
         def launch_str(p):
             return launch_script_name(p) + arg_strs[p]
