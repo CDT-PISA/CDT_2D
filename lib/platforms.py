@@ -111,8 +111,6 @@ def launch_run(points, arg_strs, config):
     from lib.utils import config_dir
     chdir(config_dir(config))
 
-    print(listdir())
-
     if is_local():
         local_launch(points, arg_strs)
     elif is_lsf():

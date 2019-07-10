@@ -34,7 +34,7 @@ void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& tolerons_stream,
                Triangulation& universe, long iter_from_beginning, long& i,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int tolerons_ratio,
-               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts;
+               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
 int dice();
 int dice(double move22, double move24);
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]){
     
     // check for MAX VOLUME REACHING
     
-    if(universe.list2.size() < max_volume){
+    if(universe.list2.size() >= max_volume){
         ofstream iter("max_volume_reached");
         iter << universe.iterations_done + i;
         iter.close();
@@ -395,8 +395,8 @@ void print_obs(T& time_ref,
         tolerons_stream << iter_from_beginning << " ";
         vector<double> tolerons = universe.toleron();
         for(auto x: tolerons)
-            cout << x << " ";
-        cout << endl;
+            tolerons_stream << x << " ";
+        tolerons_stream << endl;
     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
