@@ -40,12 +40,16 @@ def lsf_launch(points, arg_strs):
 
 def slurm_launch(points, arg_strs):
     from os import system, chdir, chmod
+    from os.path import abspath
+    from subprocess import Popen
     from time import time
     from datetime import datetime
     from lib.utils import (point_dir, launch_script_name, make_script_name,
                            project_folder)
 
     # raise RuntimeError('support for marconi still missing')
+
+    dirs = {Point: abspath(point_dir(Point)) for Point in points}
 
     points_chunks = [points[48*i:48*(i+1)]
                      for i in range(len(points)//48 + 1)]
@@ -66,8 +70,13 @@ def slurm_launch(points, arg_strs):
         points = ['(']
         for j in range(len(chunk)):
             points += ['"point_dir=\'' + point_dir(chunk[j]) + '\' ' +
-                       'make=\'' + points_makers[j] + '\' ' +
+                       # 'make=\'' + points_makers[j] + '\' ' +
                        'launch=\'' + points_launchers[j] + '\'"']
+
+            chdir(dirs[chunk[j]])
+            make_script = Popen(["python3", *points_makers[j].split()])
+            make_script.wait()
+
         points += [')']
         points = '\n'.join(points)
 
@@ -80,6 +89,7 @@ def slurm_launch(points, arg_strs):
             sbatch_script.write(chunk_script)
         chmod(jobname + '.sh', 0o777)
         system('sbatch ' + jobname + '.sh')
+        # system('./' + jobname + '.sh &')
 
 local_machines = ['Paperopoli', 'fis-delia.unipi.it']
 lsf = ['gridui3.pi.infn.it']
@@ -112,6 +122,7 @@ def launch_run(points, arg_strs, config):
     chdir(config_dir(config))
 
     if is_local():
+        # slurm_launch(points, arg_strs)
         local_launch(points, arg_strs)
     elif is_lsf():
         lsf_launch(points, arg_strs)

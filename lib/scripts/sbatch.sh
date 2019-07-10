@@ -20,7 +20,7 @@ for p in "${{points_strings[@]}}"
 do
     eval $p
     cd $point_dir
-    python3 $make
+    # python3 $make
     nohup python3 $PWD/$launch &
     cd ..
 done
@@ -28,6 +28,6 @@ done
 wait
 
 # if [ ! -f /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/data_0/stopfile.txt ]
-# then 
+# then
 #   sbatch $0
-# fi 
+# fi
