@@ -26,7 +26,7 @@ endmacro()
 
 set(GNU_CXX_COMPILER g++)
 set(GNU_CXX_FLAGS "-std=c++17 -O3")
-set(INTEL_CXX_COMPILER g++)
+set(INTEL_CXX_COMPILER icpc)
 set(INTEL_CXX_FLAGS "-std=c++17 -O3")
 set(CURRENT_COMPILER "GNU")
 

@@ -16,7 +16,7 @@ private:
     shared_ptr<Simplex> sh_ptr_simplex;
 public:
     // Constructors
-    Label(){}
+    Label(): sh_ptr_simplex(nullptr) {}
     Label(Simplex*);
     
     /*

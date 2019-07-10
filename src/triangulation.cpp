@@ -584,6 +584,47 @@ double Triangulation::topological_charge(bool debug_flag)
     return charge;
 }
 
+GaugeElement Triangulation::space_loop(Triangle* start, bool debug_flag)
+{
+    // if I go to the right I'm following the direction of GaugeElements
+    // and t[0] means going to the right
+    Triangle* current = start->t[0].dync_triangle();
+    GaugeElement Loop;
+    
+    while(current != start){
+        Loop *= current->e[1].dync_edge()->gauge_element();
+        current = current->t[0].dync_triangle();
+    }
+    Loop *= current->e[1].dync_edge()->gauge_element();
+    
+    return Loop;
+}
+
+vector<double> Triangulation::toleron(bool debug_flag)
+{
+    int TimeLength = spatial_profile.size();
+    vector<Triangle*> starting_triangles(TimeLength, nullptr);
+    
+    int i = 0;
+    for(auto x: list2){
+        int t = x.dync_triangle()->slab_index();
+        if(starting_triangles[t] == nullptr){
+            starting_triangles[t] = x.dync_triangle();
+            i++;
+        }
+        if(i == TimeLength)
+            break;
+    }
+    
+    vector<double> tolerons(TimeLength, 0.);
+    
+    for(int i=0; i<TimeLength; i++){
+        tolerons[i] = real(space_loop(starting_triangles[i], debug_flag).tr());
+    }
+    
+    return tolerons;
+}
+
 vector<double> Triangulation::gauge_action_top_charge(bool debug_flag)
 {
     double S = 0;

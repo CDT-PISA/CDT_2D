@@ -284,6 +284,10 @@ public:
     
     double topological_charge(bool debug_flag = false);
     
+    GaugeElement space_loop(Triangle* start, bool debug_flag = false);
+    
+    vector<double> toleron(bool debug_flag = false);
+    
     /**
      * @brief [gauge action, topological_charge]
      * 

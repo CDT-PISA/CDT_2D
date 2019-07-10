@@ -25,6 +25,9 @@
 #include <random>
 
 GaugeElement::GaugeElement(){
+    Label lab;
+    base_edge = lab;
+    
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++){
             if(i == j)
