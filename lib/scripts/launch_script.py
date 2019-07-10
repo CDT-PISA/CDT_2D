@@ -189,7 +189,7 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     start_mail(run_num, Lambda, Beta)
 
     # IMPORT FROM LIB
-    from lib.analysis import is_thermalized
+    # from lib.analysis import is_thermalized
 
     with open('state.json', 'r') as state_file:
         state = json.load(state_file)
@@ -232,7 +232,8 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
 
         max_volume_reached = isfile('max_volume_reached')
 
-        while (succesful and not is_thermalized() and not end_run
+        # while (succesful and not is_thermalized() and not end_run
+        while (succesful and not end_run
                and not stopped and not max_volume_reached):
             rerun += 1
             run_id = str(run_num) + '.' + str(rerun)
@@ -258,7 +259,7 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
         state['run_done'] += 1
         state['iter_done'] = int(iter_done)
         if not state['is_thermalized'] and not state['run_done'] == 1:
-            state['is_thermalized'] = is_thermalized()
+            state['is_thermalized'] = False #is_thermalized()
         if succesful:
             state['last_checkpoint'] = checkpoints[-1]
         else:
