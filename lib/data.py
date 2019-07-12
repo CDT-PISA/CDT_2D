@@ -234,6 +234,11 @@ def show_state(configs, full_show=False):
     from time import time
     from lib.utils import find_running, point_dir, config_dir
 
+    def r_f(string, n):
+        return string[:n].rjust(n)
+    def l_f(string, n):
+        return string[:n].ljust(n)
+
     if not type(configs) == list:
         configs = [configs]
 
@@ -289,7 +294,7 @@ def show_state(configs, full_show=False):
                     state = 'killed'
                 else:
                     state = 'running'
-                print(str(Point[0]).rjust(9), str(Point[1]).rjust(9),
+                print(r_f(str(Point[0]), 9), r_f(str(Point[1]), 9),
                       sim[0].rjust(11), ' ', state.ljust(10), l_conf.ljust(11),
                       end='')
                 if full_show == '0':

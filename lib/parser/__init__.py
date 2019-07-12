@@ -540,7 +540,7 @@ def decode_line(line, i, d, file_path):
                 return ''
 
             if cmd_value:
-                return [d[cmd_name], cmd_value]
+                return [d[cmd_name]] + cmd_value.strip().split()
             else:
                 return [d[cmd_name]]
         else:

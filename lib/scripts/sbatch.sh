@@ -4,15 +4,16 @@
 #SBATCH --nodes=1
 #SBATCH --time 00:29:30
 #SBATCH --job-name={jobname}
-#SBATCH --error=stderr{i}_{time}.txt
-#SBATCH --output=stdout{i}_{time}.txt
 
+# #SBATCH --error=stderr{i}_{time}.txt
+# #SBATCH --output=stdout{i}_{time}.txt
 # module load intel
 # module load mkl
 
 # mkdir -p /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/logs
 
 module load python/3.6.4
+module load gnu/7.3.0
 
 declare -a points_strings={points}
 
