@@ -223,6 +223,13 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         from lib.platforms import launch_run
         launch_run(points, arg_strs, config)
 
+
+
+def r_f(string, n):
+    return string[:n].rjust(n)
+def l_f(string, n):
+    return string[:n].ljust(n)
+
 def show_state(configs, full_show=False):
     # @todo: add support for the other platforms
     # @todo: for clusters: add 'pending' state
@@ -233,11 +240,6 @@ def show_state(configs, full_show=False):
     from datetime import datetime
     from time import time
     from lib.utils import find_running, point_dir, config_dir
-
-    def r_f(string, n):
-        return string[:n].rjust(n)
-    def l_f(string, n):
-        return string[:n].ljust(n)
 
     if not type(configs) == list:
         configs = [configs]
@@ -488,7 +490,9 @@ def show(points_old, config, disk_usage=''):
                 c = color_mem(l[2].ljust(4))
                 d = color_mem(l[3].ljust(4))
                 e = color_mem(l[4].ljust(4))
-                a = color_lambda(l[0].rjust(18), [b, c, d, e])
+                point = l[0].split(', ')
+                x = '  ' + r_f(point[0], 7) + ', ' + point[1][:7]
+                a = color_lambda(x.rjust(18), [b, c, d, e])
                 print(a, ' │ ', b, ' │  ', c, ' │ ', d, ' │  ', e)
             print()
             print('The overall disk used is: ', x[-2].split()[0])
@@ -521,7 +525,9 @@ def show(points_old, config, disk_usage=''):
                 b = color_mem(l[1].ljust(4), size=True)
                 c = color_num(l[2].rjust(4))
                 d = color_num(l[3].rjust(4))
-                a = color_lambda(l[0].rjust(18), [b, c, d])
+                point = l[0].split(', ')
+                x = '  ' + r_f(point[0], 7) + ', ' + point[1][:7]
+                a = color_lambda(x.rjust(18), [b, c, d])
                 print(a, ' │ ', b, ' │ ', c, '  │ ', d)
             print()
 
