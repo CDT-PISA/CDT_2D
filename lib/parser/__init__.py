@@ -525,7 +525,9 @@ def define_parser(launcher_path, version):
 
 def decode_line(line, i, d, file_path):
     """Transform a single line into a command argument."""
-    if line[0] not in ['#', '\n']:
+    line = line.strip()
+
+    if line and line[0] != '#':
         if line.count('=') == 1:
             cmd_name, cmd_value = line.split('=')
             cmd_name = cmd_name.strip()
@@ -537,7 +539,10 @@ def decode_line(line, i, d, file_path):
             elif cmd_value in ['False', '']:
                 return ''
 
-            return f'{ d[cmd_name]} {cmd_value}'
+            if cmd_value:
+                return [d[cmd_name], cmd_value]
+            else:
+                return [d[cmd_name]]
         else:
             msg = f"Invalid input file: {file_path}"
             msg += f"\nerror in line {i}:\n\t{line}"
@@ -560,16 +565,22 @@ def file_input(file_path, commands):
     list
         List of arguments, as if `cdt2d` input was given as command.
     """
-    args = [__file__]
+    from os.path import dirname, abspath
+    launcher_path = abspath(dirname(__file__) + '/../../launcher.py')
+
+    args = [launcher_path, 'run']
+
     with open(file_path, 'r') as file:
         i = 1
 
         # check if it is a CDT_2D input file
-        if next(file) != '### CDT_2D ###':
+        if next(file).strip() != '### CDT_2D ###':
             raise ValueError('File given is not a CDT_2D file input.')
 
         for line in file:
-            args += [decode_line(line, i, commands, file_path)]
+            x = decode_line(line, i, commands, file_path)
+            if x:
+                args += x
             i += 1
 
     return args

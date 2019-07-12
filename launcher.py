@@ -194,8 +194,6 @@ if(node() == 'Paperopoli'):
     import argcomplete
 
 def main():
-    chdir(dirname(realpath(__file__)))
-
     parser, file_commands = lib.parser.define_parser(__file__, __version__)
 
     if len(sys.argv) < 2:
@@ -234,12 +232,15 @@ def main():
             pprint.pprint(file_commands)
             quit()
         else:
-            sys.argv = file_input(sys.argv[2], file_commands)
+            from lib.parser import file_input
+            sys.argv = file_input(realpath(sys.argv[3]), file_commands)
     except (AssertionError, IndexError):
         # if not file adds support for some special keyword
         sys.argv = ['-' + x if x in ['°', '@'] else x for x in sys.argv]
         sys.argv = [str(float(x)) if x[0] == '-' and x[1].isdigit() else x
                     for x in sys.argv]
+
+    chdir(dirname(realpath(__file__)))
 
     # Arguments retrieval
     if(node() == 'Paperopoli'):
