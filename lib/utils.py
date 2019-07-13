@@ -526,7 +526,7 @@ def end_parser(end_condition):
 
     Returns
     -------
-    str
+    int
         End condition for the subrun, in the format readable by simulations.
     int
         End condition for the run, as the number of seconds or steps.
@@ -543,11 +543,11 @@ def end_parser(end_condition):
             end_condition *= 60*60
 
         if end_condition < 600:
-            end_partial = str(int(end_condition)) + 's'
+            end_partial = end_condition
         elif end_condition < 1e4:
-            end_partial = str(int(end_condition // 5)) + 's'
+            end_partial = end_condition // 5
         else:
-            end_partial = '1h'
+            end_partial = 3600
 
     elif last_char.isdigit or end_condition[-1] in ['k', 'M', 'G']:
         end_type = 'steps'
@@ -569,7 +569,7 @@ def end_parser(end_condition):
         else:
             end_partial = 1e5 * 3600
 
-        end_partial = str(int(end_partial))
+        end_partial = int(end_partial)
     else:
         raise ValueError("End condition not recognized")
 

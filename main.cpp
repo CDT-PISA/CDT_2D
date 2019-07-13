@@ -103,6 +103,16 @@ int main(int argc, char* argv[]){
     bool limited_step = false;
     long last_step;
     long sim_duration;
+    long end = stol(end_condition.substr(0, end_condition.size()-1));
+    if(last_char == 't')        // number of seconds
+        sim_duration = end;
+    else if(last_char == 's'){  // pure number of steps
+        limited_step = true;
+        last_step = end;
+    }
+    else
+        throw runtime_error("end_condition type not recognized");
+    /*
     if(last_char == 'h')
         sim_duration = stoi(end_condition)*60*60; // stoi("10afk") == 10 !
     else if(last_char == 'm')
@@ -119,7 +129,7 @@ int main(int argc, char* argv[]){
         else if(last_char == 'G')
             last_step *= 1e9L;
     }
-    
+    */
     
     // LINEAR HISTORY
     

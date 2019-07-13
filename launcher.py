@@ -162,20 +162,20 @@ def config(email, remote, path, show):
     # per testare la validità del path inserito
     config(email, remote, path, show)
 
-def new_conf(name, path):
+def new_conf(name, path, caller_path):
     from lib.tools import new_conf
 
-    new_conf(name[0], path)
+    new_conf(name[0], path, caller_path)
 
 def show_confs(paths):
     from lib.tools import show_confs
 
     show_confs(paths)
 
-def reset_conf(name, delete=False):
+def reset_conf(name):
     from lib.tools import reset_conf
 
-    reset_conf(name, delete)
+    reset_conf(name)
 
 def rm_conf(config, force):
     from lib.tools import rm_conf
@@ -194,6 +194,8 @@ if(node() == 'Paperopoli'):
     import argcomplete
 
 def main():
+    caller_path = getcwd()
+
     parser, file_commands = lib.parser.define_parser(__file__, __version__)
 
     if len(sys.argv) < 2:
@@ -330,11 +332,11 @@ def main():
         elif args.tools == 'config':
             config(args.email, args.remote, args.path, args.show)
         elif args.tools == 'new-conf':
-            new_conf(args.name, args.path)
+            new_conf(args.name, args.path, caller_path)
         elif args.tools == 'show-confs':
             show_confs(args.paths)
         elif args.tools == 'reset':
-            reset_conf(args.name, args.delete)
+            reset_conf(args.name)
         elif args.tools == 'rm-conf':
             rm_conf(args.config, args.force)
         elif args.tools == 'clear':

@@ -457,8 +457,8 @@ def define_parser(launcher_path, version):
                       help='reset or delete config', description=msgs.reset,
                       formatter_class=argparse.RawDescriptionHelpFormatter)
     reset_conf_sub.add_argument('name', choices=configs)
-    reset_conf_sub.add_argument('-d', '--delete', action='store_true',
-                                help=msgs.delete)
+    # reset_conf_sub.add_argument('-d', '--delete', action='store_true',
+    #                             help=msgs.delete)
 
     # remove configuration command
 

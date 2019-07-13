@@ -46,10 +46,11 @@ def recovery_history(force=False):
         savetxt('history/profiles.txt', pro_file, fmt='%d',
                 header='iteration[0] - profile[1:]\n')
 
-def sim_info(Lambda, config):
+def sim_info(Point, config):
     from os import chdir
+    from lib.utils import point_dir, config_dir
 
-    chdir('output/' + config + '/Lambda' + str(Lambda))
+    chdir(config_dir(config) + '/' + point_dir(Point))
 
     import json
 
@@ -326,18 +327,19 @@ def config(email=None, remote=None, path=None, show=False):
     with open('config.json', 'w') as config_file:
         json.dump(configurations, config_file, indent=4)
 
-def new_conf(name, path):
+def new_conf(name, path, caller_path):
     from os.path import isdir, isfile, abspath, basename
     from os import chdir, mkdir, listdir
     from inspect import cleandoc
     import json
 
-    chdir('output')
-
     msg_exist = cleandoc("""The requested configuration already exists.
                 If you want to reset it, please use the specific command.""")
 
     # check for configs file in output folder
+    out_dir = abspath('output')
+    chdir(out_dir)
+
     dirs = [d for d in listdir() if isdir(d)]
     paths = [abspath(d) for d in dirs]
     if not isfile('configs.json'):
@@ -351,6 +353,8 @@ def new_conf(name, path):
         for d in dirs:
             if d not in configs.keys():
                 configs[d] = d
+
+    chdir(caller_path)
 
     # actually creates requested folder
     if not path:
@@ -375,10 +379,10 @@ def new_conf(name, path):
                 print('Invalid path given.')
                 return
 
-    print(f"Created config '{name}' at path:\n  {path}")
+    print(f"Created config '{name}' at path:\n  {abspath(path)}")
 
     configs = {**configs, name: abspath(path)}
-    with open('configs.json', 'w') as config_file:
+    with open(out_dir + '/configs.json', 'w') as config_file:
         json.dump(configs, config_file, indent=4)
 
 def show_confs(paths):
@@ -401,7 +405,7 @@ def show_confs(paths):
         for name in sorted(configs, key=str.lower):
             print(name)
 
-def reset_conf(name, delete=False):
+def reset_conf(name):
     from os.path import isdir
     from os import chdir, mkdir
     from shutil import rmtree
@@ -418,8 +422,7 @@ def reset_conf(name, delete=False):
         authorized = authorization_request(what_to_do)
         if authorized:
             rmtree(name)
-            if not delete:
-                mkdir(name)
+            mkdir(name)
     else:
         print('The requested configuration does not exist.\n' +
               'If you want to create it, please use the specific command.')

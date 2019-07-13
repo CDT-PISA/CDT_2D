@@ -202,11 +202,18 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     with open('state.json', 'w') as state_file:
         json.dump(state, state_file, indent=4)
 
+    if end_type == 'time':
+        end = end_partial + 't'
+    elif end_type == 'steps':
+        end = end_partial + 's'
+    else:
+        raise RuntimeError('end_type not recognized')
+
     arguments = [run_num,
                  Lambda,
                  Beta,
                  time_length,
-                 end_partial,
+                 end,
                  debug_flag,
                  last_check,
                  linear_history,
@@ -223,21 +230,21 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     # lo eseguo solo se non è termalizzato
     # serve appunto a controllare se termalizza
     end_condition = int(end_condition)
+    end_partial = int(end_partial)
     if not linear_history != '0':  # i.e. `if not linear_history:`
         rerun = 0
-        if end_type == 'time':
-            end_run = (time() - start_record) > end_condition
-        elif end_type == 'steps':
-            end_run = iter_done > end_condition
 
+        end_condition -= end_partial
         max_volume_reached = isfile('max_volume_reached')
 
         # while (succesful and not is_thermalized() and not end_run
-        while (succesful and not end_run
+        while (succesful and end_condition > 0
                and not stopped and not max_volume_reached):
             rerun += 1
             run_id = str(run_num) + '.' + str(rerun)
             arguments[0] = run_id
+
+            arguments[4] = min(end_partial, end_condition)
 
             log_header(run_id)
             arguments[6] = checkpoints[-1]
@@ -245,6 +252,9 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
 
             checkpoints, iter_done = recovery_sim(run_id, succesful)
             log_footer(run_id, succesful)
+
+            end_condition -= end_partial
+            max_volume_reached = isfile('max_volume_reached')
 
             if end_type == 'time':
                 end_run = (time() - start_record) > end_condition
