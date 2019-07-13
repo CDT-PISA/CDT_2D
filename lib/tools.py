@@ -123,7 +123,7 @@ def up_launch(points_old, config, both, make, force):
                 authorized = authorization_request(what_to_do, p)
             else:
                 authorized = True
-            if authorized:
+            if authorized != 'quit' and authorized:
                 chdir('output/' + config + '/' + point_dir(p))
                 if both or make:
                     make_script_n = make_script_name(p)
@@ -133,6 +133,8 @@ def up_launch(points_old, config, both, make, force):
                     copyfile(launch_script_path(), launch_script_n)
                 print('Update complete for (λ, β) = ' + str(p))
                 chdir(proj_dir)
+            elif authorized == 'quit':
+                return
 
 def remove(lambdas_old, config, force, cbin, check):
     from os import chdir, popen

@@ -412,7 +412,7 @@ def find_running():
     else:
         points_run = []
         sim_info = []
-        print("This platform is still not supported")
+        print("RUNNING SIMS: This platform is still not supported")
 
     return points_run, sim_info
 
