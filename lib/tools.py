@@ -107,8 +107,9 @@ def therm(lambdas_old, config, is_therm, force):
 def up_launch(points_old, config, both, make, force):
     from os import getcwd, chdir
     from shutil import copyfile
-    from lib.utils import find_running, authorization_request,\
-                          point_dir, point_str
+    from lib.utils import (find_running, authorization_request, point_dir,
+                           launch_script_path, make_script_path,
+                           launch_script_name, make_script_name)
 
     proj_dir = getcwd()
 
@@ -125,12 +126,12 @@ def up_launch(points_old, config, both, make, force):
             if authorized:
                 chdir('output/' + config + '/' + point_dir(p))
                 if both or make:
-                    make_script_name = 'make_' + point_str(p) + '.py'
-                    copyfile('../../../lib/make_script.py', make_script_name)
+                    make_script_n = make_script_name(p)
+                    copyfile(make_script_path(), make_script_n)
                 if both or not make:
-                    launch_script_name = 'launch_' + point_str(p) + '.py'
-                    copyfile('../../../lib/launch_script.py',
-                             launch_script_name)
+                    launch_script_n = launch_script_name(p)
+                    copyfile(launch_script_path(), launch_script_n)
+                print('Update complete for (λ, β) = ' + str(p))
                 chdir(proj_dir)
 
 def remove(lambdas_old, config, force, cbin, check):

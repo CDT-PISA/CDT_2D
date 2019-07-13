@@ -159,8 +159,20 @@ def config_dir(config):
 
     return path
 
+def launch_script_path():
+    from os.path import abspath, dirname
+
+    lib_path = abspath(dirname(__file__))
+    return lib_path + '/scripts/launch_script.py'
+
 def launch_script_name(Point):
     return 'launch_' + point_str(Point) + '.py'
+
+def make_script_path():
+    from os.path import abspath, dirname
+
+    lib_path = abspath(dirname(__file__))
+    return lib_path + '/scripts/make_script.py'
 
 def make_script_name(Point):
     return 'make_' + point_str(Point) + '.py'
