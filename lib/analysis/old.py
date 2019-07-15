@@ -1,19 +1,14 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 27 11:32:00 2019
-
-@author: alessandro
-"""
 
 from numpy import loadtxt
 from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots, subplots_adjust, close
+from __init__ import select_from_plot
 
 def analyze_output(outdir):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
     Descrizione...
-    
+
     Parameters
     ----------
     p1 : tipo
@@ -22,31 +17,31 @@ def analyze_output(outdir):
         descrizione del secondo parametro p2
     p3 : tipo, optional
         descrizione del terzo parametro opzionale p3
-    
+
     Returns
     -------
     tipo
         descrizione del tipo di ritorno
-        
+
     Raises
     ------
     Exception
         descrizione dell'eccezione lanciata
     """
     print("Run",outdir.split("run")[1])
-    
+
     space_profiles = loadtxt(outdir+"/simulation_output",unpack=False)
     print(space_profiles[-1])
-    
+
     # figure1 represents a snapshot of the spacetime near the end of simulation
     fig1 = figure()
     plot(space_profiles[-1])
-    
+
     fig1.suptitle("Titolo", fontsize=20, y=0.95)
-    
+
     savefig(outdir+"/space_profile_thermalized.png")
     close(fig1)
-    
+
     # figure2 represents the evolution in simulation time
     kw = {'height_ratios':[4,1], "width_ratios":[97,3]}
     fig2, ((ev, ax2),(sm,aux)) = subplots(2,2,  gridspec_kw=kw)
@@ -56,17 +51,17 @@ def analyze_output(outdir):
     im = ev.imshow(space_profiles.transpose(), cmap="hot", interpolation=None, origin="lower", aspect="auto")
     #'bilinear'
     fig2.colorbar(im,cax=ax2)
-    
+
     ev.grid(False)
     ev.get_xaxis().set_visible(False)
     aux.axis("off")
     fig2.suptitle("Titolo", fontsize=20, y=0.95)
-    
+
     savefig(outdir+"/space_profile_evolution.png")
     close(fig2)
-    
+
     # per imshow devo assicurarmi che siano equispaziati!
-    
+
 #    si potrebbe pensare di stampare almeno un paio di profili spaziali insieme,
 #    magari non vicini (entrambi nella parte finale, così che siano ben termalizzati,
 #    ma non vicini in modo che siano il meno possibile correlati) per analizzare
@@ -76,7 +71,7 @@ def analyze_output(outdir):
 #    figure(1)
 #    subplot(212)
 #    plot(space_profiles[-10])
-    
+
 #    close("all")
 
 
@@ -85,123 +80,32 @@ def analyze_output(outdir):
 def is_thermalized():
     return False
 
-def select_from_plot(Lambda, indices, volumes, i=0, dot=None):
-    from matplotlib.pyplot import figure, show, figtext
-    
-    imin = min(indices)
-    imax = max(indices)
-    vmin = min(volumes)
-    vmax = max(volumes)
-    
-    color_cycle = ['xkcd:carmine', 'xkcd:teal', 'xkcd:peach', 'xkcd:mustard',
-                   'xkcd:cerulean']
-    
-    n_col = len(color_cycle)
-    
-    fig = figure()
-    ax = fig.add_subplot(111)
-    canvas = fig.canvas
-    
-    fig.set_size_inches(7, 5)
-    ax.plot(indices, volumes, color=color_cycle[i % n_col])
-    ax.set_title('λ = ' + str(Lambda))
-    figtext(.5,.03,' '*10 + 
-            'press enter to convalid current selection', ha='center')
-    if not dot == None:
-        ax.plot(*dot, 'o', mec='w')
-    
-    fig.canvas.draw()
-    
-    def on_press(event):
-        on_press.p = True
-    on_press.p = False
-    
-    def on_click(event):
-        on_press.p = False
-        if event.inaxes is not None:
-            x = event.xdata
-            y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
-            if inarea and not on_motion.drag:
-                on_click.x = x
-                on_click.y = y
-                if on_click.i > 0:
-                    on_click.m[0].remove()
-                on_click.m = ax.plot(x, y, 'o', mec='w')
-                event.canvas.draw()
-                on_click.i += 1
-        on_motion.drag = False
-    on_click.i = 0
-    on_click.m = None
-    on_click.x = None
-    on_click.y = None
-        
-    def on_motion(event):
-        if on_press.p == True:
-            on_motion.drag = True
-            hide_drag = not event.canvas.manager.toolbar._active == None
-        else:
-            hide_drag = False
-        if event.inaxes is not None and not hide_drag:
-            x = event.xdata
-            y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
-            if inarea:
-                m = ax.plot(x, y, 'wo', mec='k')
-                n = ax.plot(x, vmin, 'k|', ms=20)
-                event.canvas.draw()
-                m[0].remove()
-                n[0].remove()
-        else:
-            event.canvas.draw()
-    on_motion.drag = False
-        
-    def on_key(event):
-        if event.key == 'enter':
-            close()
-            if on_click.x == None:
-                on_click.x = -1
-        if event.key == 'q':
-            on_click.x = None
-            on_click.y = None
-            close()
-            
-    
-    canvas.mpl_connect('button_press_event', on_press)
-    canvas.mpl_connect('button_release_event', on_click)
-    canvas.mpl_connect('motion_notify_event', on_motion)
-    canvas.mpl_connect('key_press_event', on_key)
-    show()
-    
-    return on_click.x, on_click.y
-            
-
 def fit(lambdas_old, config, skip):
     from os import chdir, getcwd
     import json
     from numpy import array, linspace
     from matplotlib.pyplot import figure, show
     from scipy.optimize import curve_fit
-    
+
     proj_dir = getcwd()
     volumes = []
     errors = []
     if skip == False:
         import readline
         from numpy import loadtxt
-        
+
         i = -1
         for Lambda in lambdas_old:
             i += 1
             chdir('output/' + config + '/Lambda' + str(Lambda))
-            
+
             vol_file = ('history/volumes.txt')
             indices, volumes = loadtxt(vol_file, unpack=True)
             imin = indices[0]
             imax = indices[-1]
             vmin = min(volumes)
             vmax = max(volumes)
-            
+
             print("[ λ = " + str(Lambda) + " ]")
             print("Select the x cut ('p' for plot or type it, or just ENTER"
                                      + " to use a previous choice)")
@@ -214,7 +118,7 @@ def fit(lambdas_old, config, skip):
                 except EOFError:
                     choice = ''
                     print()
-                    
+
                 valid = True
                 if choice == 'q' or choice == 'quit':
                     choice = 'q'
@@ -235,10 +139,10 @@ def fit(lambdas_old, config, skip):
                         else:
                             choice = 'q'
                             print(' (nothing done)')
-            
+
             with open('state.json', 'r') as state_file:
                 state = json.load(state_file)
-            
+
             if choice == 'q':
                 print('Nothing done, restart from the beginning')
                 return
@@ -259,17 +163,17 @@ def fit(lambdas_old, config, skip):
                 except KeyError:
                     print('Default cut not found, select it on the plot.')
                     cut, height = select_from_plot(Lambda, indices, volumes, i)
-                    
+
             state['cut'] = cut
             volumes_cut = volumes[indices > cut]
             indices_cut = indices[indices > cut]
-            
+
             dot = (cut, height)
-            
+
             def blocked_mean_std(indices, volumes, block_size):
                 from numpy import mean, std
                 from math import sqrt
-                
+
                 bs = block_size
                 buffer_start = indices[0]
                 buffer = []
@@ -280,12 +184,12 @@ def fit(lambdas_old, config, skip):
                         buffer = []
                         buffer_start = indices[i]
                     buffer += [volumes[i]]
-                
+
                 vol = mean(block_means)
                 err = std(block_means) / sqrt(len(block_means) - 1)
-                
+
                 return vol, err
-            
+
             print("Select the x blocking ('p' for plot, 'b' for blocks' " +
                   "plot or type it, or just ENTER to use a previous choice)")
             valid = False
@@ -297,7 +201,7 @@ def fit(lambdas_old, config, skip):
                 except EOFError:
                     choice = ''
                     print()
-                    
+
                 valid = True
                 if choice == 'q' or choice == 'quit':
                     choice = 'q'
@@ -320,10 +224,10 @@ def fit(lambdas_old, config, skip):
                         else:
                             choice = 'q'
                             print(' (nothing done)')
-            
+
             if choice == 'q':
                 print('Nothing done, restart from the beginning')
-                return        
+                return
             elif choice == 'plot':
                 x_sel, _ = select_from_plot(Lambda, indices, volumes, i, dot)
                 if x_sel == None:
@@ -337,44 +241,44 @@ def fit(lambdas_old, config, skip):
                 try:
                     block = state['block']
                 except KeyError:
-                    print('Default block size not found, ' + 
+                    print('Default block size not found, ' +
                           'select it on the plot.')
                     choice = 'blocks plot'
             if choice == 'blocks plot':
                 from math import log
-                
-                block_sizes = [2**k for k in 
+
+                block_sizes = [2**k for k in
                                range(0, int(log(imax - cut, 2)) - 3)]
                 stdevs = []
                 for bs in block_sizes:
                     _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
                     stdevs += [stdev]
-                    
+
                 block, _ = select_from_plot(Lambda, block_sizes, stdevs, i)
                 if block == None or block == -1:
                     print('Nothing done, restart from the beginning')
                     return
                 block = int(block)
-                
+
             state['block'] = block
-            
+
             vol, err = blocked_mean_std(indices_cut, volumes_cut, block)
-            
+
             state['asymptotic mean volume'] = (vol,err)
             volumes += [vol]
             errors += [err]
-            
+
             with open('state.json', 'w') as state_file:
                 json.dump(state, state_file, indent=4)
-                
+
             chdir(proj_dir)
     else:
         for Lambda in lambdas_old:
             chdir('output/' + config + '/Lambda' + str(Lambda))
-            
+
             with open('state.json', 'r') as state_file:
-                    state = json.load(state_file)    
-            
+                    state = json.load(state_file)
+
             try:
                 volumes += [state['asymptotic mean volume'][0]]
                 errors += [state['asymptotic mean volume'][1]]
@@ -382,46 +286,46 @@ def fit(lambdas_old, config, skip):
                 print('')
                 print('Nothing done, restart from the beginning')
                 return
-            
+
             chdir(proj_dir)
-          
+
     from numpy import sqrt, log, zeros, diag, vectorize
-            
+
     lambdas = array(lambdas_old)
     volumes = array(volumes)
     errors = array(errors)
-            
+
     fig = figure()
     ax = fig.add_subplot(111)
-    
+
     print(errors.shape)
     ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
-    
+
     def volume(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
-    
+
     par, cov = curve_fit(volume, lambdas, volumes, sigma=errors,
                          p0=(0.69315, 2.4, 61))
-    
+
     residuals_sq = ((volumes - vectorize(volume)(lambdas, *par))/errors)**2
     chi2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
-    
+
     print("χ² = ", chi2, dof)
-    
+
     names = ['λ_c', 'alpha', 'factor']#, 'shift']
     print(dict(zip(names, par)))
     print(dict(zip(names,sqrt(diag(cov)))))
-    
+
     n = len(par)
     corr = zeros((n, n))
     for i in range(0, n):
         for j in range(0, n):
             corr[i,j] = cov[i,j]/sqrt(cov[i,i]*cov[j,j])
-    
+
     print(corr)
-    
+
     l_inter = linspace(min(lambdas), max(lambdas), 1000)
     ax.plot(l_inter, volume(l_inter, *par))
-    
+
     show()

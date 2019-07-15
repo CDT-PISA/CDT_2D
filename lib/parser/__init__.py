@@ -501,6 +501,18 @@ def define_parser(launcher_path, version):
     analysis = subparsers.add_parser('analysis', help=msgs.analysis)
     analysis_sub = analysis.add_subparsers(dest='analysis')
 
+    # preliminary command
+
+    kinds = ['v', 'volumes', 'd', 'divergent']
+
+    pre_sub = analysis_sub.add_parser('pre', help='preliminary analyses',
+                        description=msgs.ana_pre,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    pre_sub.add_argument('-k', '--kind', choices=kinds, help=None)
+    pre_sub.add_argument('-c', '--config', choices=configs, default='test',
+                         metavar=meta_configs,
+                         help=msgs.config)
+
     # fit command
 
     fit_sub = analysis_sub.add_parser('fit', help='fit',

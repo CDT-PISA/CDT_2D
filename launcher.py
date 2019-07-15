@@ -18,6 +18,8 @@ from platform import node
 
 import lib.parser
 
+sys.path += [realpath(__file__)]
+
 # WRAPPERS
 
 # Useful on running
@@ -189,6 +191,13 @@ def clear(points_old, points_new, config, force):
         print("Following (λ, β) not found: ", points_new)
     clear_data(points_old, config, force)
 
+# Analyses
+
+def pre(kind, config):
+    from lib.analysis import preliminary_analyses
+
+    preliminary_analyses(kind, config)
+
 
 if(node() == 'Paperopoli'):
     import argcomplete
@@ -251,15 +260,19 @@ def main():
 
     if not hasattr(args, 'tools'):
         args.tools = ''
+    if not hasattr(args, 'analysis'):
+        args.analysis = ''
 
     # Further parsing (not supported by `argparse`)
-    wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf']
+    wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
+                'pre']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
             parser.error('° chosen together with (λ, β).')
     else:
-        if all([x not in wo_point for x in [args.command, args.tools]]):
+        if all([x not in wo_point for x in [args.command, args.tools,
+                                            args.analysis]]):
             if not all([hasattr(args, x) for x in ['lamda', 'beta']]):
                 parser.error('(λ, β) point not specified.')
 
@@ -308,8 +321,8 @@ def main():
     elif args.command == 'show':
         show(points_old, args.config, args.disk_usage)
 
-    elif args.command == 'fit':
-        fit(points_old, points_new, args.config, args.skip)
+    elif args.command == 'plot':
+        plot(points_old, points_new, args.config)
 
     elif args.command == 'tools':
         if args.tools == 'recovery':
@@ -342,8 +355,11 @@ def main():
         elif args.tools == 'clear':
             clear(points_old, points_new, args.config, args.force)
 
-    elif args.command == 'plot':
-        plot(points_old, points_new, args.config)
+    elif args.command == 'analysis':
+        if args.analysis == 'fit':
+            fit(points_old, points_new, args.config, args.skip)
+        elif args.analysis == 'pre':
+            pre(args.kind, args.config)
 
 
 if __name__ == "__main__":

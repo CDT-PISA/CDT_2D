@@ -324,6 +324,17 @@ analysis = """analysis tools"""
 
 # FIT
 
+ana_pre = cleandoc("""
+┌───────────┐
+│PRE COMMAND│
+└───────────┘
+...
+
+Example:
+    ...""")
+
+# FIT
+
 fit = cleandoc("""
 ┌───────────┐
 │FIT COMMAND│
