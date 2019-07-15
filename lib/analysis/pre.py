@@ -60,9 +60,9 @@ def divergent_points(config=None):
 
     fig = figure()
     ax = fig.add_subplot(111)
-    if divergent:
-        ax.plot(*zip(*divergent), 'r+')
     if convergent:
         ax.plot(*zip(*convergent), 'b+')
+    if divergent:
+        ax.plot(*zip(*divergent), 'r+')
 
     show()
