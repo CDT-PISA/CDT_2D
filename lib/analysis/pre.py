@@ -36,7 +36,7 @@ def mean_volumes(config=None):
     print(mvs)
 
 def divergent_points(config=None):
-    from matplotlib.pyplot import plot, show
+    from matplotlib.pyplot import plot, show, figure
 
     convergent = []
     divergent = []

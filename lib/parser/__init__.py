@@ -509,7 +509,7 @@ def define_parser(launcher_path, version):
                         description=msgs.ana_pre,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     pre_sub.add_argument('-k', '--kind', choices=kinds, help=None)
-    pre_sub.add_argument('-c', '--config', choices=configs, default='test',
+    pre_sub.add_argument('-c', '--config', choices=configs, default=None,
                          metavar=meta_configs,
                          help=msgs.config)
 
