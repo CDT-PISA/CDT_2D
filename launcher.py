@@ -297,7 +297,8 @@ def main():
     if args.is_data:
         args.config = 'data'
 
-    if all([x not in wo_point for x in [args.command, args.tools]]):
+    if all([x not in wo_point for x in [args.command, args.tools,
+                                        args.analysis]]):
         from lib.utils import points_recast
 
         points_old, points_new = points_recast(lambdas, betas, args.range,
