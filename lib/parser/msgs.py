@@ -59,6 +59,9 @@ the first run, from the second on the same of the first is used)"""
 fake_run = """if toggled prevents the simulation to start and instead prints
 the command that would be run otherwise"""
 
+queue = """ only for marconi
+"""
+
 linear_history = """it takes an integer argument, that if set greater then
 zero let data points be saved at regular intervals, instead of at increasing
 ones (units: {k,M,G}) | ex: --linear-history 2k"""

@@ -24,11 +24,11 @@ import lib.parser
 
 def data(points_old, points_new, config, linear_history, time, steps,
          force, time_length, adj, max_vol, move22, move24, move_gauge,
-         fake_run, debug):
+         fake_run, debug, queue):
     from lib.data import launch
     launch(points_old, points_new, config, linear_history, time, steps,
            force, time_length, adj, max_vol, move22, move24, move_gauge,
-           fake_run, debug)
+           fake_run, debug, queue)
 
 def state(configs, full_show=False):
     from lib.data import show_state
@@ -296,7 +296,7 @@ def main():
         data(points_old, points_new, args.config, args.linear_history,
              args.time, args.steps, args.force, args.timelength, args.adj_flag,
              args.max_volume, args.move22, args.move24, args.move_gauge,
-             args.fake_run, args.debug)
+             args.fake_run, args.debug, args.queue)
 
     elif args.command == 'state':
         state(args.config, args.full_show)

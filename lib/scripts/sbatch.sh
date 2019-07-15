@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --partition=skl_usr_prod
+#SBATCH --partition=skl_usr_{queue}
 #SBATCH --account=INF19_npqcd_0
 #SBATCH --nodes=1
-#SBATCH --time 23:59:30
+#SBATCH --time {qtime}:30
 #SBATCH --job-name={jobname}
 
 # #SBATCH --error=stderr{i}_{time}.txt

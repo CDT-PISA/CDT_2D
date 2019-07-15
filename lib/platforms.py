@@ -38,7 +38,7 @@ def lsf_launch(points, arg_strs):
 #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
 #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
 
-def slurm_launch(points, arg_strs):
+def slurm_launch(points, arg_strs, queue):
     from os import system, chdir, chmod
     from os.path import abspath
     from subprocess import Popen
@@ -48,6 +48,15 @@ def slurm_launch(points, arg_strs):
                            project_folder)
 
     # raise RuntimeError('support for marconi still missing')
+
+    if queue in ['p', 'prod']:
+        queue = 'prod'
+        qtime = '23:59'
+    elif queue in ['d', 'dbg', 'debug']:
+        queue = 'dbg'
+        qtime = '00:29'
+    else:
+        raise RuntimeError('slurm_launch: queue not recognized')
 
     dirs = {Point: abspath(point_dir(Point)) for Point in points}
 
@@ -116,18 +125,18 @@ def is_slurm():
     else:
         return False
 
-def launch_run(points, arg_strs, config):
+def launch_run(points, arg_strs, config, queue):
     from os import chdir, listdir
     from lib.utils import config_dir
     chdir(config_dir(config))
 
     if is_local():
-        # slurm_launch(points, arg_strs)
+        # slurm_launch(points, arg_strs, queue)
         local_launch(points, arg_strs)
     elif is_lsf():
         lsf_launch(points, arg_strs)
     elif is_slurm():
-        slurm_launch(points, arg_strs)
+        slurm_launch(points, arg_strs, queue)
     else:
         raise NameError('Platform not recognized '
                         '(known platforms in platform.py)')

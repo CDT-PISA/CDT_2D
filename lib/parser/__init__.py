@@ -126,6 +126,7 @@ def define_parser(launcher_path, version):
                'BETA': '--beta',
                'RANGE': '--range',
                'CONFIG': '--config',
+               'QUEUE': '--queue',
                'FORCE': '--force',
                'TIMELENGTH': '--timelength',
                'DEBUG': '--debug',
@@ -153,6 +154,9 @@ def define_parser(launcher_path, version):
     run_sub.add_argument('-c', '--config', choices=configs, default='test',
                          metavar=meta_configs,
                          help=msgs.config)
+    run_sub.add_argument('-q', '--queue', default='debug',
+                         choices=['p', 'prod', 'd', 'dbg', 'debug'],
+                         help=msgs.queue)
     run_sub.add_argument('-f', '--force', action='store_true', help=msgs.force)
     run_sub.add_argument('--timelength', nargs=1, type=int, default=80,
                          help=msgs.timelength)

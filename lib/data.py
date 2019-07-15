@@ -6,7 +6,7 @@ Created on Fri Mar 15 10:54:46 2019
 """
 def launch(points_old, points_new, config, linear_history, end_time, end_steps,
            force, time_length, adj, max_volume, move22, move24, move_gauge,
-           fake_run, debug):
+           fake_run, debug, queue):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
 
@@ -221,7 +221,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
     if not fake_run:
         from lib.platforms import launch_run
-        launch_run(points, arg_strs, config)
+        launch_run(points, arg_strs, config, queue)
 
 
 
