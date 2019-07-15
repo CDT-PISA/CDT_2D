@@ -12,7 +12,7 @@ def mean_volumes(config=None):
 
         for path in sims:
             from os import chdir
-            from os.path import basename
+            from os.path import basename, isfile
             import json
             from numpy import loadtxt
             from lib.utils import dir_point
@@ -20,17 +20,18 @@ def mean_volumes(config=None):
             chdir(path)
 
             Point = dir_point(basename(path))
-            _, volumes = loadtxt('history/volumes.txt', unpack=True)
+            if isfile('history/volumes.txt'):
+                _, volumes = loadtxt('history/volumes.txt', unpack=True)
 
-            with open('state.json', 'r') as state_file:
-                state = json.load(state_file)
+                with open('state.json', 'r') as state_file:
+                    state = json.load(state_file)
 
-            try:
-                cut = state['cut']
-            except KeyError:
-                cut = 0
+                try:
+                    cut = state['cut']
+                except KeyError:
+                    cut = 0
 
-            mvs = {**mvs, Point: volumes[cut:].mean()}
+                mvs = {**mvs, Point: volumes[cut:].mean()}
 
     print(mvs)
 
@@ -54,12 +55,14 @@ def divergent_points(config=None):
 
             if isfile('max_volume_reached'):
                 divergent += [Point]
-            else:
+            elif isfile('history/volumes.txt'):
                 convergent += [Point]
 
+    fig = figure()
+    ax = fig.add_subplot(111)
     if divergent:
-        plot(*zip(*divergent), 'r+')
+        ax.plot(*zip(*divergent), 'r+')
     if convergent:
-        plot(*zip(*convergent), 'b+')
+        ax.plot(*zip(*convergent), 'b+')
 
     show()
