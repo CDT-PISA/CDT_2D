@@ -140,3 +140,31 @@ def launch_run(points, arg_strs, config, queue):
     else:
         raise NameError('Platform not recognized '
                         '(known platforms in platform.py)')
+
+def ps_local():
+    from os import popen
+
+    # return popen('ps -fu' + environ['USER']).read().split('\n')
+    return popen('ps -fu $USER').read().split('\n')
+
+def ps_lsf():
+    raise NotImplementedError('missing implementation for lsf')
+
+def ps_slurm():
+    from os import popen
+
+    return popen('squeue -u $USER --format="%.10i %.12P %.40j'
+                 ' %.8u %.2t %.8M %.3D %R" | grep CDT | awk \'{print $1}\'| '
+                 'xargs -I pid srun --jobid pid ps -fu $USER | grep CDT')
+
+def get_ps_out():
+    if is_local():
+        # slurm_launch(points, arg_strs, queue)
+        return ps_local()
+    elif is_lsf():
+        return ps_lsf()
+    elif is_slurm():
+        return ps_slurm()
+    else:
+        raise NameError('Platform not recognized '
+                        '(known platforms in platform.py)')

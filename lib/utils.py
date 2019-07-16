@@ -390,9 +390,10 @@ def find_running():
     from os import environ
     from os.path import basename
     from lib.utils import find_configs
+    from lib.platforms import get_ps_out
 
     if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
+        ps_out = get_ps_out()
 
         points_run = []
         sim_info = []
