@@ -8,13 +8,13 @@ Created on Sun Jan 27 11:32:00 2019
 from numpy import loadtxt
 from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots, subplots_adjust, close
 
-def preliminary_analyses(kind, config=None):
+def preliminary_analyses(kind, configs=None, conf_plot=False):
     import lib.analysis.pre as pre
 
     if kind in ['v', 'volumes']:
-        pre.mean_volumes(config)
+        pre.mean_volumes(configs)
     elif kind in ['d', 'divergent']:
-        pre.divergent_points(config)
+        pre.divergent_points(configs, conf_plot)
     else:
         raise RuntimeError('preliminary_analyses: kind not recognized')
 

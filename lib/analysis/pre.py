@@ -4,10 +4,10 @@
 from numpy import loadtxt
 from lib.analysis import sim_paths
 
-def mean_volumes(config=None):
+def mean_volumes(configs=None):
     mvs = {}
     for c, sims in sim_paths().items():
-        if config and c != config:
+        if configs and c not in configs:
             continue
 
         for path in sims:
@@ -35,14 +35,25 @@ def mean_volumes(config=None):
 
     print(mvs)
 
-def divergent_points(config=None):
+def divergent_points(configs=None, conf_plot=False):
     from matplotlib.pyplot import plot, show, figure
 
     convergent = []
     divergent = []
+    if conf_plot:
+        from matplotlib.text import Text
+        ylabel = []
+        i = 0
+
     for c, sims in sim_paths().items():
-        if config and c != config:
+        if configs and c not in configs:
             continue
+
+        if conf_plot:
+            i += 1
+            print(i, c)
+            # ylabel += [Text(x=(i-1), y=i, text=c)]
+            ylabel += [c]
 
         for path in sims:
             from os import chdir
@@ -51,12 +62,16 @@ def divergent_points(config=None):
 
             chdir(path)
 
-            Point = dir_point(basename(path))
+            if conf_plot:
+                Point = [dir_point(basename(path))[0], i]
+            else:
+                Point = dir_point(basename(path))
 
             if isfile('max_volume_reached'):
                 divergent += [Point]
             elif isfile('history/volumes.txt'):
                 convergent += [Point]
+
 
     fig = figure()
     ax = fig.add_subplot(111)
@@ -64,5 +79,12 @@ def divergent_points(config=None):
         ax.plot(*zip(*convergent), 'b+')
     if divergent:
         ax.plot(*zip(*divergent), 'r+')
+
+    if conf_plot:
+        from numpy import linspace
+        yticks_location = linspace(1, len(ylabel), len(ylabel))
+        ax.set_yticks(yticks_location)
+        ax.set_yticklabels(ylabel)
+        ax.set_ylim(0, len(ylabel) + 1)
 
     show()

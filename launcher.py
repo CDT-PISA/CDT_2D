@@ -193,10 +193,10 @@ def clear(points_old, points_new, config, force):
 
 # Analyses
 
-def pre(kind, config):
+def pre(kind, config, conf_plot):
     from lib.analysis import preliminary_analyses
 
-    preliminary_analyses(kind, config)
+    preliminary_analyses(kind, config, conf_plot)
 
 
 if(node() == 'Paperopoli'):
@@ -365,7 +365,7 @@ def main():
         if args.analysis == 'fit':
             fit(points_old, points_new, args.config, args.skip)
         elif args.analysis == 'pre':
-            pre(args.kind, args.config)
+            pre(args.kind, args.config, args.conf_plot)
 
 
 if __name__ == "__main__":

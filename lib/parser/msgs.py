@@ -322,7 +322,7 @@ Example:
 
 analysis = """analysis tools"""
 
-# FIT
+# PRELIMINARY
 
 ana_pre = cleandoc("""
 ┌───────────┐
@@ -332,6 +332,9 @@ ana_pre = cleandoc("""
 
 Example:
     ...""")
+
+conf_plot = """Used to plot more config with the same beta splitted.
+"""
 
 # FIT
 
