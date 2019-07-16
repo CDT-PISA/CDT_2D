@@ -308,7 +308,9 @@ def main():
     # Wrappers' calls
     if args.command == 'run':
         from lib.utils import timelengths_recast
-        timelengths = timelengths_recast(args.timelength, lambdas, betas)
+        points = points_old + points_new
+        timelengths = timelengths_recast(args.timelength, lambdas, betas,
+                                         points)
 
         data(points_old, points_new, args.config, args.linear_history,
              args.time, args.steps, args.force, timelengths, args.adj_flag,

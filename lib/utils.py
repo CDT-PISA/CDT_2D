@@ -343,17 +343,17 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
 
     return points_old, points_new
 
-def timelengths_recast(timelengths, lambdas, betas):
+def timelengths_recast(timelengths, lambdas, betas, points):
     d = {}
-
-    assert len(lambdas) == len(betas)
-    points = list(zip(lambdas, betas))
 
     if isinstance(timelengths, list):
         if len(timelengths) == 1:
             for Point in points:
                 d[Point] = timelengths[0]
         elif len(timelengths) == len(points):
+            assert len(lambdas) == len(betas)
+            points = list(zip(lambdas, betas))
+
             for i in range(len(points)):
                 d[points[i]] = timelengths[i]
         else:
