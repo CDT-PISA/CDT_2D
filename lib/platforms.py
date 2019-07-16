@@ -155,7 +155,8 @@ def ps_slurm():
 
     return popen('squeue -u $USER --format="%.10i %.12P %.40j'
                  ' %.8u %.2t %.8M %.3D %R" | grep CDT | awk \'{print $1}\'| '
-                 'xargs -I pid srun --jobid pid ps -fu $USER | grep CDT')
+                 'xargs -I pid srun --jobid pid ps -fu $USER | '
+                 'grep CDT').read().split('\n')
 
 def get_ps_out():
     if is_local():
