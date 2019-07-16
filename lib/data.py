@@ -153,6 +153,21 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
             from lib.tools import recovery_history
             recovery_history()
 
+            if linear_history != '0' and not state['linear-history']:
+                state['linear-history-cut'] = state['iter_done']
+            if state['linear-history']:
+                if linear_history == '0':
+                    print('\033[38;5;69mWarning:\033[0m')
+                    print(f"Point {Point} has been already run with "
+                          f"linear_history {state['linear-history']}, so this "
+                          f"value will be used.")
+                elif linear_history != state['linear-history']:
+                    print('\033[38;5;69mWarning:\033[0m')
+                    print(f"Point {Point} has been already run with "
+                          f"linear_history {state['linear-history']}, so this "
+                          f"will be used instead of: {linear_history}.")
+                linear_history = state['linear-history']
+
         # ensure state_file existence or update it
         if int(run_num) == 1:
             state = {'Lambda': Point[0], 'Beta': Point[1], 'run_done': 0,

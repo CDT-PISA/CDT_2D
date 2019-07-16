@@ -198,7 +198,7 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
     start_time = datetime.fromtimestamp(start_record)\
                          .strftime('%d-%m-%Y %H:%M:%S')
     state['start_time'] = start_time
-    state['linear-history'] = not (linear_history == '0')
+    state['linear-history'] = '' if linear_history == '0' else linear_history
     with open('state.json', 'w') as state_file:
         json.dump(state, state_file, indent=4)
 
