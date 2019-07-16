@@ -343,6 +343,28 @@ def points_recast(lambda_list, beta_list, range='', is_all=False,
 
     return points_old, points_new
 
+def timelengths_recast(timelengths, lambdas, betas):
+    d = {}
+
+    assert len(lambdas) == len(betas)
+    points = list(zip(lambdas, betas))
+
+    if isinstance(timelengths, list):
+        if len(timelengths) == 1:
+            for Point in points:
+                d[Point] = timelengths[0]
+        elif len(timelengths) == len(points):
+            for i in range(len(points)):
+                d[points[i]] = timelengths[i]
+        else:
+            raise ValueError("If `timelengths` is a list should be of the"
+                             "same length of points' list.")
+    elif isinstance(timelengths, int):
+        for Point in points:
+            d[Point] = timelengths
+
+    return d
+
 def find_running():
     """Find running simulations and configs to which they belong.
 

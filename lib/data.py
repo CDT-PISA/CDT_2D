@@ -5,7 +5,7 @@ Created on Fri Mar 15 10:54:46 2019
 @author: alessandro
 """
 def launch(points_old, points_new, config, linear_history, end_time, end_steps,
-           force, time_length, adj, max_volume, move22, move24, move_gauge,
+           force, time_lengths, adj, max_volume, move22, move24, move_gauge,
            fake_run, debug, queue):
     """Output analysis for CDT_2D simulation.
     attempts_str = str(attempts)
@@ -26,8 +26,8 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         Description of parameter `steps`.
     force : type
         Description of parameter `force`.
-    time_length : type
-        Description of parameter `time_length`.
+    time_lengths : type
+        Description of parameter `time_lengths`.
     fake_run : type
         Description of parameter `fake_run`.
     debug : type
@@ -116,7 +116,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
             try:
                 time_length = state['timelength']
             except KeyError:
-                time_length = 80
+                time_length = time_lengths[Point]
 
             checkpoints = [x.name for x in scandir(dir_name + "/checkpoint")
                            if (split('_|\.|run', x.name)[1] == str(run_num - 1)
@@ -143,6 +143,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
             run_num = 1
             last_check = None
+            time_length = time_lengths[Point]
 
         # devo farlo qui perché prima non sono sicuro che dir_name esista
         # ('mkdir(dir_name)')
@@ -154,8 +155,6 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
         # ensure state_file existence or update it
         if int(run_num) == 1:
-            # if type(time_length) == list:
-            #     time_length = time_length[0]
             state = {'Lambda': Point[0], 'Beta': Point[1], 'run_done': 0,
                      'is_thermalized': False, 'last_checkpoint': None,
                      'iter_done': 0, 'timelength': time_length}

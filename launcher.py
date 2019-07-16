@@ -25,11 +25,11 @@ sys.path += [realpath(__file__)]
 # Useful on running
 
 def data(points_old, points_new, config, linear_history, time, steps,
-         force, time_length, adj, max_vol, move22, move24, move_gauge,
+         force, time_lengths, adj, max_vol, move22, move24, move_gauge,
          fake_run, debug, queue):
     from lib.data import launch
     launch(points_old, points_new, config, linear_history, time, steps,
-           force, time_length, adj, max_vol, move22, move24, move_gauge,
+           force, time_lengths, adj, max_vol, move22, move24, move_gauge,
            fake_run, debug, queue)
 
 def state(configs, full_show=False):
@@ -307,8 +307,11 @@ def main():
 
     # Wrappers' calls
     if args.command == 'run':
+        from lib.utils import timelengths_recast
+        timelengths = timelengths_recast(args.timelength, lambdas, betas)
+
         data(points_old, points_new, args.config, args.linear_history,
-             args.time, args.steps, args.force, args.timelength, args.adj_flag,
+             args.time, args.steps, args.force, timelengths, args.adj_flag,
              args.max_volume, args.move22, args.move24, args.move_gauge,
              args.fake_run, args.debug, args.queue)
 

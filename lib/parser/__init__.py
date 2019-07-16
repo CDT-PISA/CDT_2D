@@ -158,7 +158,7 @@ def define_parser(launcher_path, version):
                          choices=['p', 'prod', 'd', 'dbg', 'debug'],
                          help=msgs.queue)
     run_sub.add_argument('-f', '--force', action='store_true', help=msgs.force)
-    run_sub.add_argument('--timelength', nargs=1, type=int, default=80,
+    run_sub.add_argument('--timelength', nargs='+', type=int, default=80,
                          help=msgs.timelength)
     run_sub.add_argument('-d', '--debug', action='store_true', help='debug')
     run_sub.add_argument('-k', '--fake-run', action='store_true',
