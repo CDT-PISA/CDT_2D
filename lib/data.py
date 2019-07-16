@@ -40,6 +40,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     """
 
     from os import mkdir, chdir, getcwd, scandir
+    from os.path import isfile
     from shutil import copyfile
     from re import split, sub
     from platform import node
@@ -148,6 +149,11 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         # devo farlo qui perché prima non sono sicuro che dir_name esista
         # ('mkdir(dir_name)')
         chdir(dir_name)
+
+        if isfile('max_volume_reached'):
+            print(f'Point {Point} won\'t be relaunched because it reached '
+                  'maximum volume available in the previous run.')
+            continue
 
         if int(run_num) > 1:
             from lib.tools import recovery_history
@@ -282,11 +288,23 @@ def show_state(configs, full_show=False):
         for config in configs:
             points_run_list = []
             sim_list = []
-            for i in range(0, len(sim_all)):
-                if points_run_all[i][1] == config:
-                    points_run_list += [points_run_all[i]]
-                    sim_list += [sim_all[i]]
+            for i in range(len(sim_all)):
+                try:
+                    if points_run_all[i][1] == config:
+                        points_run_list += [points_run_all[i]]
+                        sim_list += [sim_all[i]]
+                except IndexError:
+                    # It's possible that find_running can't retrieve the config
+                    # for some simulations, these will be manged after
+                    pass
             d[config] = points_run_list, sim_list
+
+        for i in range(len(sim_all)):
+            if len(points_run_all[i]) == 1:
+                points_run_list += [points_run_all[i] + ['-']]
+                sim_list += [sim_all[i]]
+        d['-'] = points_run_list, sim_list
+
     else:
         print("There are no running simulations currently.")
         return

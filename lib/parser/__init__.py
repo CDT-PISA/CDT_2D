@@ -510,7 +510,7 @@ def define_parser(launcher_path, version):
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     pre_sub.add_argument('-k', '--kind', choices=kinds, help=None)
     pre_sub.add_argument('-c', '--config', choices=configs, default=None,
-                         metavar=meta_configs,
+                         metavar=meta_configs, nargs='+', type=str,
                          help=msgs.config)
 
     # fit command
