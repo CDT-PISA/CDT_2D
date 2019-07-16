@@ -299,11 +299,11 @@ def show_state(configs, full_show=False):
                     pass
             d[config] = points_run_list, sim_list
 
-        for i in range(len(sim_all)):
-            if len(points_run_all[i]) == 1:
-                points_run_list += [points_run_all[i] + ['-']]
-                sim_list += [sim_all[i]]
-        d['-'] = points_run_list, sim_list
+        # for i in range(len(sim_all)):
+        #     if len(points_run_all[i]) == 1:
+        #         points_run_list += [points_run_all[i] + ['-']]
+        #         sim_list += [sim_all[i]]
+        # d['-'] = points_run_list, sim_list
 
     else:
         print("There are no running simulations currently.")

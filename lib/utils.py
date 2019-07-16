@@ -392,7 +392,6 @@ def find_running():
     from lib.utils import find_configs
     from lib.platforms import get_ps_out
 
-    # if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
     ps_out = get_ps_out()
 
     points_run = []
@@ -432,10 +431,9 @@ def find_running():
 
             points_run[i] += [config]
 
-    # else:
-    #     points_run = []
-    #     sim_info = []
-    #     print("RUNNING SIMS: This platform is still not supported")
+    for l in points_run:
+        if len(l) == 1:
+            l += ['-']
 
     return points_run, sim_info
 
