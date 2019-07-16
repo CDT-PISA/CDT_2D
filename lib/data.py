@@ -254,16 +254,17 @@ def show_state(configs, full_show=False):
     from datetime import datetime
     from time import time
     from lib.utils import find_running, point_dir, config_dir
+    from lib.platforms import get_ps_out
 
     if not type(configs) == list:
         configs = [configs]
 
-    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = popen('ps -fu ' + environ['USER']).read().split('\n')
-    else:
-        ps_out = []
-        print("This platform is still not supported")
-        return
+    # if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+    ps_out = get_ps_out()
+    # else:
+    #     ps_out = []
+    #     print("This platform is still not supported")
+    #     return
 
     empty = len(['' for line in ps_out if ' bin/CDT_2D-Lambda' in line]) == 0
     if len(ps_out) > 1 and not empty:
