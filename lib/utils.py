@@ -392,50 +392,50 @@ def find_running():
     from lib.utils import find_configs
     from lib.platforms import get_ps_out
 
-    if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
-        ps_out = get_ps_out()
+    # if node() == 'Paperopoli' or node() == 'fis-delia.unipi.it':
+    ps_out = get_ps_out()
 
-        points_run = []
-        sim_info = []
-        PPID_list = []
-        for line in ps_out[1:]:
-            if ' bin/CDT_2D-Lambda' in line:
-                pinfos = line.split()
-                Lambda = float(pinfos[9])
-                Beta = float(pinfos[10])
-                start_time = pinfos[6]
-                run_id = pinfos[8]
-                PID = pinfos[1]
-                PPID = pinfos[2]
-                points_run += [[(Lambda, Beta)]]
-                sim_info += [[start_time, run_id, PID, PPID]]
-                PPID_list += [PPID]
-
-        configs = find_configs()
-        if isinstance(configs, dict):
-            configs_aux = {v:k for k,v in configs.items()}
-        else:
-            output_path = project_folder() + '/output/'
-            configs_aux = {output_path + c: c for c in configs}
-
-        for line in ps_out[1:]:
+    points_run = []
+    sim_info = []
+    PPID_list = []
+    for line in ps_out[1:]:
+        if ' bin/CDT_2D-Lambda' in line:
             pinfos = line.split()
-            if len(pinfos) > 0:
-                try:
-                    i = PPID_list.index(pinfos[1])
-                except ValueError:
-                    continue
+            Lambda = float(pinfos[9])
+            Beta = float(pinfos[10])
+            start_time = pinfos[6]
+            run_id = pinfos[8]
+            PID = pinfos[1]
+            PPID = pinfos[2]
+            points_run += [[(Lambda, Beta)]]
+            sim_info += [[start_time, run_id, PID, PPID]]
+            PPID_list += [PPID]
 
-                from re import split
-                path = split('/Lambda', pinfos[8])[0]
-                config = configs_aux[path]
-
-                points_run[i] += [config]
-
+    configs = find_configs()
+    if isinstance(configs, dict):
+        configs_aux = {v:k for k,v in configs.items()}
     else:
-        points_run = []
-        sim_info = []
-        print("RUNNING SIMS: This platform is still not supported")
+        output_path = project_folder() + '/output/'
+        configs_aux = {output_path + c: c for c in configs}
+
+    for line in ps_out[1:]:
+        pinfos = line.split()
+        if len(pinfos) > 0:
+            try:
+                i = PPID_list.index(pinfos[1])
+            except ValueError:
+                continue
+
+            from re import split
+            path = split('/Lambda', pinfos[8])[0]
+            config = configs_aux[path]
+
+            points_run[i] += [config]
+
+    # else:
+    #     points_run = []
+    #     sim_info = []
+    #     print("RUNNING SIMS: This platform is still not supported")
 
     return points_run, sim_info
 
