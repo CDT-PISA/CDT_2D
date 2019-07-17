@@ -153,7 +153,6 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         if isfile('max_volume_reached'):
             print(f'Point {Point} won\'t be relaunched because it reached '
                   'maximum volume available in the previous run.')
-            points.remove(Point)
             continue
 
         if int(run_num) > 1:
@@ -242,6 +241,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
     if not fake_run:
         from lib.platforms import launch_run
+        points = list(arg_strs.keys())
         launch_run(points, arg_strs, config, queue)
 
 
