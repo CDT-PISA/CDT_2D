@@ -512,7 +512,7 @@ def define_parser(launcher_path, version):
             raise argparse.ArgumentTypeError(msg)
         return config
 
-    kinds = ['v', 'volumes', 'd', 'divergent']
+    kinds = ['mv', 'mean-volumes', 'd', 'divergent']
 
     pre_sub = analysis_sub.add_parser('pre', help='preliminary analyses',
                         description=msgs.ana_pre,

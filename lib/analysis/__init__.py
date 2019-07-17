@@ -13,19 +13,23 @@ def preliminary_analyses(kind, configs=None, conf_plot=False):
     from lib.utils import find_configs
     import lib.analysis.pre as pre
 
-    pattern_configs = []
-    pure_configs = []
-    all_configs = list(find_configs().keys())
-    for config in configs:
-        if config[0] == '§':
-            pattern_configs += [c for c in all_configs
-                                if fullmatch(config[1:], c)]
-        else:
-            pure_configs += [config]
+    if configs:
+        pattern_configs = []
+        pure_configs = []
+        all_configs = list(find_configs().keys())
+        for config in configs:
+            if config[0] == '§':
+                pattern_configs += [c for c in all_configs
+                                    if fullmatch(config[1:], c)]
+            else:
+                pure_configs += [config]
 
-    configs = list(set(pure_configs + pattern_configs))
+        configs = list(set(pure_configs + pattern_configs))
+        print(f'Chosen configs are:\n  {configs}')
+    else:
+        configs = list(find_configs().keys())
 
-    if kind in ['v', 'volumes']:
+    if kind in ['mv', 'mean-volumes']:
         pre.mean_volumes(configs)
     elif kind in ['d', 'divergent']:
         pre.divergent_points(configs, conf_plot)

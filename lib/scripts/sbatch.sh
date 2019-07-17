@@ -19,11 +19,11 @@ declare -a points_strings={points}
 
 for p in "${{points_strings[@]}}"
 do
+    cd ..
     eval $p
     cd $point_dir
     # python3 $make
     nohup python3 $PWD/$launch &
-    cd ..
 done
 
 wait

@@ -5,6 +5,8 @@ from numpy import loadtxt
 from lib.analysis import sim_paths
 
 def mean_volumes(configs=None):
+    from pprint import pprint
+
     mvs = {}
     for c, sims in sim_paths().items():
         if configs and c not in configs:
@@ -31,9 +33,12 @@ def mean_volumes(configs=None):
                 except KeyError:
                     cut = 0
 
-                mvs = {**mvs, Point: volumes[cut:].mean()}
+                try:
+                    mvs[c] = {**mvs[c], Point: volumes[cut:].mean()}
+                except KeyError:
+                    mvs[c] = {Point: volumes[cut:].mean()}
 
-    print(mvs)
+    pprint(mvs)
 
 def divergent_points(configs=None, conf_plot=False):
     from matplotlib.pyplot import plot, show, figure
@@ -88,3 +93,6 @@ def divergent_points(configs=None, conf_plot=False):
         ax.set_ylim(0, len(ylabel) + 1)
 
     show()
+
+def volume_plots():
+    pass
