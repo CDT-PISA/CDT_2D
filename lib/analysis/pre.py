@@ -98,13 +98,18 @@ def divergent_points(configs=None, conf_plot=False):
     show()
 
 def volumes_plot(configs=None):
+    from os.path import isfile
     import matplotlib.pyplot as plt
+    from lib.utils import point_dir, config_dir
 
     mvs = mean_volumes(configs, print_flag=False)
 
     curves = {}
     for c, sims in mvs.items():
         for Point, mv in sims.items():
+            if isfile(config_dir(c) + '/' + point_dir(Point) +
+                      '/max_volume_reached'):
+                continue
             curve = c + ' β=' + str(Point[1])
             coords = (Point[0], mv)
             try:
