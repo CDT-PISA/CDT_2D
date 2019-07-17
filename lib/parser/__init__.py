@@ -503,15 +503,24 @@ def define_parser(launcher_path, version):
 
     # preliminary command
 
+    def config_pattern(config):
+        if not isinstance(config, str):
+            msg = f"{config} is not a valid str."
+            raise argparse.ArgumentTypeError(msg)
+        if config not in configs and config[0] != '§':
+            msg = f"{config} is not valid config nor pattern"
+            raise argparse.ArgumentTypeError(msg)
+        return config
+
     kinds = ['v', 'volumes', 'd', 'divergent']
 
     pre_sub = analysis_sub.add_parser('pre', help='preliminary analyses',
                         description=msgs.ana_pre,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
-    pre_sub.add_argument('-k', '--kind', choices=kinds, help=None)
-    pre_sub.add_argument('-c', '--config', choices=configs, default=None,
-                         metavar=meta_configs, nargs='+', type=str,
-                         help=msgs.config)
+    pre_sub.add_argument('-k', '--kind', choices=kinds, help=msgs.pre_kind)
+    pre_sub.add_argument('-c', '--config', default=None,
+                         metavar=meta_configs, nargs='+', type=config_pattern,
+                         help=msgs.config_pattern)
     pre_sub.add_argument('--conf-plot', dest='conf_plot',
                          action='store_true', help=msgs.conf_plot)
 

@@ -9,7 +9,21 @@ from numpy import loadtxt
 from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots, subplots_adjust, close
 
 def preliminary_analyses(kind, configs=None, conf_plot=False):
+    from re import fullmatch
+    from lib.utils import find_configs
     import lib.analysis.pre as pre
+
+    pattern_configs = []
+    pure_configs = []
+    all_configs = list(find_configs().keys())
+    for config in configs:
+        if config[0] == '§':
+            pattern_configs += [c for c in all_configs
+                                if fullmatch(config[1:], c)]
+        else:
+            pure_configs += [config]
+
+    configs = list(set(pure_configs + pattern_configs))
 
     if kind in ['v', 'volumes']:
         pre.mean_volumes(configs)

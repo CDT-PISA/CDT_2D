@@ -20,7 +20,7 @@ list of 3 elements will be read as (start, stop, num), one with 2 elements
 as (start, stop), and it will search for existing simulations in this
 interval"""
 
-config = """select the configuration for all simulations. Each simulation
+config = """Select the configuration for all simulations. Each simulation
 belongs to a configuration even if it was not specified (the default one is
 called 'test').
 To show all the available configs use the command 'cdt2d tools show-confs'"""
@@ -334,6 +334,16 @@ Example:
     ...""")
 
 conf_plot = """Used to plot more config with the same beta splitted.
+"""
+
+pre_kind = """Kind of plot.
+"""
+
+config_pattern = """Select the configuration for all simulations. Each simulation
+belongs to a configuration even if it was not specified (the default one is
+called 'test').
+To show all the available configs use the command 'cdt2d tools show-confs.
+Patterns are also available as regex, starting with '§'.
 """
 
 # FIT
