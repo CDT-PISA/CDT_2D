@@ -31,6 +31,8 @@ def preliminary_analyses(kind, configs=None, conf_plot=False):
 
     if kind in ['mv', 'mean-volumes']:
         pre.mean_volumes(configs)
+    elif kind in ['vp', 'volumes-plot']:
+        pre.volumes_plot(configs)
     elif kind in ['d', 'divergent']:
         pre.divergent_points(configs, conf_plot)
     else:

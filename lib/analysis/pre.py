@@ -4,7 +4,7 @@
 from numpy import loadtxt
 from lib.analysis import sim_paths
 
-def mean_volumes(configs=None):
+def mean_volumes(configs=None, print_flag=True):
     from pprint import pprint
 
     mvs = {}
@@ -38,7 +38,10 @@ def mean_volumes(configs=None):
                 except KeyError:
                     mvs[c] = {Point: volumes[cut:].mean()}
 
-    pprint(mvs)
+    if print_flag:
+        pprint(mvs)
+
+    return mvs
 
 def divergent_points(configs=None, conf_plot=False):
     from matplotlib.pyplot import plot, show, figure
@@ -94,5 +97,26 @@ def divergent_points(configs=None, conf_plot=False):
 
     show()
 
-def volume_plots():
-    pass
+def volumes_plot(configs=None):
+    import matplotlib.pyplot as plt
+
+    mvs = mean_volumes(configs, print_flag=False)
+
+    curves = {}
+    for c, sims in mvs.items():
+        for Point, mv in sims.items():
+            curve = c + ' β=' + str(Point[1])
+            coords = (Point[0], mv)
+            try:
+                curves[curve] += [coords]
+            except KeyError:
+                curves[curve] = [coords]
+
+    for lab, points in curves.items():
+        points = sorted(points, key=lambda x: x[0])
+        plt.plot(*zip(*points), marker='o', label=lab)
+
+    plt.xlabel('λ')
+    plt.ylabel('Volume')
+    plt.legend()
+    plt.show()

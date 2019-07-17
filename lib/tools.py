@@ -417,10 +417,10 @@ def reset_conf(name):
     chdir(project_folder() + '/output')
 
     if isdir(name):
-        if delete:
-            action = 'delete'
-        else:
-            action = 'reset'
+        # if delete:
+        #     action = 'delete'
+        # else:
+        action = 'reset'
         what_to_do = 'to ' + action + ' the configuration \'' + name + '\''
         authorized = authorization_request(what_to_do)
         if authorized:
