@@ -304,7 +304,7 @@ def fit(lambdas_old, config, skip):
     def volume(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
 
-    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors,
+    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors, absolute_sigma=True,
                          p0=(0.69315, 2.4, 61))
 
     residuals_sq = ((volumes - vectorize(volume)(lambdas, *par))/errors)**2

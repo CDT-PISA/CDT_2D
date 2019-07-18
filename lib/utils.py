@@ -474,7 +474,7 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
             ans = 'n'
         ans_recog = True
         if ans == 'y':
-            authorized = True
+            authorized = 'yes'
         elif ans == 'q' or ans == 'quit':
             authorized = 'quit'
         elif ans != 'n':

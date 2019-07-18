@@ -35,7 +35,7 @@ def recovery_history(force=False):
         print("ATTENTION: You are trying to recovery a succesful simulation!")
         recovery = authorization_request('to do it')
 
-    if recovery:
+    if recovery == 'yes':
         from numpy import loadtxt, savetxt
         vol_file = loadtxt('history/volumes.txt', dtype=int)
         pro_file = loadtxt('history/profiles.txt', dtype=int)
@@ -45,6 +45,9 @@ def recovery_history(force=False):
                 header='iteration[0] - volume[1]\n')
         savetxt('history/profiles.txt', pro_file, fmt='%d',
                 header='iteration[0] - profile[1:]\n')
+    elif recovery == 'quit':
+        print('Nothing done.')
+        return
 
 def sim_info(Point, config):
     from os import chdir
@@ -80,8 +83,8 @@ def therm(lambdas_old, config, is_therm, force):
             what_to_do = "to set thermalization flag `" + str(is_therm) + "`"
             authorized = authorization_request(what_to_do, Lambda)
         else:
-            authorized = True
-        if authorized:
+            authorized = 'yes'
+        if authorized == 'yes':
             filename = ('output/' + config + '/Lambda' + str(Lambda) +
                         '/state.json')
             with open(filename, 'r') as state_file:
@@ -103,6 +106,9 @@ def therm(lambdas_old, config, is_therm, force):
 
             with open(filename, 'w') as state_file:
                 json.dump(state, state_file, indent=4)
+        elif authorized == 'quit':
+            print('Nothing done for last Point.')
+            return
 
 def up_launch(points_old, config, both, make, force):
     from os import getcwd, chdir
@@ -412,23 +418,26 @@ def reset_conf(name):
     from os.path import isdir
     from os import chdir, mkdir
     from shutil import rmtree
-    from lib.utils import authorization_request, project_folder
+    from lib.utils import authorization_request, config_dir
 
-    chdir(project_folder() + '/output')
+    config = config_dir(name)
 
-    if isdir(name):
-        # if delete:
-        #     action = 'delete'
-        # else:
-        action = 'reset'
-        what_to_do = 'to ' + action + ' the configuration \'' + name + '\''
-        authorized = authorization_request(what_to_do)
-        if authorized:
-            rmtree(name)
-            mkdir(name)
+    # if delete:
+    #     action = 'delete'
+    # else:
+    action = 'reset'
+    what_to_do = 'to ' + action + ' the configuration \'' + name + '\''
+    authorized = authorization_request(what_to_do)
+    if authorized == 'yes':
+        rmtree(config)
+        mkdir(config)
+        print(f'Configuration {name} has been reset.')
     else:
-        print('The requested configuration does not exist.\n' +
-              'If you want to create it, please use the specific command.')
+        print('Nothing done.')
+
+    # else:
+    #     print('The requested configuration does not exist.\n' +
+    #           'If you want to create it, please use the specific command.')
 
 def clear_data(points, config='test', force=False):
     """Remove data for a given value of point
@@ -463,13 +472,16 @@ def clear_data(points, config='test', force=False):
                 what_to_do = "to remove simulation folder"
                 authorized = authorization_request(what_to_do, Point)
             else:
-                authorized = True
-            if authorized:
+                authorized = 'yes'
+            if authorized == 'yes':
                 rmtree(config_dir(config) + "/" + point_dir(Point))
                 if force:
                     print("(λ = ", Point[0], ", β = ", Point[1], ") ", sep='',
                           end='')
                 print("Simulation folder removed.")
+            elif authorized == 'quit':
+                print(f'Nothing done for last point {Point}.')
+                return
         except FileNotFoundError:
             all_points = find_all_availables()
             raise ValueError("A folder with the given point doesn't exist"+

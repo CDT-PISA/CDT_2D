@@ -65,9 +65,12 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
                 what_to_do = "to rerun simulation"
                 authorized = authorization_request(what_to_do, Point)
             else:
-                authorized = True
-            if authorized:
+                authorized = 'yes'
+            if authorized == 'yes':
                 points_old_auth += [Point]
+            elif authorized == 'quit':
+                print('No simulation launched.')
+                return
         else:
             points_req_run += [Point]
 

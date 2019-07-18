@@ -533,13 +533,8 @@ def define_parser(launcher_path, version):
                          help=msgs.lamda)
     fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
                          required=True, help=msgs.beta)
-    lambdas = fit_sub.add_mutually_exclusive_group()
-    lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
+    fit_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help=msgs.range)
-    lambdas.add_argument('-°', dest='is_all', action='store_true',
-                         help=msgs.is_all)
-    fit_sub.add_argument('-@', dest='is_data', action='store_true',
-                         help=msgs.data)
     fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                          metavar=meta_configs,
                          help=msgs.config)
