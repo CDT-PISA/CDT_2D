@@ -277,7 +277,7 @@ new_conf = cleandoc("""
 Example:
     ...""")
 
-path = " "
+path = "path"
 
 # SHOW_CONFS
 
@@ -303,7 +303,16 @@ reset = cleandoc("""
 Example:
     ...""")
 
-delete = """defintely delete config"""
+# RM_CONF
+
+rm_conf = cleandoc("""
+┌───────────────┐
+│RM CONF COMMAND│
+└───────────────┘
+...
+
+Example:
+    ...""")
 
 # CLEAR
 
@@ -358,3 +367,58 @@ Example:
     ...""")
 
 skip = """skip"""
+
+#-------#
+fits = """list of fits currently available"""
+#-------#
+
+# NEW_FIT
+
+new_fit = cleandoc("""
+┌───────────────┐
+│NEW FIT COMMAND│
+└───────────────┘
+...
+
+Example:
+    ...""")
+
+fit_path = "fit_path"
+
+# SHOW_FITS
+
+show_fits = cleandoc("""
+┌─────────────────┐
+│SHOW_FITS COMMAND│
+└─────────────────┘
+...
+
+Example:
+    ...""")
+
+show_fit_paths = "show paths too"
+
+# FIT RESET
+
+reset_fit = cleandoc("""
+┌─────────────────┐
+│FIT RESET COMMAND│
+└─────────────────┘
+...
+
+Example:
+    ...""")
+
+fit_names = """patterns available, they begin with '§'"""
+delete_fit = """defintely delete fit"""
+
+# RM_FIT
+
+# rm_fit = cleandoc("""
+# ┌──────────────┐
+# │RM FIT COMMAND│
+# └──────────────┘
+# ...
+#
+# Example:
+#     ...""")

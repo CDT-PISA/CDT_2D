@@ -198,6 +198,24 @@ def pre(kind, config, conf_plot):
 
     preliminary_analyses(kind, config, conf_plot)
 
+def new_fit(name, path, caller_path):
+    from lib.analysis import new_fit
+
+    new_fit(name[0], path, caller_path)
+
+def show_fits(paths):
+    from lib.analysis import show_fits
+
+    show_fits(paths)
+
+def reset_fit(name, delete):
+    from lib.analysis import reset_fit
+
+    reset_fit(name, delete)
+
+##################
+#      MAIN      #
+##################
 
 if(node() == 'Paperopoli'):
     import argcomplete
@@ -265,7 +283,7 @@ def main():
 
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
-                'pre']
+                'pre', 'fit', 'new-fit', 'show-fits']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
@@ -366,6 +384,12 @@ def main():
             fit(points_old, points_new, args.config, args.skip)
         elif args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot)
+        elif args.analysis == 'new-fit':
+            new_fit(args.name, args.path, caller_path)
+        elif args.analysis == 'show-fits':
+            show_fits(args.paths)
+        elif args.analysis == 'reset':
+            reset_fit(args.name, args.delete)
 
 
 if __name__ == "__main__":

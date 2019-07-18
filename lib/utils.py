@@ -159,6 +159,56 @@ def config_dir(config):
 
     return path
 
+def find_fits():
+    """Find available fits.
+
+    Returns
+    -------
+    dict
+        container of fit names, values are paths associate to those names.
+    """
+    from os.path import abspath
+    import json
+
+    output_path = project_folder() + '/output'
+    fit_path = output_path + '/fits.json'
+    try:
+        with open(fit_path, 'r') as fit_file:
+            fits = json.load(fit_file)
+    except FileNotFoundError:
+        fits = {}
+
+    return fits
+
+def fit_dir(fit):
+    """Retrieves fit directory's path.
+
+    Parameters
+    ----------
+    fit : str
+        Name of the fit to select.
+
+    Returns
+    -------
+    str
+        Path of the requested directory.
+    """
+    fits = find_fits()
+
+    if isinstance(fits, dict):
+        try:
+            path = fits[fit]
+        except IndexError:
+            raise FileNotFoundError('Fit dir not found.')
+    else:
+        if fit in fits:
+            output_path = project_folder() + '/output'
+            path = output_path + '/' + fit
+        else:
+            raise FileNotFoundError('Fit dir not found.')
+
+    return path
+
 def launch_script_path():
     from os.path import abspath, dirname
 

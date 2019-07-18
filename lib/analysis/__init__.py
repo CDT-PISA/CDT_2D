@@ -143,5 +143,129 @@ def sim_paths():
 
     return d
 
-def set_cut():
-    pass
+# FIT MANAGEMENT
+
+def new_fit(name, path, caller_path):
+    from os.path import isdir, isfile, abspath, basename
+    from os import chdir, mkdir, listdir
+    from inspect import cleandoc
+    import json
+    from lib.utils import find_fits, project_folder
+
+    msg_exist = cleandoc("""The requested fit already exists.
+                If you want to reset it, please use the specific command.""")
+
+    fits = find_fits()
+
+    chdir(caller_path)
+
+    # actually creates requested folder
+    if not path:
+        path = caller_path + '/' + name
+
+    if name in fits.keys() or abspath(path) in fits.values():
+        print(msg_exist)
+        return
+    elif basename(path) != name:
+        print('At the present time names different from target '
+              'directories are not available.')
+        return
+    else:
+        try:
+            mkdir(path)
+        except (FileExistsError, FileNotFoundError):
+            print('Invalid path given.')
+            return
+
+    print(f"Created fit '{name}' at path:\n  {abspath(path)}")
+
+    fits = {**fits, name: abspath(path)}
+    with open(project_folder() + '/output/fits.json', 'w') as fit_file:
+        json.dump(fits, fit_file, indent=4)
+
+def show_fits(paths):
+    from lib.utils import find_fits, project_folder
+    import pprint as pp
+
+    fits = find_fits()
+
+    if paths:
+        for name, path in sorted(fits.items(), key=lambda x: x[0].lower()):
+            print(name, path, sep=':\n\t')
+    else:
+        if isinstance(fits, dict):
+            fits = list(fits.keys())
+
+        for name in sorted(fits, key=str.lower):
+            print(name)
+
+def reset_fit(names, delete):
+    from os.path import isdir
+    from os import chdir, mkdir
+    from shutil import rmtree
+    from re import fullmatch
+    import json
+    from lib.utils import (authorization_request, fit_dir, find_fits,
+                           project_folder)
+
+    pattern_names = []
+    pure_names = []
+    all_names = list(find_fits().keys())
+    for name in names:
+        if name[0] == '§':
+            pattern_names += [c for c in all_names
+                                if fullmatch(name[1:], c)]
+        else:
+            pure_names += [name]
+
+    names = list(set(pure_names + pattern_names))
+    print(f'Chosen fits are:\n  {names}')
+
+    for name in names:
+        fit = fit_dir(name)
+
+        if delete:
+            action = 'delete'
+        else:
+            action = 'reset'
+        what_to_do = 'to ' + action + ' the configuration \'' + name + '\''
+        authorized = authorization_request(what_to_do)
+        if authorized == 'yes':
+            rmtree(fit)
+            if action == 'reset':
+                mkdir(fit)
+            elif action == 'delete':
+                with open(project_folder() + '/output/fits.json', 'r') as file:
+                    fits = json.load(file)
+                del fits[name]
+                with open(project_folder() + '/output/fits.json', 'w') as file:
+                    json.dump(fits, file, indent=4)
+            print(f'Configuration {name} has been {action}.')
+        elif authorized == 'quit':
+            print('Nothing done on last fit.')
+            return
+        else:
+            print('Nothing done.')
+
+# def rm_conf(config, force):
+#     from os import rmdir, remove
+#     from os.path import isfile
+#     import json
+#     from lib.utils import points_recast, config_dir, project_folder
+#
+#     points_old, _ = points_recast([], [], '', True, config, 'tools')
+#     clear_data(points_old, config, force)
+#
+#     path = config_dir(config)
+#     if isfile(path + '/pstop.pickle'):
+#         remove(path + '/pstop.pickle')
+#     rmdir(path)
+#     print(f"Removed config '{config}' at path:\n  {path}")
+#
+#     with open(project_folder() + '/output/configs.json', 'r') as config_file:
+#         configs = json.load(config_file)
+#
+#     del configs[config]
+#
+#     with open(project_folder() + '/output/configs.json', 'w') as config_file:
+#         json.dump(configs, config_file, indent=4)

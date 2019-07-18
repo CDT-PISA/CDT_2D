@@ -86,10 +86,21 @@ def define_parser(launcher_path, version):
             configs = list(configs_d.keys())
         else:
             configs = [x.name for x in scandir('output') if x.is_dir()]
+
+        if isfile('output/fits.json'):
+            import json
+
+            with open('output/fits.json', 'r') as fit_file:
+                fits_d = json.load(fit_file)
+            fits = list(fits_d.keys())
+        else:
+            fits = []
     else:
         configs = []
+        fits = []
 
     meta_configs = '{...}' if len(configs) > 5 else None
+    meta_fits = '{...}' if len(fits) > 5 else None
     # ┏━━━━━━━━━━━━━━━━┓
     # ┗━━━━━━━━━━━━━━━━┛
 
@@ -439,6 +450,12 @@ def define_parser(launcher_path, version):
 
     # new configuration command
 
+    # new_conf_sub = tools_sub.add_parser('new-conf',
+    #                 help='show configs directories',
+    #                 description=msgs.show_confs,
+    #                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    # new_conf_sub.add_argument('-p', '--paths', action='store_true',
+    #                           help=msgs.show_paths)
     new_conf_sub = tools_sub.add_parser('new-conf', help='create new config',
                       description=msgs.new_conf,
                       formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -449,8 +466,8 @@ def define_parser(launcher_path, version):
     # show available configurations command
 
     show_confs_sub = tools_sub.add_parser('show-confs',
-                    help='create new config',
-                    description=msgs.new_conf,
+                    help='show configs directories',
+                    description=msgs.show_confs,
                     formatter_class=argparse.RawDescriptionHelpFormatter)
     show_confs_sub.add_argument('-p', '--paths', action='store_true',
                               help=msgs.show_paths)
@@ -467,7 +484,7 @@ def define_parser(launcher_path, version):
     # remove configuration command
 
     rm_conf_sub = tools_sub.add_parser('rm-conf', help='remove config',
-                        description=msgs.clear,
+                        description=msgs.rm_conf,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     rm_conf_sub.add_argument('config', choices=configs, metavar=meta_configs,
                              help=msgs.config)
@@ -538,7 +555,53 @@ def define_parser(launcher_path, version):
     fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                          metavar=meta_configs,
                          help=msgs.config)
-    fit_sub.add_argument('-s', '--skip', action='store_true', help=msgs.skip)
+
+    # new fit command
+
+    new_fit_sub = analysis_sub.add_parser('new-fit', help='create new fit',
+                      description=msgs.new_fit,
+                      formatter_class=argparse.RawDescriptionHelpFormatter)
+    new_fit_sub.add_argument('name', nargs=1, type=str)
+    new_fit_sub.add_argument('-p', '--path', type=str,
+                              default=None, help=msgs.fit_path)
+
+    # show available fits command
+
+    show_fits_sub = analysis_sub.add_parser('show-fits',
+                    help='show fits directories',
+                    description=msgs.show_fits,
+                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    show_fits_sub.add_argument('-p', '--paths', action='store_true',
+                                help=msgs.show_fit_paths)
+
+    # reset fit command
+
+    def fit_pattern(fit):
+        if not isinstance(fit, str):
+            msg = f"{fit} is not a valid str."
+            raise argparse.ArgumentTypeError(msg)
+        if fit not in fits and fit[0] != '§':
+            msg = f"{fit} is not valid fit nor pattern"
+            raise argparse.ArgumentTypeError(msg)
+        return fit
+
+    reset_fit_sub = analysis_sub.add_parser('reset',
+                      help='reset or delete fit', description=msgs.reset,
+                      formatter_class=argparse.RawDescriptionHelpFormatter)
+    reset_fit_sub.add_argument('name', metavar=meta_fits, nargs='+',
+                               type=fit_pattern, help=msgs.fit_names)
+    reset_fit_sub.add_argument('-d', '--delete', action='store_true',
+                               help=msgs.delete_fit)
+
+    # # remove fit command
+    #
+    # rm_fit_sub = analysis_sub.add_parser('rm-fit', help='remove fit',
+    #                     description=msgs.rm_fit,
+    #                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    # rm_fit_sub.add_argument('fit', metavar=meta_fits, nargs='+',
+    #                         type=fit_pattern, help=msgs.fits)
+    # rm_fit_sub.add_argument('-f', '--force', action='store_true',
+    #                          help=msgs.force)
 
     chdir(starting_cwd)
 
