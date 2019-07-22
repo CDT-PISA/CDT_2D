@@ -383,7 +383,7 @@ new_fit = cleandoc("""
 Example:
     ...""")
 
-fit_path = "fit_path"
+fit_path = "relative paths are allowed"
 
 # SHOW_FITS
 
@@ -422,3 +422,36 @@ delete_fit = """defintely delete fit"""
 #
 # Example:
 #     ...""")
+
+# SET_FIT
+
+set_fit = cleandoc("""
+┌───────────────┐
+│SET FIT COMMAND│
+└───────────────┘
+...
+
+Example:
+    ...""")
+
+# INFO_FIT
+
+info_fit = cleandoc("""
+┌───────────────┐
+│SET FIT COMMAND│
+└───────────────┘
+...
+
+Example:
+    ...""")
+
+# SIM_OBS
+
+sim_obs = cleandoc("""
+┌───────────────┐
+│SIM OBS COMMAND│
+└───────────────┘
+...
+
+Example:
+    ...""")

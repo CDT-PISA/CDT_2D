@@ -8,6 +8,8 @@ Created on Sun Jan 27 11:32:00 2019
 from numpy import loadtxt
 from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots, subplots_adjust, close
 
+# PRELIMINARY ANALYSES
+
 def preliminary_analyses(kind, configs=None, conf_plot=False):
     from re import fullmatch
     from lib.utils import find_configs
@@ -37,97 +39,6 @@ def preliminary_analyses(kind, configs=None, conf_plot=False):
         pre.divergent_points(configs, conf_plot)
     else:
         raise RuntimeError('preliminary_analyses: kind not recognized')
-
-
-def select_from_plot(Lambda, indices, volumes, i=0, dot=None):
-    from matplotlib.pyplot import figure, show, figtext
-
-    imin = min(indices)
-    imax = max(indices)
-    vmin = min(volumes)
-    vmax = max(volumes)
-
-    color_cycle = ['xkcd:carmine', 'xkcd:teal', 'xkcd:peach', 'xkcd:mustard',
-                   'xkcd:cerulean']
-
-    n_col = len(color_cycle)
-
-    fig = figure()
-    ax = fig.add_subplot(111)
-    canvas = fig.canvas
-
-    fig.set_size_inches(7, 5)
-    ax.plot(indices, volumes, color=color_cycle[i % n_col])
-    ax.set_title('λ = ' + str(Lambda))
-    figtext(.5,.03,' '*10 +
-            'press enter to convalid current selection', ha='center')
-    if not dot == None:
-        ax.plot(*dot, 'o', mec='w')
-
-    fig.canvas.draw()
-
-    def on_press(event):
-        on_press.p = True
-    on_press.p = False
-
-    def on_click(event):
-        on_press.p = False
-        if event.inaxes is not None:
-            x = event.xdata
-            y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
-            if inarea and not on_motion.drag:
-                on_click.x = x
-                on_click.y = y
-                if on_click.i > 0:
-                    on_click.m[0].remove()
-                on_click.m = ax.plot(x, y, 'o', mec='w')
-                event.canvas.draw()
-                on_click.i += 1
-        on_motion.drag = False
-    on_click.i = 0
-    on_click.m = None
-    on_click.x = None
-    on_click.y = None
-
-    def on_motion(event):
-        if on_press.p == True:
-            on_motion.drag = True
-            hide_drag = not event.canvas.manager.toolbar._active == None
-        else:
-            hide_drag = False
-        if event.inaxes is not None and not hide_drag:
-            x = event.xdata
-            y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
-            if inarea:
-                m = ax.plot(x, y, 'wo', mec='k')
-                n = ax.plot(x, vmin, 'k|', ms=20)
-                event.canvas.draw()
-                m[0].remove()
-                n[0].remove()
-        else:
-            event.canvas.draw()
-    on_motion.drag = False
-
-    def on_key(event):
-        if event.key == 'enter':
-            close()
-            if on_click.x == None:
-                on_click.x = -1
-        if event.key == 'q':
-            on_click.x = None
-            on_click.y = None
-            close()
-
-
-    canvas.mpl_connect('button_press_event', on_press)
-    canvas.mpl_connect('button_release_event', on_click)
-    canvas.mpl_connect('motion_notify_event', on_motion)
-    canvas.mpl_connect('key_press_event', on_key)
-    show()
-
-    return on_click.x, on_click.y
 
 def sim_paths():
     from lib.utils import find_configs
@@ -226,9 +137,12 @@ def reset_fit(names, delete):
 
         if delete:
             action = 'delete'
+            action_p = action + 'd'
         else:
             action = 'reset'
-        what_to_do = 'to ' + action + ' the configuration \'' + name + '\''
+            action_p = action
+
+        what_to_do = 'to ' + action + ' the fit \'' + name + '\''
         authorized = authorization_request(what_to_do)
         if authorized == 'yes':
             rmtree(fit)
@@ -240,7 +154,7 @@ def reset_fit(names, delete):
                 del fits[name]
                 with open(project_folder() + '/output/fits.json', 'w') as file:
                     json.dump(fits, file, indent=4)
-            print(f'Configuration {name} has been {action}.')
+            print(f'Fit {name} has been {action_p}.')
         elif authorized == 'quit':
             print('Nothing done on last fit.')
             return
@@ -269,3 +183,148 @@ def reset_fit(names, delete):
 #
 #     with open(project_folder() + '/output/configs.json', 'w') as config_file:
 #         json.dump(configs, config_file, indent=4)
+
+
+def set_fit_props(name, points, config):
+    from os import chdir, popen
+    import json
+    from lib.utils import fit_dir, config_dir, point_dir
+
+    chdir(fit_dir(name))
+
+    try:
+        with open('sims.json', 'r') as file:
+            sims = json.load(file)
+    except FileNotFoundError:
+        sims = []
+
+    # SIMS UPDATE
+
+    c_dir = config_dir(config)
+    for Point in points:
+        p_dir = c_dir + '/' + point_dir(Point)
+        if p_dir not in sims:
+            sims += [p_dir]
+
+    with open('sims.json', 'w') as file:
+        json.dump(sims, file, indent=4)
+
+    # inserire un kind e aggiungere come possibilità quella di settare il tipo di osservabili
+    # a cui è riferito il fit (1 sola)
+    # cioè se è un fit: al volume, all'azione, alla carica topologica, ...
+
+def show_fit_props(name, kind='sims'):
+    from os import chdir
+    from os.path import basename, dirname
+    from pprint import pprint
+    import json
+    from lib.utils import fit_dir, config_dir, dir_point
+
+    chdir(fit_dir(name))
+
+    if kind == 'sims':
+        try:
+            with open('sims.json', 'r') as file:
+                sims = json.load(file)
+
+            d = {}
+            for s in sims:
+                if s[-1] == '/':
+                    s = s[:-1]
+
+                config = basename(dirname(s))
+                Point = dir_point(basename(s))
+                try:
+                    d[config] += [Point]
+                except KeyError:
+                    d[config] = [Point]
+
+            pprint(d)
+        except FileNotFoundError:
+            print('No simulation already assigned to this fit.')
+    elif kind == 'obs':
+        pass
+    else:
+        raise ValueError('info-fit: kind {kind} not recognized')
+
+    # inserire un kind e aggiungere come possibilità quella di visualizzare il tipo di osservabili
+    # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
+
+def sim_obs(points, config):
+    from os import chdir
+    from time import time
+    from datetime import datetime
+    import json
+    from pprint import pprint
+    from lib.utils import config_dir, point_dir, authorization_request
+    from lib.analysis.fit import set_cut, set_block, eval_volume
+
+    c_dir = config_dir(config)
+
+    col = 216
+    print(f'Number of selected points: \033[38;5;{col}m{len(points)}\033[0m')
+    print(f'\033[38;5;{col}m', end='')
+    pprint(points)
+    print('\033[0m')
+
+    i = 0
+    for Point in points:
+        p_dir = c_dir + '/' + point_dir(Point)
+        chdir(p_dir)
+
+        what = 'to select cut & block'
+        auth = authorization_request(what_to_do=what, Point=Point)
+
+        if auth == 'quit':
+            print('Nothing done on the last sim.')
+            return
+        elif auth == 'yes':
+            try:
+                with open('measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                measures = {}
+
+            cut = set_cut(p_dir, i)
+            print(f'cut = {cut}')
+            if cut:
+                measures['cut'] = cut
+                with open('measures.json', 'w') as file:
+                    json.dump(measures, file, indent=4)
+            try :
+                cut = measures['cut']
+            except KeyError:
+                pass
+
+            block = set_block(p_dir, i)
+            if block:
+                measures['block'] = block
+                with open('measures.json', 'w') as file:
+                    json.dump(measures, file, indent=4)
+            try:
+                block = measures['block']
+            except KeyError:
+                pass
+
+            if not cut or not block:
+                print('Nothing modified on last sim.')
+                return
+
+        what = 'to compute/recompute observables'
+        auth = authorization_request(what_to_do=what)
+
+        if auth == 'yes':
+            try:
+                with open('measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                measures = {}
+
+            measures['volume'] = eval_volume(p_dir)
+            measures['time'] = datetime.fromtimestamp(time()
+                                        ).strftime('%d-%m-%Y %H:%M:%S')
+
+            with open('measures.json', 'w') as file:
+                json.dump(measures, file, indent=4)
+
+        i += 1

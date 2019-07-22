@@ -561,9 +561,9 @@ def define_parser(launcher_path, version):
     new_fit_sub = analysis_sub.add_parser('new-fit', help='create new fit',
                       description=msgs.new_fit,
                       formatter_class=argparse.RawDescriptionHelpFormatter)
-    new_fit_sub.add_argument('name', nargs=1, type=str)
+    new_fit_sub.add_argument('fit_name', nargs=1, type=str)
     new_fit_sub.add_argument('-p', '--path', type=str,
-                              default=None, help=msgs.fit_path)
+                             required=True, default=None, help=msgs.fit_path)
 
     # show available fits command
 
@@ -572,7 +572,7 @@ def define_parser(launcher_path, version):
                     description=msgs.show_fits,
                     formatter_class=argparse.RawDescriptionHelpFormatter)
     show_fits_sub.add_argument('-p', '--paths', action='store_true',
-                                help=msgs.show_fit_paths)
+                               help=msgs.show_fit_paths)
 
     # reset fit command
 
@@ -588,7 +588,7 @@ def define_parser(launcher_path, version):
     reset_fit_sub = analysis_sub.add_parser('reset',
                       help='reset or delete fit', description=msgs.reset,
                       formatter_class=argparse.RawDescriptionHelpFormatter)
-    reset_fit_sub.add_argument('name', metavar=meta_fits, nargs='+',
+    reset_fit_sub.add_argument('fit_name', metavar=meta_fits, nargs='+',
                                type=fit_pattern, help=msgs.fit_names)
     reset_fit_sub.add_argument('-d', '--delete', action='store_true',
                                help=msgs.delete_fit)
@@ -602,6 +602,45 @@ def define_parser(launcher_path, version):
     #                         type=fit_pattern, help=msgs.fits)
     # rm_fit_sub.add_argument('-f', '--force', action='store_true',
     #                          help=msgs.force)
+
+    # set fit properties
+
+    set_fit_sub = analysis_sub.add_parser('set-fit',
+                    help='set fit properties', description=msgs.set_fit,
+                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    set_fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
+                             choices=fits, type=str, help=msgs.fit_names)
+    set_fit_sub.add_argument('-l', '--lamda', nargs='+', type=float,
+                             help=msgs.lamda)
+    set_fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                             help=msgs.beta)
+    set_fit_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'],
+                             default='', help=msgs.range)
+    set_fit_sub.add_argument('-c', '--config', choices=configs, default='test',
+                             metavar=meta_configs, help=msgs.config)
+
+    # set fit properties
+
+    info_fit_sub = analysis_sub.add_parser('info-fit',
+                    help='show fit properties', description=msgs.info_fit,
+                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    info_fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
+                             choices=fits, type=str, help=msgs.fit_names)
+
+    # sims obs
+
+    sim_obs_sub = analysis_sub.add_parser('sim-obs',
+                    help='calculate sims observables', description=msgs.sim_obs,
+                    formatter_class=argparse.RawDescriptionHelpFormatter)
+    sim_obs_sub.add_argument('-l', '--lamda', nargs='+', type=float,
+                        help=msgs.lamda)
+    sim_obs_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                        help=msgs.beta)
+    sim_obs_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'],
+                        default='', help=msgs.range)
+    sim_obs_sub.add_argument('-c', '--config', choices=configs, default='test',
+                        metavar=meta_configs, help=msgs.config)
+
 
     chdir(starting_cwd)
 

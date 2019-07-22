@@ -508,7 +508,7 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
     import readline
 
     if Point is not None:
-        print("((λ, β) = " + str(Point) + ") ", end='')
+        print("\033[38;5;41m(λ, β) = " + str(Point) + "\033[0m ", end='')
     print("Do you really want " + what_to_do + "? [y/n]")
     if extra_message != '':
         print(extra_message)
@@ -521,10 +521,12 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
             ans = input('--> ')
         except EOFError:
             print()
-            ans = 'n'
+            ans = 'eof'
         ans_recog = True
         if ans == 'y':
             authorized = 'yes'
+        elif ans == 'eof':
+            authorized = 'eof'
         elif ans == 'q' or ans == 'quit':
             authorized = 'quit'
         elif ans != 'n':

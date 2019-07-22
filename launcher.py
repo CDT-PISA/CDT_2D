@@ -213,6 +213,27 @@ def reset_fit(name, delete):
 
     reset_fit(name, delete)
 
+def set_fit(name, points, points_new, config):
+    from lib.analysis import set_fit_props
+
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+
+    set_fit_props(name[0], points, config)
+
+def info_fit(name):
+    from lib.analysis import show_fit_props
+
+    show_fit_props(name[0])
+
+def sim_obs(points, points_new, config):
+    from lib.analysis import sim_obs
+
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+    
+    sim_obs(points, config)
+
 ##################
 #      MAIN      #
 ##################
@@ -283,7 +304,7 @@ def main():
 
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
-                'pre', 'fit', 'new-fit', 'show-fits']
+                'pre', 'fit', 'new-fit', 'show-fits', 'info-fit']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
@@ -319,9 +340,11 @@ def main():
                                         args.analysis]]):
         from lib.utils import points_recast
 
-        points_old, points_new = points_recast(lambdas, betas, args.range,
-                                                  args.is_all, args.config,
-                                                  args.command)
+        if lambdas and betas:
+            points_old, points_new = points_recast(lambdas, betas, args.range,
+                                      args.is_all, args.config, args.command)
+        else:
+            points_old, points_new = [], []
 
     # Wrappers' calls
     if args.command == 'run':
@@ -385,11 +408,17 @@ def main():
         elif args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot)
         elif args.analysis == 'new-fit':
-            new_fit(args.name, args.path, caller_path)
+            new_fit(args.fit_name, args.path, caller_path)
         elif args.analysis == 'show-fits':
             show_fits(args.paths)
         elif args.analysis == 'reset':
-            reset_fit(args.name, args.delete)
+            reset_fit(args.fit_name, args.delete)
+        elif args.analysis == 'set-fit':
+            set_fit(args.fit_name, points_old, points_new, args.config)
+        elif args.analysis == 'info-fit':
+            info_fit(args.fit_name)
+        elif args.analysis == 'sim-obs':
+            sim_obs(points_old, points_new, args.config)
 
 
 if __name__ == "__main__":

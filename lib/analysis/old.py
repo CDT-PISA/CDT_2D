@@ -99,7 +99,7 @@ def fit(lambdas_old, config, skip):
             i += 1
             chdir('output/' + config + '/Lambda' + str(Lambda))
 
-            vol_file = ('history/volumes.txt')
+            vol_file = 'history/volumes.txt'
             indices, volumes = loadtxt(vol_file, unpack=True)
             imin = indices[0]
             imax = indices[-1]
