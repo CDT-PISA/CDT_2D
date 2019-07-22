@@ -286,7 +286,7 @@ def sim_obs(points, config):
                 measures = {}
 
             cut = set_cut(p_dir, i)
-            print(f'cut = {cut}')
+            print(f'cut = {cut}', end='   ')
             if cut:
                 measures['cut'] = cut
                 with open('measures.json', 'w') as file:
@@ -305,6 +305,7 @@ def sim_obs(points, config):
                 block = measures['block']
             except KeyError:
                 pass
+            print(f'block = {block}')
 
             if not cut or not block:
                 print('Nothing modified on last sim.')
@@ -326,5 +327,10 @@ def sim_obs(points, config):
 
             with open('measures.json', 'w') as file:
                 json.dump(measures, file, indent=4)
+        elif auth == 'quit':
+            print('Observables have not been recomputed.')
+            return
+        else:
+            print('Observables have not been recomputed.')
 
         i += 1

@@ -1,4 +1,4 @@
-def select_from_plot(Point, indices, values, i=0, dot=None):
+def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x'):
     from matplotlib.pyplot import figure, show, figtext, close
     from lib.utils import point_str
 
@@ -62,10 +62,16 @@ def select_from_plot(Point, indices, values, i=0, dot=None):
             inarea = x > imin and x < imax and y > vmin and y < vmax
             if inarea:
                 m = ax.plot(x, y, 'wo', mec='k')
-                n = ax.plot(x, vmin, 'k|', ms=20)
+                if 'x' in proj_axis:
+                    n = ax.plot(x, vmin, 'k|', ms=20)
+                if 'y' in proj_axis:
+                    o = ax.plot(imin, y, 'k_', ms=20)
                 event.canvas.draw()
                 m[0].remove()
-                n[0].remove()
+                if 'x' in proj_axis:
+                    n[0].remove()
+                if 'y' in proj_axis:
+                    o[0].remove()
         else:
             event.canvas.draw()
     on_motion.drag = False
@@ -104,7 +110,10 @@ def set_cut(p_dir, i=0):
 
     index, _ = select_from_plot(Point, indices, volumes, i)
 
-    return ceil(index)
+    if index:
+        return ceil(index)
+    else:
+        return index
 
 def blocked_mean_std(indices, volumes, block_size):
     from numpy import mean, std
@@ -160,7 +169,7 @@ def set_block(p_dir, i=0):
         _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
         stdevs += [stdev]
 
-    block, _ = select_from_plot(Point, block_sizes, stdevs, i)
+    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='y')
     if block == None or block == -1:
         print('Nothing done.')
         return None
