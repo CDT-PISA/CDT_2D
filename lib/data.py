@@ -288,6 +288,7 @@ def show_state(configs, full_show=False):
 
         points_run_all, sim_all = find_running()
 
+        configs += ['-']
         d = {}
         for config in configs:
             points_run_list = []
@@ -315,6 +316,9 @@ def show_state(configs, full_show=False):
 
     for config in configs:
         try:
+            if config == '-':
+                raise FileNotFoundError
+
             with open(config_dir(config) + '/pstop.pickle', 'rb') as stop_file:
                 points_stopped = pickle.load(stop_file)
         except FileNotFoundError:
@@ -361,8 +365,9 @@ def show_state(configs, full_show=False):
         else:
             points_stopped = []
 
-        with open(config_dir(config) + '/pstop.pickle', 'wb') as stop_file:
-            pickle.dump(points_stopped, stop_file)
+        if config != '-':
+            with open(config_dir(config) + '/pstop.pickle', 'wb') as stop_file:
+                pickle.dump(points_stopped, stop_file)
 
     if len(ps_out) > 1 and not empty:
         clock = datetime.fromtimestamp(time()).strftime('%H:%M:%S')
