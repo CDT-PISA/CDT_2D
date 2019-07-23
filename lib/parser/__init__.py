@@ -541,21 +541,6 @@ def define_parser(launcher_path, version):
     pre_sub.add_argument('--conf-plot', dest='conf_plot',
                          action='store_true', help=msgs.conf_plot)
 
-    # fit command
-
-    fit_sub = analysis_sub.add_parser('fit', help='fit',
-                        description=msgs.fit,
-                        formatter_class=argparse.RawDescriptionHelpFormatter)
-    fit_sub.add_argument('-l', '--lamda', nargs='+', type=float, required=True,
-                         help=msgs.lamda)
-    fit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                         required=True, help=msgs.beta)
-    fit_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
-                         help=msgs.range)
-    fit_sub.add_argument('-c', '--config', choices=configs, default='test',
-                         metavar=meta_configs,
-                         help=msgs.config)
-
     # new fit command
 
     new_fit_sub = analysis_sub.add_parser('new-fit', help='create new fit',
@@ -621,11 +606,14 @@ def define_parser(launcher_path, version):
 
     # set fit properties
 
+    kinds = ['s', 'sims', 'o', 'obs']
+
     info_fit_sub = analysis_sub.add_parser('info-fit',
                     help='show fit properties', description=msgs.info_fit,
                     formatter_class=argparse.RawDescriptionHelpFormatter)
     info_fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
                              choices=fits, type=str, help=msgs.fit_names)
+    info_fit_sub.add_argument('-k', '--kind', choices=kinds, help=msgs.pre_kind)
 
     # sims obs
 
@@ -640,6 +628,13 @@ def define_parser(launcher_path, version):
                         default='', help=msgs.range)
     sim_obs_sub.add_argument('-c', '--config', choices=configs, default='test',
                         metavar=meta_configs, help=msgs.config)
+
+    # fit command
+
+    fit_sub = analysis_sub.add_parser('fit', help='fit', description=msgs.fit,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
+                        choices=fits, type=str, help=msgs.fit_names)
 
 
     chdir(starting_cwd)

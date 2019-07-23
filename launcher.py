@@ -193,6 +193,11 @@ def clear(points_old, points_new, config, force):
 
 # Analyses
 
+def fit(name):
+    from lib.analysis import fit
+
+    fit(name[0])
+
 def pre(kind, config, conf_plot):
     from lib.analysis import preliminary_analyses
 
@@ -221,17 +226,17 @@ def set_fit(name, points, points_new, config):
 
     set_fit_props(name[0], points, config)
 
-def info_fit(name):
-    from lib.analysis import show_fit_props
+def info_fit(name, kind):
+    from lib.analysis import info_fit
 
-    show_fit_props(name[0])
+    info_fit(name[0], kind)
 
 def sim_obs(points, points_new, config):
     from lib.analysis import sim_obs
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
-    
+
     sim_obs(points, config)
 
 ##################
@@ -404,7 +409,7 @@ def main():
 
     elif args.command == 'analysis':
         if args.analysis == 'fit':
-            fit(points_old, points_new, args.config, args.skip)
+            fit(args.fit_name)
         elif args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot)
         elif args.analysis == 'new-fit':
@@ -416,7 +421,7 @@ def main():
         elif args.analysis == 'set-fit':
             set_fit(args.fit_name, points_old, points_new, args.config)
         elif args.analysis == 'info-fit':
-            info_fit(args.fit_name)
+            info_fit(args.fit_name, args.kind)
         elif args.analysis == 'sim-obs':
             sim_obs(points_old, points_new, args.config)
 

@@ -200,13 +200,13 @@ def eval_volume(p_dir):
 
     return vol, err
 
-def volume_fit(fit_name):
+def fit_volume(lambdas, volumes, errors):
     import json
-    from numpy import sqrt, log, zeros, diag, vectorize
+    from numpy import array, sqrt, log, zeros, diag, vectorize, linspace
+    from scipy.optimize import curve_fit
+    from matplotlib.pyplot import figure, show
 
-    # dt.datetime.strptime(state['end_time'], '%d-%m-%Y %H:%M:%S')
-
-    lambdas = array(lambdas_old)
+    lambdas = array(lambdas)
     volumes = array(volumes)
     errors = array(errors)
 
@@ -218,8 +218,8 @@ def volume_fit(fit_name):
     def volume(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
 
-    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors, absolute_sigma=True,
-                         p0=(0.69315, 2.4, 61))
+    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors,
+                         absolute_sigma=True, p0=(0.69315, 2.4, 61))
 
     residuals_sq = ((volumes - vectorize(volume)(lambdas, *par))/errors)**2
     chi2 = residuals_sq.sum()

@@ -213,42 +213,71 @@ def set_fit_props(name, points, config):
     # a cui è riferito il fit (1 sola)
     # cioè se è un fit: al volume, all'azione, alla carica topologica, ...
 
-def show_fit_props(name, kind='sims'):
+def info_fit(name, kind='sims'):
     from os import chdir
     from os.path import basename, dirname
     from pprint import pprint
     import json
     from lib.utils import fit_dir, config_dir, dir_point
 
+    if kind in ['s', 'sims', None]:
+        kind = 'sims'
+    elif kind in ['o', 'obs']:
+        kind = 'obs'
+
     chdir(fit_dir(name))
 
+    try:
+        with open('sims.json', 'r') as file:
+            sims = json.load(file)
+    except FileNotFoundError:
+        print('No simulation already assigned to this fit.')
+
+    d = {}
+    for s in sims:
+        if s[-1] == '/':
+            s = s[:-1]
+
+        if kind == 'sims':
+            config = basename(dirname(s))
+            Point = dir_point(basename(s))
+            try:
+                d[config] += [Point]
+            except KeyError:
+                d[config] = [Point]
+        elif kind == 'obs':
+            try:
+                with open(s + '/measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                measures = {}
+
+            flags = ''
+            if 'cut' in measures.keys():
+                flags += 'C'
+            if 'block' in measures.keys():
+                flags += 'B'
+            if 'volume' in measures.keys():
+                flags += 'V'
+
+            config = basename(dirname(s))
+            Point = dir_point(basename(s))
+            try:
+                d[config] += [Point, flags]
+            except KeyError:
+                d[config] = [Point, flags]
+
+
     if kind == 'sims':
-        try:
-            with open('sims.json', 'r') as file:
-                sims = json.load(file)
-
-            d = {}
-            for s in sims:
-                if s[-1] == '/':
-                    s = s[:-1]
-
-                config = basename(dirname(s))
-                Point = dir_point(basename(s))
-                try:
-                    d[config] += [Point]
-                except KeyError:
-                    d[config] = [Point]
-
-            pprint(d)
-        except FileNotFoundError:
-            print('No simulation already assigned to this fit.')
+        pprint(d)
     elif kind == 'obs':
-        pass
+        pprint(d)
     else:
         raise ValueError('info-fit: kind {kind} not recognized')
 
     # inserire un kind e aggiungere come possibilità quella di visualizzare il tipo di osservabili
     # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
+    # 'obs' attualmente è per le sole flag, ne va implementato uno più esteso con i valori opportuni
 
 def sim_obs(points, config):
     from os import chdir
@@ -334,3 +363,56 @@ def sim_obs(points, config):
             print('Observables have not been recomputed.')
 
         i += 1
+
+def fit(name, kind='volume'):
+    from os import chdir
+    from os.path import basename, dirname
+    import json
+    from pprint import pprint
+    from lib.utils import fit_dir, dir_point
+    from lib.analysis.fit import fit_volume
+
+    fit_d = fit_dir(name)
+    chdir(fit_d)
+
+    try:
+        with open('sims.json', 'r') as file:
+            sims = json.load(file)
+    except FileNotFoundError:
+        print('No simulation already assigned to this fit.')
+
+    d = {}
+    lambdas = []
+    betas = []
+    volumes = []
+    sigma_vols = []
+    for s in sims:
+        if s[-1] == '/':
+            s = s[:-1]
+
+        config = basename(dirname(s))
+        Point = dir_point(basename(s))
+
+        try:
+            with open(s + '/measures.json', 'r') as file:
+                measures = json.load(file)
+        except FileNotFoundError:
+            measures = {}
+
+        with open(s + '/state.json', 'r') as file:
+            state = json.load(file)
+
+        d[Point] = {'config': config, **measures, 'time_sim_end': state['end_time']}
+
+        if 'volume' in measures.keys():
+            lambdas += [Point[0]]
+            betas += [Point[1]]
+            volumes += [measures['volume'][0]]
+            sigma_vols += [measures['volume'][1]]
+
+    pprint(d)
+    print()
+
+    print(f'Lambdas:\n{lambdas}\nBetas:\n{betas}\nVolumes:\n{volumes}\nSigmas:\n{sigma_vols}')
+
+    fit_volume(lambdas, volumes, sigma_vols)
