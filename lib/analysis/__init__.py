@@ -418,7 +418,7 @@ def sim_obs(points, config):
 
 def fit(name, kind='volume'):
     from os import chdir
-    from os.path import basename, dirname
+    from os.path import basename, dirname, isfile
     import json
     from pprint import pprint
     from lib.utils import fit_dir, dir_point
@@ -445,6 +445,12 @@ def fit(name, kind='volume'):
         config = basename(dirname(s))
         Point = dir_point(basename(s))
 
+        if isfile(s + '/max_volume_reached'):
+            print(f'\033[38;5;41m{Point}\033[0m not included in fit, because '
+                  'max_volume_reached is present.')
+            print(f"\033[38;5;80m  config: '{config}'\033[0m")
+            continue
+
         try:
             with open(s + '/measures.json', 'r') as file:
                 measures = json.load(file)
@@ -464,5 +470,13 @@ def fit(name, kind='volume'):
         else:
             print(f'Mising volume in {Point}, in config: {config}.')
             return
+
+    with open('data.csv', 'w') as file:
+        file.write('# Lambda Beta Volume Error Config\n')
+        for Point, attr in d.items():
+            vol, err = attr['volume']
+            data = [Point[0], Point[1], vol, err, attr['config']]
+            line = ' '.join([str(x) for x in data])
+            file.write(line + '\n')
 
     fit_volume(lambdas, volumes, sigma_vols)

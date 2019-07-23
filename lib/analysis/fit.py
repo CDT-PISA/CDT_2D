@@ -209,12 +209,32 @@ def eval_volume(p_dir):
     return vol, err
 
 def fit_volume(lambdas, volumes, errors):
+    import sys
     import json
     from pprint import pprint
     import numpy as np
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
-    from matplotlib.pyplot import figure, show
+    from matplotlib.pyplot import figure, show, savefig
+
+
+    class MyPrint:
+        def __init__(self, filename):
+            self.file = open(filename, 'w')
+
+        def __del__(self):
+            self.file.close()
+
+        def write(self, *args, sep=' ', end='\n'):
+            from re import sub
+            print(*args, sep=sep, end=end)
+            new_args = []
+            for x in args:
+                new_args += [sub('\033.*?m', '', str(x))]
+            self.file.write(sep.join(new_args) + end)
+
+    my_out = MyPrint('output.txt')
+    my_fit_msg = MyPrint('fit_messages.txt')
 
     lambdas = np.array(lambdas)
     volumes = np.array(volumes)
@@ -228,20 +248,24 @@ def fit_volume(lambdas, volumes, errors):
     def vol_fun(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
 
-    print('\033[36m')
-    print('Messages from fit (if any):')
-    print('--------------------------')
-    print('\033[0m')
+
+    my_fit_msg.write('\033[36m')
+    my_fit_msg.write('Messages from fit (if any):')
+    my_fit_msg.write('--------------------------')
+    my_fit_msg.write('\033[0m')
+    stderr_save = sys.stderr
+    sys.stderr = my_fit_msg
 
     par, cov = curve_fit(vol_fun, lambdas, volumes, sigma=errors,
                          absolute_sigma=True, p0=(0.6, 2.4, 61))
                          # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
     err = np.sqrt(np.diag(cov))
 
-    print('\033[36m')
-    print('--------------------------')
-    print('End fit')
-    print('\033[0m')
+    sys.stderr = stderr_save
+    my_fit_msg.write('\033[36m', end='')
+    my_fit_msg.write('--------------------------')
+    my_fit_msg.write('End fit')
+    my_fit_msg.write('\033[0m')
 
     residuals_sq = ((volumes - np.vectorize(vol_fun)(lambdas, *par))/errors)**2
     χ2 = residuals_sq.sum()
@@ -249,16 +273,17 @@ def fit_volume(lambdas, volumes, errors):
     p_value = chi2.sf(χ2, dof)
     p_al = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
-    print('\033[94mFit evaluation:\033[0m')
-    print('\t\033[93mχ²\033[0m =', χ2)
-    print('\t\033[93mdof\033[0m =', dof)
-    print(f'\t\033[93mp-value\033[0m = \033[{p_al}m', p_value, '\033[0m')
+    my_out.write('\033[94mFit evaluation:\033[0m')
+    my_out.write('\t\033[93mχ²\033[0m =', χ2)
+    my_out.write('\t\033[93mdof\033[0m =', dof)
+    my_out.write(f'\t\033[93mp-value\033[0m = \033[{p_al}m', p_value,
+                  '\033[0m')
 
     names = ['λ_c', 'α', 'factor']
 
-    print('\033[94mOutput parameters:\033[0m')
+    my_out.write('\033[94mOutput parameters:\033[0m')
     for x in zip(names, zip(par, err)):
-        print(f'\t\033[93m{x[0]}\033[0m = {x[1][0]} ± {x[1][1]}')
+        my_out.write(f'\t\033[93m{x[0]}\033[0m = {x[1][0]} ± {x[1][1]}')
 
     n = len(par)
     corr = np.zeros((n, n))
@@ -266,10 +291,11 @@ def fit_volume(lambdas, volumes, errors):
         for j in range(0, n):
             corr[i,j] = cov[i,j]/np.sqrt(cov[i,i]*cov[j,j])
 
-    print('\033[94mCorrelation coefficients:\033[0m')
-    print("\t" + str(corr).replace('\n','\n\t'))
+    my_out.write('\033[94mCorrelation coefficients:\033[0m')
+    my_out.write("\t" + str(corr).replace('\n','\n\t'))
 
     l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
     ax.plot(l_inter, vol_fun(l_inter, *par))
 
+    savefig('fit.pdf')
     show()
