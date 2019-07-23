@@ -346,13 +346,18 @@ def show_state(configs, full_show=False):
                     print(sim[1].rjust(4), ' ', sim[2].ljust(8),
                           sim[3].ljust(8))
                 elif full_show == '2':
-                    Point_dir = config_dir(config) + '/' + \
-                                point_dir(Point) + '/'
-                    with open(Point_dir + 'state.json', 'r') as state_file:
-                        state = json.load(state_file)
-                    lin_hist = state['linear-history']
-                    start = state['start_time']
-                    disk_us = popen('du -hs ' + Point_dir).read().split()[0]
+                    if config != '-':
+                        Point_dir = config_dir(config) + '/' + \
+                                    point_dir(Point) + '/'
+                        with open(Point_dir + 'state.json', 'r') as state_file:
+                            state = json.load(state_file)
+                        lin_hist = state['linear-history']
+                        start = state['start_time']
+                        disk_us = popen('du -hs ' + Point_dir).read().split()[0]
+                    else:
+                        lin_hist = '-'
+                        start = '-'
+                        disk_us = '-'
                     print(str(lin_hist).ljust(9), start[-8:].ljust(10),
                           disk_us.rjust(8))
 
