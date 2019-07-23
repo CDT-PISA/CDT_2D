@@ -208,7 +208,7 @@ def eval_volume(p_dir):
 
     return vol, err
 
-def fit_volume(lambdas, volumes, errors):
+def fit_volume(lambdas, volumes, errors, betas):
     import sys
     import json
     from pprint import pprint
@@ -217,6 +217,10 @@ def fit_volume(lambdas, volumes, errors):
     from scipy.stats import chi2
     from matplotlib.pyplot import figure, show, savefig
 
+    if len(set(betas)) > 1:
+        print('Volume fit is possible only for fixed β.')
+        print('Instead following β were given:\n{set(betas)}')
+        return
 
     class MyPrint:
         def __init__(self, filename):
@@ -248,7 +252,6 @@ def fit_volume(lambdas, volumes, errors):
     def vol_fun(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
 
-
     my_fit_msg.write('\033[36m')
     my_fit_msg.write('Messages from fit (if any):')
     my_fit_msg.write('--------------------------')
@@ -273,13 +276,21 @@ def fit_volume(lambdas, volumes, errors):
     p_value = chi2.sf(χ2, dof)
     p_al = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
+    β = str(betas[0])
+    my_out.write('\033[38;5;87m┌──', '─' * len(β), '──┐', sep='')
+    my_out.write(f'│β = {β}│')
+    my_out.write('└──', '─' * len(β), '──┘\033[0m\n', sep='')
+
+    my_out.write('\033[94mFunction:\033[0m')
+    my_out.write('\t f(λ) = A*(λ - λ_c)**(-α)')
+
     my_out.write('\033[94mFit evaluation:\033[0m')
     my_out.write('\t\033[93mχ²\033[0m =', χ2)
     my_out.write('\t\033[93mdof\033[0m =', dof)
     my_out.write(f'\t\033[93mp-value\033[0m = \033[{p_al}m', p_value,
                   '\033[0m')
 
-    names = ['λ_c', 'α', 'factor']
+    names = ['λ_c', 'α', 'A']
 
     my_out.write('\033[94mOutput parameters:\033[0m')
     for x in zip(names, zip(par, err)):

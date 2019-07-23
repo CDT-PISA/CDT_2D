@@ -479,4 +479,4 @@ def fit(name, kind='volume'):
             line = ' '.join([str(x) for x in data])
             file.write(line + '\n')
 
-    fit_volume(lambdas, volumes, sigma_vols)
+    fit_volume(lambdas, volumes, sigma_vols, betas)
