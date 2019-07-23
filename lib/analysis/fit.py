@@ -282,7 +282,7 @@ def fit_volume(lambdas, volumes, errors, betas):
     my_out.write('└──', '─' * len(β), '──┘\033[0m\n', sep='')
 
     my_out.write('\033[94mFunction:\033[0m')
-    my_out.write('\t f(λ) = A*(λ - λ_c)**(-α)')
+    my_out.write('\tf(λ) = A*(λ - λ_c)**(-α)')
 
     my_out.write('\033[94mFit evaluation:\033[0m')
     my_out.write('\t\033[93mχ²\033[0m =', χ2)
