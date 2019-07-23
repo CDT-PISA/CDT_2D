@@ -434,6 +434,8 @@ set_fit = cleandoc("""
 Example:
     ...""")
 
+fit_remove = """Remove one or more sims from the selected fit."""
+
 # INFO_FIT
 
 info_fit = cleandoc("""

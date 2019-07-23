@@ -510,7 +510,7 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
     if Point is not None:
         print("\033[38;5;41m(λ, β) = " + str(Point) + "\033[0m ", end='')
     print("Do you really want " + what_to_do + "? [y/n]")
-    if extra_message != '':
+    if extra_message:
         print(extra_message)
     authorized = False
     ans_recog = False

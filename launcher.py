@@ -218,13 +218,13 @@ def reset_fit(name, delete):
 
     reset_fit(name, delete)
 
-def set_fit(name, points, points_new, config):
+def set_fit(name, points, points_new, config, remove):
     from lib.analysis import set_fit_props
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
 
-    set_fit_props(name[0], points, config)
+    set_fit_props(name[0], points, config, remove)
 
 def info_fit(name, kind):
     from lib.analysis import info_fit
@@ -345,7 +345,10 @@ def main():
                                         args.analysis]]):
         from lib.utils import points_recast
 
-        if lambdas and betas:
+        if args.command == 'show' and not lambdas:
+            args.is_all = True
+
+        if (lambdas and betas) or args.is_all:
             points_old, points_new = points_recast(lambdas, betas, args.range,
                                       args.is_all, args.config, args.command)
         else:
@@ -419,7 +422,8 @@ def main():
         elif args.analysis == 'reset':
             reset_fit(args.fit_name, args.delete)
         elif args.analysis == 'set-fit':
-            set_fit(args.fit_name, points_old, points_new, args.config)
+            set_fit(args.fit_name, points_old, points_new, args.config,
+                    args.remove)
         elif args.analysis == 'info-fit':
             info_fit(args.fit_name, args.kind)
         elif args.analysis == 'sim-obs':

@@ -603,6 +603,8 @@ def define_parser(launcher_path, version):
                              default='', help=msgs.range)
     set_fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                              metavar=meta_configs, help=msgs.config)
+    set_fit_sub.add_argument('--remove', action='store_true',
+                             help=msgs.fit_remove)
 
     # set fit properties
 
@@ -628,6 +630,8 @@ def define_parser(launcher_path, version):
                         default='', help=msgs.range)
     sim_obs_sub.add_argument('-c', '--config', choices=configs, default='test',
                         metavar=meta_configs, help=msgs.config)
+    sim_obs_sub.add_argument('-°', dest='is_all', action='store_true',
+                        help=msgs.is_all)
 
     # fit command
 

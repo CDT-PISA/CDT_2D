@@ -185,10 +185,22 @@ def reset_fit(names, delete):
 #         json.dump(configs, config_file, indent=4)
 
 
-def set_fit_props(name, points, config):
+def set_fit_props(name, points, config, remove):
     from os import chdir, popen
+    from os.path import basename, dirname
     import json
-    from lib.utils import fit_dir, config_dir, point_dir
+    from lib.utils import (fit_dir, config_dir, point_dir, dir_point,
+                           authorization_request)
+
+    if remove:
+        if points:
+            print('Warning: points specification not compatible with --remove '
+                  'option.')
+            return
+        elif config != 'test':
+            print('Warning: config specification not compatible with --remove '
+                  'option.')
+            return
 
     chdir(fit_dir(name))
 
@@ -200,14 +212,39 @@ def set_fit_props(name, points, config):
 
     # SIMS UPDATE
 
-    c_dir = config_dir(config)
-    for Point in points:
-        p_dir = c_dir + '/' + point_dir(Point)
-        if p_dir not in sims:
-            sims += [p_dir]
+    if not remove:
+        c_dir = config_dir(config)
+        for Point in points:
+            p_dir = c_dir + '/' + point_dir(Point)
+            if p_dir not in sims:
+                sims += [p_dir]
 
-    with open('sims.json', 'w') as file:
-        json.dump(sims, file, indent=4)
+        with open('sims.json', 'w') as file:
+            json.dump(sims, file, indent=4)
+
+    # SIMS REMOTION
+
+    else:
+        new_sims = []
+        for sim in sims:
+            Point = dir_point(basename(sim))
+            config = basename(dirname(sim))
+
+            what = f"to remove sim from fit '{name}'"
+            extra = f"\033[38;5;80m  config: '{config}'\033[0m"
+            auth = authorization_request(Point=Point, what_to_do=what,
+                                         extra_message=extra)
+
+            if auth == 'quit':
+                print('Nothing done for last sim.')
+                return
+            elif auth != 'yes':
+                new_sims += [sim]
+            else:
+                print('Sim removed')
+
+        with open('sims.json', 'w') as file:
+            json.dump(new_sims, file, indent=4)
 
     # inserire un kind e aggiungere come possibilità quella di settare il tipo di osservabili
     # a cui è riferito il fit (1 sola)
@@ -301,8 +338,23 @@ def sim_obs(points, config):
         p_dir = c_dir + '/' + point_dir(Point)
         chdir(p_dir)
 
+        try:
+            with open('measures.json', 'r') as file:
+                measures = json.load(file)
+
+            if 'cut' in measures.keys() and 'block' in measures.keys():
+                cb_exist = True
+            else:
+                print(measures)
+                cb_exist = False
+        except FileNotFoundError:
+            cb_exist = False
+
         what = 'to select cut & block'
-        auth = authorization_request(what_to_do=what, Point=Point)
+        extra = ('\033[92m(existing value present for both)\033[0m'
+                 if cb_exist else None)
+        auth = authorization_request(what_to_do=what, Point=Point,
+                                     extra_message=extra)
 
         if auth == 'quit':
             print('Nothing done on the last sim.')
@@ -409,10 +461,8 @@ def fit(name, kind='volume'):
             betas += [Point[1]]
             volumes += [measures['volume'][0]]
             sigma_vols += [measures['volume'][1]]
-
-    pprint(d)
-    print()
-
-    print(f'Lambdas:\n{lambdas}\nBetas:\n{betas}\nVolumes:\n{volumes}\nSigmas:\n{sigma_vols}')
+        else:
+            print(f'Mising volume in {Point}, in config: {config}.')
+            return
 
     fit_volume(lambdas, volumes, sigma_vols)

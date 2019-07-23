@@ -1,4 +1,5 @@
-def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x'):
+def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x',
+                     block=False):
     from matplotlib.pyplot import figure, show, figtext, close
     from lib.utils import point_str
 
@@ -21,6 +22,8 @@ def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x'):
     ax.set_title('λ = ' + point_str(Point))
     figtext(.5,.03,' '*10 +
             'press enter to convalid current selection', ha='center')
+    if block:
+        ax.set_ylim(top=vmax*1.1)
     if not dot == None:
         ax.plot(*dot, 'o', mec='w')
 
@@ -35,7 +38,9 @@ def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x'):
         if event.inaxes is not None:
             x = event.xdata
             y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
+
+            vmax_ = vmax*1.1 if block else vmax
+            inarea = x > imin and x < imax and y > vmin and y < vmax_
             if inarea and not on_motion.drag:
                 on_click.x = x
                 on_click.y = y
@@ -59,7 +64,9 @@ def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x'):
         if event.inaxes is not None and not hide_drag:
             x = event.xdata
             y = event.ydata
-            inarea = x > imin and x < imax and y > vmin and y < vmax
+
+            vmax_ = vmax*1.1 if block else vmax
+            inarea = x > imin and x < imax and y > vmin and y < vmax_
             if inarea:
                 m = ax.plot(x, y, 'wo', mec='k')
                 if 'x' in proj_axis:
@@ -169,7 +176,8 @@ def set_block(p_dir, i=0):
         _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
         stdevs += [stdev]
 
-    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='y')
+    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='y',
+                                block=True)
     if block == None or block == -1:
         print('Nothing done.')
         return None
@@ -202,44 +210,66 @@ def eval_volume(p_dir):
 
 def fit_volume(lambdas, volumes, errors):
     import json
-    from numpy import array, sqrt, log, zeros, diag, vectorize, linspace
+    from pprint import pprint
+    import numpy as np
     from scipy.optimize import curve_fit
+    from scipy.stats import chi2
     from matplotlib.pyplot import figure, show
 
-    lambdas = array(lambdas)
-    volumes = array(volumes)
-    errors = array(errors)
+    lambdas = np.array(lambdas)
+    volumes = np.array(volumes)
+    errors = np.array(errors)
 
     fig = figure()
     ax = fig.add_subplot(111)
 
     ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
 
-    def volume(l, l_c, alpha, A):
+    def vol_fun(l, l_c, alpha, A):
         return A*(l - l_c)**(-alpha)
 
-    par, cov = curve_fit(volume, lambdas, volumes, sigma=errors,
-                         absolute_sigma=True, p0=(0.69315, 2.4, 61))
+    print('\033[36m')
+    print('Messages from fit (if any):')
+    print('--------------------------')
+    print('\033[0m')
 
-    residuals_sq = ((volumes - vectorize(volume)(lambdas, *par))/errors)**2
-    chi2 = residuals_sq.sum()
+    par, cov = curve_fit(vol_fun, lambdas, volumes, sigma=errors,
+                         absolute_sigma=True, p0=(0.6, 2.4, 61))
+                         # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
+    err = np.sqrt(np.diag(cov))
+
+    print('\033[36m')
+    print('--------------------------')
+    print('End fit')
+    print('\033[0m')
+
+    residuals_sq = ((volumes - np.vectorize(vol_fun)(lambdas, *par))/errors)**2
+    χ2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
+    p_value = chi2.sf(χ2, dof)
+    p_al = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
-    print("χ² = ", chi2, dof)
+    print('\033[94mFit evaluation:\033[0m')
+    print('\t\033[93mχ²\033[0m =', χ2)
+    print('\t\033[93mdof\033[0m =', dof)
+    print(f'\t\033[93mp-value\033[0m = \033[{p_al}m', p_value, '\033[0m')
 
-    names = ['λ_c', 'alpha', 'factor']#, 'shift']
-    print(dict(zip(names, par)))
-    print(dict(zip(names,sqrt(diag(cov)))))
+    names = ['λ_c', 'α', 'factor']
+
+    print('\033[94mOutput parameters:\033[0m')
+    for x in zip(names, zip(par, err)):
+        print(f'\t\033[93m{x[0]}\033[0m = {x[1][0]} ± {x[1][1]}')
 
     n = len(par)
-    corr = zeros((n, n))
+    corr = np.zeros((n, n))
     for i in range(0, n):
         for j in range(0, n):
-            corr[i,j] = cov[i,j]/sqrt(cov[i,i]*cov[j,j])
+            corr[i,j] = cov[i,j]/np.sqrt(cov[i,i]*cov[j,j])
 
-    print(corr)
+    print('\033[94mCorrelation coefficients:\033[0m')
+    print("\t" + str(corr).replace('\n','\n\t'))
 
-    l_inter = linspace(min(lambdas), max(lambdas), 1000)
-    ax.plot(l_inter, volume(l_inter, *par))
+    l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
+    ax.plot(l_inter, vol_fun(l_inter, *par))
 
     show()
