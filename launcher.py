@@ -231,13 +231,13 @@ def info_fit(name, kind):
 
     info_fit(name[0], kind)
 
-def sim_obs(points, points_new, config):
+def sim_obs(points, points_new, config, plot):
     from lib.analysis import sim_obs
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
 
-    sim_obs(points, config)
+    sim_obs(points, config, plot)
 
 ##################
 #      MAIN      #
@@ -427,7 +427,7 @@ def main():
         elif args.analysis == 'info-fit':
             info_fit(args.fit_name, args.kind)
         elif args.analysis == 'sim-obs':
-            sim_obs(points_old, points_new, args.config)
+            sim_obs(points_old, points_new, args.config, args.plot)
 
 
 if __name__ == "__main__":

@@ -186,10 +186,11 @@ def set_block(p_dir, i=0):
     return block
 
 def eval_volume(p_dir):
-    from os import chdir
+    from os import chdir, getcwd
     import json
     from numpy import loadtxt
 
+    cwd = getcwd()
     chdir(p_dir)
 
     with open('measures.json', 'r') as file:
@@ -206,7 +207,65 @@ def eval_volume(p_dir):
 
     vol, err = blocked_mean_std(indices_cut, volumes_cut, block)
 
+    chdir(cwd)
+
     return vol, err
+
+def compute_torelons(p_dir, plot):
+    from os import chdir, getcwd
+    import json
+    import numpy as np
+    from matplotlib import pylab as pl
+
+    cwd = getcwd()
+    chdir(p_dir)
+
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
+
+    cut = measures['cut']
+    block = measures['block']
+
+    toblerone = 'history/toblerone.txt'
+    A = np.loadtxt(toblerone, unpack=True)
+
+    indices = A[0]
+    torelons = A[1:].transpose()
+
+    torelons_cut = torelons[indices > cut]
+    indices_cut = indices[indices > cut]
+
+    # the sum over 'i' is the sum over
+    torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
+                               for Δt in range(1, torelons_cut.shape[1])])
+    torelons_decay = (np.einsum('kij,ij->k', torelons_shift, torelons_cut) -
+                      torelons_cut.mean()**2)
+           # np.einsum('ij,ij', torelons_cut, torelons_cut) / torelons_cut.size)
+
+    # Run the following to be sure that the previous is the right formula
+    # -------------------------------------------------------------------
+    #
+    # torelons_decay = np.einsum('kij,ij->ik', torelons_shift, torelons_cut)
+    #
+    # print(torelons_decay.shape)
+    # torelons_decay1 = []
+    # for torelon in torelons_cut:
+    #     l = []
+    #     for t in range(1, torelons_cut.shape[1]):
+    #         l += [torelon @ np.roll(torelon, t)]
+    #     torelons_decay1 += [np.array(l)]
+    # torelons_decay1 = np.array(torelons_decay1)
+    # print(torelons_decay1.shape)
+    # print(((torelons_decay1 - torelons_decay) > 1e-7).any())
+
+    if plot:
+        pl.title(f'Number of points: {len(indices_cut)}')
+        pl.plot(torelons_decay)
+        pl.show()
+
+    chdir(cwd)
+
+    return list(torelons_decay)
 
 def fit_volume(lambdas, volumes, errors, betas):
     import sys

@@ -457,3 +457,6 @@ sim_obs = cleandoc("""
 
 Example:
     ...""")
+
+plot_obs = """Plot observables during setting.
+"""
