@@ -318,6 +318,7 @@ def info_fit(name, kind='sims'):
 
 def sim_obs(points, config):
     from os import chdir
+    from os.path import isfile
     from time import time
     from datetime import datetime
     import json
@@ -338,6 +339,20 @@ def sim_obs(points, config):
         p_dir = c_dir + '/' + point_dir(Point)
         chdir(p_dir)
 
+        if isfile(p_dir + '/max_volume_reached'):
+            print(f'\033[38;5;41m(λ, β) = {Point}\033[0m skipped because '
+                  '\033[38;5;80mmax_volume_reached\033[0m is present.')
+            # print(f"\033[38;5;80m  config: '{config}'\033[0m")
+            continue
+
+        try:
+            with open('state.json', 'r') as file:
+                state = json.load(file)
+        except FileNotFoundError:
+            print(f'\033[1mCRITICAL:\033[0m no state.json file in sim'
+                  f'\033[38;5;41m(λ, β) = {Point}\033[0m')
+            return
+
         try:
             with open('measures.json', 'r') as file:
                 measures = json.load(file)
@@ -348,6 +363,7 @@ def sim_obs(points, config):
                 print(measures)
                 cb_exist = False
         except FileNotFoundError:
+            measures = {}
             cb_exist = False
 
         what = 'to select cut & block'
@@ -361,21 +377,24 @@ def sim_obs(points, config):
             return
         elif auth == 'yes':
             try:
-                with open('measures.json', 'r') as file:
-                    measures = json.load(file)
-            except FileNotFoundError:
-                measures = {}
-
-            cut = set_cut(p_dir, i)
-            print(f'cut = {cut}', end='   ')
-            if cut:
-                measures['cut'] = cut
+                measures['cut'] = state['linear-history-cut']
+                cut = state['linear-history-cut']
                 with open('measures.json', 'w') as file:
                     json.dump(measures, file, indent=4)
-            try :
-                cut = measures['cut']
+                print("\033[38;5;80m'linear-history-cut'\033[0m "
+                      "has been used as cut")
             except KeyError:
-                pass
+                cut = set_cut(p_dir, i)
+                if cut:
+                    measures['cut'] = cut
+                    with open('measures.json', 'w') as file:
+                        json.dump(measures, file, indent=4)
+                try :
+                    cut = measures['cut']
+                except KeyError:
+                    pass
+            if cut:
+                print(f'cut = {cut}', end='   ')
 
             block = set_block(p_dir, i)
             if block:
@@ -419,6 +438,7 @@ def sim_obs(points, config):
 def fit(name, kind='volume'):
     from os import chdir
     from os.path import basename, dirname, isfile
+    from datetime import datetime
     import json
     from pprint import pprint
     from lib.utils import fit_dir, dir_point
@@ -447,7 +467,7 @@ def fit(name, kind='volume'):
 
         if isfile(s + '/max_volume_reached'):
             print(f'\033[38;5;41m{Point}\033[0m not included in fit, because '
-                  'max_volume_reached is present.')
+                  '\033[38;5;80mmax_volume_reached\033[0m is present.')
             print(f"\033[38;5;80m  config: '{config}'\033[0m")
             continue
 
@@ -459,6 +479,19 @@ def fit(name, kind='volume'):
 
         with open(s + '/state.json', 'r') as file:
             state = json.load(file)
+
+        s_time = datetime.strptime(state['end_time'], '%d-%m-%Y %H:%M:%S')
+        m_time = datetime.strptime(measures['time'], '%d-%m-%Y %H:%M:%S')
+
+        # print(Point)
+        # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))
+        if(s_time > m_time):
+            print('\033[38;5;203mWarning:\033[0m in Point '
+                  f'\033[38;5;41m{Point}\033[0m in '
+                  f"\033[38;5;80mconfig: '{config}'\033[0m measures are "
+                  '\033[38;5;210mnot up to date\033[0m '
+                  'with last simulation\'s data')
+            print()
 
         d[Point] = {'config': config, **measures, 'time_sim_end': state['end_time']}
 
