@@ -107,13 +107,14 @@ def set_cut(p_dir, i=0):
     from os.path import basename
     from math import ceil
     from numpy import loadtxt
+    from pandas import read_csv
     from lib.utils import dir_point
 
     chdir(p_dir)
     Point = dir_point(basename(p_dir))
 
     vol_file = 'history/volumes.txt'
-    indices, volumes = loadtxt(vol_file, unpack=True)
+    indices, volumes = read_csv(vol_file, sep=' ').values[:,:2].transpose()
 
     index, _ = select_from_plot(Point, indices, volumes, i)
 
@@ -148,6 +149,7 @@ def set_block(p_dir, i=0):
     from math import log
     import json
     from numpy import loadtxt
+    from pandas import read_csv
     from lib.utils import dir_point
 
     chdir(p_dir)
@@ -162,7 +164,7 @@ def set_block(p_dir, i=0):
         return None
 
     vol_file = 'history/volumes.txt'
-    indices, volumes = loadtxt(vol_file, unpack=True)
+    indices, volumes = read_csv(vol_file, sep=' ').values[:,:2].transpose()
     imax = indices[-1]
 
     volumes_cut = volumes[indices > cut]

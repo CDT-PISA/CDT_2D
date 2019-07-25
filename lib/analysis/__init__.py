@@ -361,7 +361,6 @@ def sim_obs(points, config, plot):
             if 'cut' in measures.keys() and 'block' in measures.keys():
                 cb_exist = True
             else:
-                print(measures)
                 cb_exist = False
         except FileNotFoundError:
             measures = {}
