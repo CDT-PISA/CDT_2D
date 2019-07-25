@@ -437,12 +437,13 @@ def sim_obs(points, config, plot):
 
         i += 1
 
-def fit(name, kind='volume'):
+def fit(name, kind='volume', reload=False):
     from os import chdir
     from os.path import basename, dirname, isfile
     from datetime import datetime
     import json
     from pprint import pprint
+    from numpy import genfromtxt
     from lib.utils import fit_dir, dir_point
     from lib.analysis.fit import fit_volume
 
@@ -455,67 +456,77 @@ def fit(name, kind='volume'):
     except FileNotFoundError:
         print('No simulation already assigned to this fit.')
 
-    d = {}
-    lambdas = []
-    betas = []
-    volumes = []
-    sigma_vols = []
-    for s in sims:
-        if s[-1] == '/':
-            s = s[:-1]
+    if not isfile('data.csv') or reload:
+        d = {}
+        lambdas = []
+        betas = []
+        volumes = []
+        sigma_vols = []
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
 
-        config = basename(dirname(s))
-        Point = dir_point(basename(s))
+            config = basename(dirname(s))
+            Point = dir_point(basename(s))
 
-        if isfile(s + '/max_volume_reached'):
-            print(f'\033[38;5;41m{Point}\033[0m not included in fit, because '
-                  '\033[38;5;80mmax_volume_reached\033[0m is present.')
-            print(f"\033[38;5;80m  config: '{config}'\033[0m")
-            continue
+            if isfile(s + '/max_volume_reached'):
+                print(f'\033[38;5;41m{Point}\033[0m not included in fit, '
+                      'because '
+                      '\033[38;5;80mmax_volume_reached\033[0m is present.')
+                print(f"\033[38;5;80m  config: '{config}'\033[0m")
+                continue
 
-        try:
-            with open(s + '/measures.json', 'r') as file:
-                measures = json.load(file)
-        except FileNotFoundError:
-            measures = {}
+            try:
+                with open(s + '/measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                measures = {}
 
-        with open(s + '/state.json', 'r') as file:
-            state = json.load(file)
+            with open(s + '/state.json', 'r') as file:
+                state = json.load(file)
 
-        if 'time' in measures.keys():
-            s_time = datetime.strptime(state['end_time'], '%d-%m-%Y %H:%M:%S')
-            m_time = datetime.strptime(measures['time'], '%d-%m-%Y %H:%M:%S')
-        else:
-            print(f'Mising time in {Point}, in config: {config}.')
-            return
+            if 'time' in measures.keys():
+                s_time = datetime.strptime(state['end_time'],
+                                           '%d-%m-%Y %H:%M:%S')
+                m_time = datetime.strptime(measures['time'],
+                                           '%d-%m-%Y %H:%M:%S')
+            else:
+                print(f'Mising time in {Point}, in config: {config}.')
+                return
 
-        # print(Point)
-        # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))
-        if(s_time > m_time):
-            print('\033[38;5;203mWarning:\033[0m in Point '
-                  f'\033[38;5;41m{Point}\033[0m in '
-                  f"\033[38;5;80mconfig: '{config}'\033[0m measures are "
-                  '\033[38;5;210mnot up to date\033[0m '
-                  'with last simulation\'s data')
-            print()
+            # print(Point)
+            # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))
+            if(s_time > m_time):
+                print('\033[38;5;203mWarning:\033[0m in Point '
+                      f'\033[38;5;41m{Point}\033[0m in '
+                      f"\033[38;5;80mconfig: '{config}'\033[0m measures are "
+                      '\033[38;5;210mnot up to date\033[0m '
+                      'with last simulation\'s data')
+                print()
 
-        d[Point] = {'config': config, **measures, 'time_sim_end': state['end_time']}
+            d[Point] = {'config': config, **measures, 'time_sim_end': state['end_time']}
 
-        if 'volume' in measures.keys():
-            lambdas += [Point[0]]
-            betas += [Point[1]]
-            volumes += [measures['volume'][0]]
-            sigma_vols += [measures['volume'][1]]
-        else:
-            print(f'Mising volume in {Point}, in config: {config}.')
-            return
+            if 'volume' in measures.keys():
+                lambdas += [Point[0]]
+                betas += [Point[1]]
+                volumes += [measures['volume'][0]]
+                sigma_vols += [measures['volume'][1]]
+            else:
+                print(f'Mising volume in {Point}, in config: {config}.')
+                return
 
-    with open('data.csv', 'w') as file:
-        file.write('# Lambda Beta Volume Error Config\n')
-        for Point, attr in d.items():
-            vol, err = attr['volume']
-            data = [Point[0], Point[1], vol, err, attr['config']]
-            line = ' '.join([str(x) for x in data])
-            file.write(line + '\n')
+        with open('data.csv', 'w') as file:
+            file.write('# Lambda Beta Volume Error Config\n')
+            for Point, attr in d.items():
+                vol, err = attr['volume']
+                data = [Point[0], Point[1], vol, err, attr['config']]
+                line = ' '.join([str(x) for x in data])
+                file.write(line + '\n')
+    else:
+        data = genfromtxt('data.csv', unpack=True)
+        lambdas, betas = data[:2]
+        volumes, sigma_vols = data[2:4]
+        print(lambdas, betas)
+        print(volumes, sigma_vols)
 
     fit_volume(lambdas, volumes, sigma_vols, betas)

@@ -643,6 +643,9 @@ def define_parser(launcher_path, version):
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
                         choices=fits, type=str, help=msgs.fit_names)
+    fit_sub.add_argument('-r', '--reload', action='store_true',
+                         help=msgs.reload_data)
+
 
 
     chdir(starting_cwd)

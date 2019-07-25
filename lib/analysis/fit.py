@@ -330,6 +330,7 @@ def compute_profiles_corr(p_dir, plot):
 
 def fit_volume(lambdas, volumes, errors, betas):
     import sys
+    from platform import node
     import json
     from pprint import pprint
     import numpy as np
@@ -429,4 +430,5 @@ def fit_volume(lambdas, volumes, errors, betas):
     ax.plot(l_inter, vol_fun(l_inter, *par))
 
     savefig('fit.pdf')
-    show()
+    if node() == 'Paperopoli':
+        show()

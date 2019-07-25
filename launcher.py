@@ -193,10 +193,10 @@ def clear(points_old, points_new, config, force):
 
 # Analyses
 
-def fit(name):
+def fit(name, reload):
     from lib.analysis import fit
 
-    fit(name[0])
+    fit(name[0], reload)
 
 def pre(kind, config, conf_plot):
     from lib.analysis import preliminary_analyses
@@ -412,7 +412,7 @@ def main():
 
     elif args.command == 'analysis':
         if args.analysis == 'fit':
-            fit(args.fit_name)
+            fit(args.fit_name, args.reload)
         elif args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot)
         elif args.analysis == 'new-fit':

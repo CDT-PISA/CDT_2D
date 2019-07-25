@@ -367,6 +367,7 @@ Example:
     ...""")
 
 skip = """skip"""
+reload_data = """reload [T/F]"""
 
 #-------#
 fits = """list of fits currently available"""
