@@ -601,6 +601,8 @@ def define_parser(launcher_path, version):
                              help=msgs.beta)
     set_fit_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'],
                              default='', help=msgs.range)
+    set_fit_sub.add_argument('-°', dest='is_all', action='store_true',
+                             help=msgs.is_all)
     set_fit_sub.add_argument('-c', '--config', choices=configs, default='test',
                              metavar=meta_configs, help=msgs.config)
     set_fit_sub.add_argument('--remove', action='store_true',
