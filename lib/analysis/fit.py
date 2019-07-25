@@ -228,11 +228,21 @@ def compute_torelons(p_dir, plot):
     cut = measures['cut']
     block = measures['block']
 
-    toblerone = 'history/toblerone.txt'
-    A = np.loadtxt(toblerone, unpack=True)
+    def load_toblerone(file,**genfromtext_args):
+         """
+         Load torelons' complex data in the C++ format in numpy.
+         """
 
-    indices = A[0]
-    torelons = A[1:].transpose()
+         array_as_strings = np.genfromtxt(file,dtype=str,**genfromtext_args)
+         float_parser = np.vectorize(lambda x: float(x))
+         complex_parser = np.vectorize(lambda x: complex(*eval(x)))
+
+         indices = float_parser(array_as_strings[:,0])
+         torelons = complex_parser(array_as_strings[:,1:])
+         return indices, torelons
+
+    toblerone = 'history/toblerone.txt'
+    indices, torelons = load_toblerone(toblerone)
 
     torelons_cut = torelons[indices > cut]
     indices_cut = indices[indices > cut]
@@ -241,14 +251,15 @@ def compute_torelons(p_dir, plot):
     # the sum over 'j' is the sum over times
     torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
                                for Δt in range(0, torelons_cut.shape[1] + 1)])
-    torelons_decay_pre = np.einsum('kij,ij->k', torelons_shift, torelons_cut)
-    tolerons_mean_sq = (torelons_cut.mean(axis=0)**2).mean()
+    torelons_decay_pre = np.abs(np.einsum('kij,ij->k', torelons_shift,
+                                   torelons_cut.conjugate()))
+    tolerons_mean_sq = abs((torelons_cut.mean(axis=0)**2).mean())
 
     torelons_decay = (torelons_decay_pre / torelons_cut.size -
                       tolerons_mean_sq)
            # np.einsum('ij,ij', torelons_cut, torelons_cut) / torelons_cut.size)
-    tolerons_var = (torelons_cut**2).mean() - tolerons_mean_sq
-    torelons_decay /= tolerons_var
+    # tolerons_var = abs((torelons_cut**2).mean()) - tolerons_mean_sq
+    # torelons_decay /= tolerons_var
 
     # Run the following to be sure that the previous is the right formula
     # -------------------------------------------------------------------
