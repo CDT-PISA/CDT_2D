@@ -240,10 +240,15 @@ def compute_torelons(p_dir, plot):
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times
     torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
-                               for Δt in range(1, torelons_cut.shape[1])])
-    torelons_decay = (np.einsum('kij,ij->k', torelons_shift, torelons_cut) -
-                      torelons_cut.mean()**2)
+                               for Δt in range(0, torelons_cut.shape[1] + 1)])
+    torelons_decay_pre = np.einsum('kij,ij->k', torelons_shift, torelons_cut)
+    tolerons_mean_sq = (torelons_cut.mean(axis=0)**2).mean()
+
+    torelons_decay = (torelons_decay_pre / torelons_cut.size -
+                      tolerons_mean_sq)
            # np.einsum('ij,ij', torelons_cut, torelons_cut) / torelons_cut.size)
+    tolerons_var = (torelons_cut**2).mean() - tolerons_mean_sq
+    torelons_decay /= tolerons_var
 
     # Run the following to be sure that the previous is the right formula
     # -------------------------------------------------------------------
@@ -262,7 +267,7 @@ def compute_torelons(p_dir, plot):
     # print(((torelons_decay1 - torelons_decay) > 1e-7).any())
 
     if plot:
-        pl.title(f'Number of points: {len(indices_cut)}')
+        pl.title(f'TORELON:\n Number of points: {len(indices_cut)}')
         pl.plot(torelons_decay)
         pl.show()
 
@@ -307,7 +312,7 @@ def compute_profiles_corr(p_dir, plot):
     profiles_corr /= profiles_var
 
     if plot:
-        pl.title(f'Number of points: {len(indices_cut)}')
+        pl.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
         pl.plot(profiles_corr)
         pl.show()
 
