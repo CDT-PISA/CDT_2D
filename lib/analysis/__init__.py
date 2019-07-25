@@ -238,11 +238,13 @@ def set_fit_props(name, points, config, remove):
             if auth == 'quit':
                 print('Nothing done for last sim.')
                 return
-            elif auth != 'yes':
+            elif auth == 'yes':
                 new_sims = new_sims.remove(sim)
                 with open('sims.json', 'w') as file:
                     json.dump(new_sims, file, indent=4)
                 print('Sim removed')
+            else:
+                print('Nothing removed.')
 
     # inserire un kind e aggiungere come possibilità quella di settare il tipo di osservabili
     # a cui è riferito il fit (1 sola)
