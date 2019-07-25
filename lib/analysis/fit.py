@@ -319,7 +319,7 @@ def fit_volume(lambdas, volumes, errors, betas):
     sys.stderr = my_fit_msg
 
     par, cov = curve_fit(vol_fun, lambdas, volumes, sigma=errors,
-                         absolute_sigma=True, p0=(0.6, 2.4, 61))
+                         absolute_sigma=True, p0=(min(lambdas)*0.7, 2.4, 61))
                          # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
     err = np.sqrt(np.diag(cov))
 
