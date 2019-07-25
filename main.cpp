@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <chrono>
 #include <string>
+#include <complex>
 #include <sys/stat.h>
 #include "triangulation.h"
 #include "randomgenerator.h"
@@ -177,7 +178,7 @@ int main(int argc, char* argv[]){
     int profile_ratio = 4;
     int gauge_ratio = 16;
     int adjacencies_ratio = 128;
-    int tolerons_ratio = gauge_ratio*4;
+    int tolerons_ratio = gauge_ratio;
     
     // SETUP THE TRIANGULATION
     // and output parameters
@@ -397,7 +398,7 @@ void print_obs(T& time_ref,
     if(l == tolerons_ratio){
         l = 0;
         tolerons_stream << iter_from_beginning << " ";
-        vector<double> tolerons = universe.toleron();
+        vector<complex<double>> tolerons = universe.toleron();
         for(auto x: tolerons)
             tolerons_stream << x << " ";
         tolerons_stream << endl;

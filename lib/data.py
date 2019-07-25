@@ -40,7 +40,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     """
 
     from os import mkdir, chdir, getcwd, scandir
-    from os.path import isfile
+    from os.path import isfile, isdir
     from shutil import copyfile
     from re import split, sub
     from platform import node
@@ -98,6 +98,9 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         make_script_n = make_script_name(Point)
 
         if Point in points_old:
+            if not isdir(dir_name + "/history/adjacencies"):
+                mkdir(dir_name + "/history/adjacencies")
+
             with open(dir_name + "/state.json", "r+") as state_file:
                 state = json.load(state_file)
 
@@ -134,6 +137,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
             mkdir(dir_name)
             mkdir(dir_name + "/checkpoint")
             mkdir(dir_name + "/history")
+            mkdir(dir_name + "/history/adjacencies")
             mkdir(dir_name + "/bin")
 
             make_template = project_folder() + '/lib/scripts/make_script.py'

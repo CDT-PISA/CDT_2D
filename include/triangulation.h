@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <complex>
 #include <fstream>
 #include "label.h"
 #include "randomgenerator.h"
@@ -286,7 +287,7 @@ public:
     
     GaugeElement space_loop(Triangle* start, bool debug_flag = false);
     
-    vector<double> toleron(bool debug_flag = false);
+    vector<complex<double>> toleron(bool debug_flag = false);
     
     /**
      * @brief [gauge action, topological_charge]

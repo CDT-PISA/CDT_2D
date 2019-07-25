@@ -600,7 +600,7 @@ GaugeElement Triangulation::space_loop(Triangle* start, bool debug_flag)
     return Loop;
 }
 
-vector<double> Triangulation::toleron(bool debug_flag)
+vector<complex<double>> Triangulation::toleron(bool debug_flag)
 {
     int TimeLength = spatial_profile.size();
     vector<Triangle*> starting_triangles(TimeLength, nullptr);
@@ -616,10 +616,13 @@ vector<double> Triangulation::toleron(bool debug_flag)
             break;
     }
     
-    vector<double> tolerons(TimeLength, 0.);
+    vector<complex<double>> tolerons(TimeLength, 0.);
     
     for(int i=0; i<TimeLength; i++){
-        tolerons[i] = real(space_loop(starting_triangles[i], debug_flag).tr());
+        if( N == 1)
+            tolerons[i] = space_loop(starting_triangles[i], debug_flag).matrix()[0][0];
+        else
+            throw runtime_error("Toleron not implemented for N != 1");
     }
     
     return tolerons;

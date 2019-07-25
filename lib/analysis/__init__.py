@@ -457,7 +457,6 @@ def fit(name, kind='volume', reload=False):
         print('No simulation already assigned to this fit.')
 
     if not isfile('data.csv') or reload:
-        print('ciao')
         d = {}
         lambdas = []
         betas = []
