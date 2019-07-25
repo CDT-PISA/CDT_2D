@@ -325,7 +325,7 @@ def sim_obs(points, config, plot):
     from pprint import pprint
     from lib.utils import config_dir, point_dir, authorization_request, eng_not
     from lib.analysis.fit import (set_cut, set_block, eval_volume,
-                                  compute_torelons)
+                                  compute_torelons, compute_profiles_corr)
 
     c_dir = config_dir(config)
 
@@ -423,6 +423,7 @@ def sim_obs(points, config, plot):
 
             measures['volume'] = eval_volume(p_dir)
             measures['torelon-decay'] = compute_torelons(p_dir, plot)
+            measures['profiles_corr'] = compute_profiles_corr(p_dir, plot)
             measures['time'] = datetime.fromtimestamp(time()
                                         ).strftime('%d-%m-%Y %H:%M:%S')
 

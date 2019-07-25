@@ -23,7 +23,7 @@ def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x',
     figtext(.5,.03,' '*10 +
             'press enter to convalid current selection', ha='center')
     if block:
-        ax.set_ylim(top=vmax*1.1)
+        ax.set_ylim(0, vmax*1.1)
     if not dot == None:
         ax.plot(*dot, 'o', mec='w')
 
@@ -268,6 +268,65 @@ def compute_torelons(p_dir, plot):
     chdir(cwd)
 
     return list(torelons_decay)
+
+def compute_profiles_corr(p_dir, plot):
+    from os import chdir, getcwd
+    import json
+    import numpy as np
+    from matplotlib import pylab as pl
+
+    cwd = getcwd()
+    chdir(p_dir)
+
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
+
+    cut = measures['cut']
+    block = measures['block']
+
+    toblerone = 'history/profiles.txt'
+    A = np.loadtxt(toblerone, unpack=True)
+
+    indices = A[0]
+    profiles = A[1:].transpose()
+
+    profiles_cut = profiles[indices > cut]
+    indices_cut = indices[indices > cut]
+
+    # the sum over 'i' is the sum over
+    profiles_shift = np.array([np.roll(profiles_cut, Δt, axis=1)
+                               for Δt in range(1, profiles_cut.shape[1])])
+    profiles_decay = (np.einsum('kij,ij->k', profiles_shift, profiles_cut) / profiles_cut.size -
+                      profiles_cut.mean()**2)
+    profiles_var = (profiles_cut**2).mean() - profiles_cut.mean()**2
+    print(profiles_cut, profiles_cut**2)
+    profiles_decay /= profiles_var
+           # np.einsum('ij,ij', torelons_cut, torelons_cut) / torelons_cut.size)
+
+    # Run the following to be sure that the previous is the right formula
+    # -------------------------------------------------------------------
+    #
+    # torelons_decay = np.einsum('kij,ij->ik', torelons_shift, torelons_cut)
+    #
+    # print(torelons_decay.shape)
+    # torelons_decay1 = []
+    # for torelon in torelons_cut:
+    #     l = []
+    #     for t in range(1, torelons_cut.shape[1]):
+    #         l += [torelon @ np.roll(torelon, t)]
+    #     torelons_decay1 += [np.array(l)]
+    # torelons_decay1 = np.array(torelons_decay1)
+    # print(torelons_decay1.shape)
+    # print(((torelons_decay1 - torelons_decay) > 1e-7).any())
+
+    if plot:
+        pl.title(f'Number of points: {len(indices_cut)}')
+        pl.plot(profiles_decay)
+        pl.show()
+
+    chdir(cwd)
+
+    return list(profiles_decay)
 
 def fit_volume(lambdas, volumes, errors, betas):
     import sys
