@@ -323,7 +323,7 @@ def sim_obs(points, config, plot):
     from datetime import datetime
     import json
     from pprint import pprint
-    from lib.utils import config_dir, point_dir, authorization_request
+    from lib.utils import config_dir, point_dir, authorization_request, eng_not
     from lib.analysis.fit import (set_cut, set_block, eval_volume,
                                   compute_torelons)
 
@@ -395,7 +395,7 @@ def sim_obs(points, config, plot):
                 except KeyError:
                     pass
             if cut:
-                print(f'cut = {cut}', end='   ')
+                print(f'cut = {eng_not(cut)} ({cut})', end='   ')
 
             block = set_block(p_dir, i)
             if block:
@@ -406,7 +406,7 @@ def sim_obs(points, config, plot):
                 block = measures['block']
             except KeyError:
                 pass
-            print(f'block = {block}')
+            print(f'block = {eng_not(block)} {({block})}')
 
             if not cut or not block:
                 print('Nothing modified on last sim.')
