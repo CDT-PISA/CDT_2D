@@ -241,8 +241,12 @@ def compute_torelons(p_dir, plot):
          torelons = complex_parser(array_as_strings[:,1:])
          return indices, torelons
 
-    toblerone = 'history/toblerone.txt'
-    indices, torelons = load_toblerone(toblerone)
+    try:
+        toblerone = 'history/toblerone.txt'
+        indices, torelons = load_toblerone(toblerone)
+    except Exception:
+        print('Old format torelon.')
+        return None
 
     torelons_cut = torelons[indices > cut]
     indices_cut = indices[indices > cut]
