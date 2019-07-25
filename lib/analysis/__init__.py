@@ -406,7 +406,7 @@ def sim_obs(points, config, plot):
                 block = measures['block']
             except KeyError:
                 pass
-            print(f'block = {eng_not(block)} {({block})}')
+            print(f'block = {eng_not(block)} ({block})')
 
             if not cut or not block:
                 print('Nothing modified on last sim.')
@@ -482,8 +482,12 @@ def fit(name, kind='volume'):
         with open(s + '/state.json', 'r') as file:
             state = json.load(file)
 
-        s_time = datetime.strptime(state['end_time'], '%d-%m-%Y %H:%M:%S')
-        m_time = datetime.strptime(measures['time'], '%d-%m-%Y %H:%M:%S')
+        if 'time' in measures.keys():
+            s_time = datetime.strptime(state['end_time'], '%d-%m-%Y %H:%M:%S')
+            m_time = datetime.strptime(measures['time'], '%d-%m-%Y %H:%M:%S')
+        else:
+            print(f'Mising time in {Point}, in config: {config}.')
+            return
 
         # print(Point)
         # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))

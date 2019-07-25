@@ -168,7 +168,7 @@ def set_block(p_dir, i=0):
     volumes_cut = volumes[indices > cut]
     indices_cut = indices[indices > cut]
 
-    ratio = 1.5
+    ratio = 1.3
     block_sizes = [ratio**k for k in
                    range(0, int(log(imax - cut, ratio)) - 3)]
     stdevs = []
