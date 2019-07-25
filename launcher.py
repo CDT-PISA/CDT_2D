@@ -58,12 +58,12 @@ def plot(points_old, points_new, config):
         print()
     plot(points_old, config)
 
-def fit(points_old, points_new, config, skip):
-    from lib.analysis import fit
-
-    if len(points_new) > 0:
-        print("Following (λ, β) not found: ", points_new)
-    fit(points_old, config, skip)
+# def fit(points_old, points_new, config, skip):
+#     from lib.analysis import fit
+#
+#     if len(points_new) > 0:
+#         print("Following (λ, β) not found: ", points_new)
+#     fit(points_old, config, skip)
 
 # Utilities
 
@@ -196,7 +196,7 @@ def clear(points_old, points_new, config, force):
 def fit(name, reload):
     from lib.analysis import fit
 
-    fit(name[0], reload)
+    fit(name[0], reload=reload)
 
 def pre(kind, config, conf_plot):
     from lib.analysis import preliminary_analyses
