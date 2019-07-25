@@ -240,7 +240,6 @@ def set_fit_props(name, points, config, remove):
                 return
             elif auth == 'yes':
                 new_sims.remove(sim)
-                print(new_sims)
                 with open('sims.json', 'w') as file:
                     json.dump(new_sims, file, indent=4)
                 print('Sim removed')
