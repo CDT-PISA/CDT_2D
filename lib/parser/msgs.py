@@ -355,6 +355,8 @@ To show all the available configs use the command 'cdt2d tools show-confs.
 Patterns are also available as regex, starting with '§'.
 """
 
+pre_path = """path to store data."""
+
 # FIT
 
 fit = cleandoc("""

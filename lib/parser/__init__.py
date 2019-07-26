@@ -540,6 +540,8 @@ def define_parser(launcher_path, version):
                          help=msgs.config_pattern)
     pre_sub.add_argument('--conf-plot', dest='conf_plot',
                          action='store_true', help=msgs.conf_plot)
+    pre_sub.add_argument('-p', '--path', type=str,
+                         default=None, help=msgs.pre_path)
 
     # new fit command
 

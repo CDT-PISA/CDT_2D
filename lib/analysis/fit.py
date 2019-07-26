@@ -172,7 +172,7 @@ def set_block(p_dir, i=0):
 
     ratio = 1.3
     block_sizes = [ratio**k for k in
-                   range(0, int(log(imax - cut, ratio)) - 10)]
+                   range(7, int(log(imax - cut, ratio)) - 10)]
     stdevs = []
     for bs in block_sizes:
         _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)

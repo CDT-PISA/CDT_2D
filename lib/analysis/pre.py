@@ -4,7 +4,7 @@
 from numpy import loadtxt
 from lib.analysis import sim_paths
 
-def mean_volumes(configs=None, print_flag=True):
+def mean_volumes(configs=None, print_flag=True, path=None):
     from pprint import pprint
 
     mvs = {}
@@ -43,7 +43,8 @@ def mean_volumes(configs=None, print_flag=True):
 
     return mvs
 
-def divergent_points(configs=None, conf_plot=False):
+def divergent_points(configs=None, conf_plot=False, save_path=None):
+    from os.path import isdir
     from matplotlib.pyplot import plot, show, figure
 
     convergent = []
@@ -88,6 +89,19 @@ def divergent_points(configs=None, conf_plot=False):
     if divergent:
         ax.plot(*zip(*divergent), 'r+')
 
+    if isdir(path):
+        from os import makedirs, chdir, getcwd
+        from numpy import savetxt, array
+
+        chdir(save_path)
+        makedirs('DivergentPlot', exist_ok=True)
+        chdir('DivergentPlot')
+        savetxt('convergent.csv', array(convergent))
+        savetxt('divergent.csv', array(divergent))
+    elif path:
+        print(f"Invalid path given '{path}'.")
+
+
     if conf_plot:
         from numpy import linspace
         yticks_location = linspace(1, len(ylabel), len(ylabel))
@@ -97,7 +111,7 @@ def divergent_points(configs=None, conf_plot=False):
 
     show()
 
-def volumes_plot(configs=None):
+def volumes_plot(configs=None, path=None):
     from os.path import isfile
     import matplotlib.pyplot as plt
     from lib.utils import point_dir, config_dir
