@@ -11,7 +11,7 @@ from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots,
 # PRELIMINARY ANALYSES
 
 def preliminary_analyses(kind, configs=None, conf_plot=False, path=None,
-                         caller_path=None):
+                         load_path=None, caller_path=None):
     from re import fullmatch
     from lib.utils import find_configs
     import lib.analysis.pre as pre
@@ -19,6 +19,10 @@ def preliminary_analyses(kind, configs=None, conf_plot=False, path=None,
     if path:
         from os.path import realpath
         path = realpath(caller_path + '/' + path)
+
+    if load_path:
+        from os.path import realpath
+        load_path = realpath(caller_path + '/' + load_path)
 
     if configs:
         pattern_configs = []
@@ -41,7 +45,7 @@ def preliminary_analyses(kind, configs=None, conf_plot=False, path=None,
     elif kind in ['vp', 'volumes-plot']:
         pre.volumes_plot(configs, path)
     elif kind in ['d', 'divergent']:
-        pre.divergent_points(configs, conf_plot, path)
+        pre.divergent_points(configs, conf_plot, path, load_path)
     else:
         raise RuntimeError('preliminary_analyses: kind not recognized')
 

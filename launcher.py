@@ -198,10 +198,10 @@ def fit(name, reload):
 
     fit(name[0], reload=reload)
 
-def pre(kind, config, conf_plot, path, caller_path):
+def pre(kind, config, conf_plot, path, load_path, caller_path):
     from lib.analysis import preliminary_analyses
 
-    preliminary_analyses(kind, config, conf_plot, path, caller_path)
+    preliminary_analyses(kind, config, conf_plot, path, load_path, caller_path)
 
 def new_fit(name, path, caller_path):
     from lib.analysis import new_fit
@@ -414,7 +414,8 @@ def main():
         if args.analysis == 'fit':
             fit(args.fit_name, args.reload)
         elif args.analysis == 'pre':
-            pre(args.kind, args.config, args.conf_plot, args.path, caller_path)
+            pre(args.kind, args.config, args.conf_plot, args.save_path,
+                args.load_path, caller_path)
         elif args.analysis == 'new-fit':
             new_fit(args.fit_name, args.path, caller_path)
         elif args.analysis == 'show-fits':

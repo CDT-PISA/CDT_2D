@@ -43,53 +43,82 @@ def mean_volumes(configs=None, print_flag=True, path=None):
 
     return mvs
 
-def divergent_points(configs=None, conf_plot=False, save_path=None):
+def divergent_points(configs=None, conf_plot=False, save_path=None,
+                     load_path=None):
     from os.path import isdir
+    from numpy import array
     from matplotlib.pyplot import plot, show, figure
 
-    convergent = []
-    divergent = []
-    if conf_plot:
-        from matplotlib.text import Text
-        ylabel = []
-        i = 0
+    if load_path and isdir(load_path):
+        from os import chdir
+        from numpy import loadtxt
 
-    for c, sims in sim_paths().items():
-        if configs and c not in configs:
-            continue
-
+        chdir(load_path)
+        try:
+            convergent = loadtxt('convergent.csv')
+            divergent = loadtxt('divergent.csv')
+            if len(convergent.shape) == 1:
+                convergent = convergent.reshape(1, convergent.shape[0])
+            if len(divergent.shape) == 1:
+                divergent = divergent.reshape(1, divergent.shape[0])
+        except FileNotFoundError:
+            print(f"Invalid path given: '{load_path}'.")
+            return
+        try:
+            fit_line = loadtxt('fit_line.csv')
+        except FileNotFoundError:
+            fit_line = []
+    else:
+        convergent = []
+        divergent = []
+        fit_line = []
         if conf_plot:
-            i += 1
-            print(i, c)
-            # ylabel += [Text(x=(i-1), y=i, text=c)]
-            ylabel += [c]
+            from matplotlib.text import Text
+            ylabel = []
+            i = 0
 
-        for path in sims:
-            from os import chdir
-            from os.path import basename, isfile
-            from lib.utils import dir_point
-
-            chdir(path)
+        for c, sims in sim_paths().items():
+            if configs and c not in configs:
+                continue
 
             if conf_plot:
-                Point = [dir_point(basename(path))[0], i]
-            else:
-                Point = dir_point(basename(path))
+                i += 1
+                print(i, c)
+                # ylabel += [Text(x=(i-1), y=i, text=c)]
+                ylabel += [c]
 
-            if isfile('max_volume_reached'):
-                divergent += [Point]
-            elif isfile('history/volumes.txt'):
-                convergent += [Point]
+            for path in sims:
+                from os import chdir
+                from os.path import basename, isfile
+                from lib.utils import dir_point
+
+                chdir(path)
+
+                if conf_plot:
+                    Point = [dir_point(basename(path))[0], i]
+                else:
+                    Point = dir_point(basename(path))
+
+                if isfile('max_volume_reached'):
+                    divergent += [Point]
+                elif isfile('history/volumes.txt'):
+                    convergent += [Point]
 
 
     fig = figure()
     ax = fig.add_subplot(111)
-    if convergent:
-        ax.plot(*zip(*convergent), 'b+')
-    if divergent:
-        ax.plot(*zip(*divergent), 'r+')
+    if len(convergent) > 0:
+        convergent = array(convergent)
+        # *zip(*convergent)
+        ax.plot(convergent[:,0], convergent[:,1], 'b+')
+    if len(divergent) > 0:
+        divergent = array(divergent)
+        # *zip(*divergent)
+        ax.plot(divergent[:,0], divergent[:,1], 'r+')
+    if len(fit_line) > 0:
+        ax.plot(fit_line[:,0], fit_line[:,1], 'k')
 
-    if isdir(path):
+    if save_path and isdir(save_path):
         from os import makedirs, chdir, getcwd
         from numpy import savetxt, array
 
@@ -98,8 +127,8 @@ def divergent_points(configs=None, conf_plot=False, save_path=None):
         chdir('DivergentPlot')
         savetxt('convergent.csv', array(convergent))
         savetxt('divergent.csv', array(divergent))
-    elif path:
-        print(f"Invalid path given '{path}'.")
+    elif save_path:
+        print(f"Invalid path given: '{path}'.")
 
 
     if conf_plot:
