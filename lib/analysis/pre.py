@@ -61,12 +61,12 @@ def divergent_points(configs=None, conf_plot=False, save_path=None,
                 convergent = convergent.reshape(1, convergent.shape[0])
             if len(divergent.shape) == 1:
                 divergent = divergent.reshape(1, divergent.shape[0])
-        except FileNotFoundError:
+        except OSError:
             print(f"Invalid path given: '{load_path}'.")
             return
         try:
             fit_line = loadtxt('fit_line.csv')
-        except FileNotFoundError:
+        except OSError:
             fit_line = []
     else:
         convergent = []
@@ -127,6 +127,7 @@ def divergent_points(configs=None, conf_plot=False, save_path=None,
         chdir('DivergentPlot')
         savetxt('convergent.csv', array(convergent))
         savetxt('divergent.csv', array(divergent))
+        savetxt('fit_line.csv', array(fit_line))
     elif save_path:
         print(f"Invalid path given: '{path}'.")
 
@@ -137,6 +138,15 @@ def divergent_points(configs=None, conf_plot=False, save_path=None,
         ax.set_yticks(yticks_location)
         ax.set_yticklabels(ylabel)
         ax.set_ylim(0, len(ylabel) + 1)
+
+    if save_path and isdir(save_path):
+        from matplotlib.pyplot import savefig
+
+        savefig(save_path + '/DivergentPlot.pdf')
+    elif load_path and isdir(load_path):
+        from matplotlib.pyplot import savefig
+
+        savefig(load_path + '/DivergentPlot.pdf')
 
     show()
 
