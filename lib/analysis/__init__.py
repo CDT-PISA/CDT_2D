@@ -348,6 +348,7 @@ def sim_obs(points, config, plot):
     for Point in points:
         p_dir = c_dir + '/' + point_dir(Point)
         chdir(p_dir)
+        vol = None
 
         if isfile(p_dir + '/max_volume_reached'):
             print(f'\033[38;5;41m(λ, β) = {Point}\033[0m skipped because '
@@ -421,7 +422,6 @@ def sim_obs(points, config, plot):
                 return
 
             vol = eval_volume(p_dir)
-            print('volume: {:.4} ± {:.3}'.format(*vol))
 
         what = 'to compute/recompute observables'
         auth = authorization_request(what_to_do=what)
@@ -433,7 +433,7 @@ def sim_obs(points, config, plot):
             except FileNotFoundError:
                 measures = {}
 
-            measures['volume'] = vol
+            measures['volume'] = vol if vol else eval_volume(p_dir)
             measures['torelon-decay'] = compute_torelons(p_dir, plot)
             measures['profiles_corr'] = compute_profiles_corr(p_dir, plot)
             measures['time'] = datetime.fromtimestamp(time()

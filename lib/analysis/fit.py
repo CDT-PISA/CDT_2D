@@ -210,6 +210,8 @@ def eval_volume(p_dir):
     vol, err = blocked_mean_std(indices_cut, volumes_cut, block)
 
     chdir(cwd)
+    
+    print('volume: {:.4} ± {:.3}'.format(vol, err))
 
     return vol, err
 

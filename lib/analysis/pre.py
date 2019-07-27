@@ -142,7 +142,7 @@ def divergent_points(configs=None, conf_plot=False, save_path=None,
     if save_path and isdir(save_path):
         from matplotlib.pyplot import savefig
 
-        savefig(save_path + '/DivergentPlot.pdf')
+        savefig(save_path + '/DivergentPlot/DivergentPlot.pdf')
     elif load_path and isdir(load_path):
         from matplotlib.pyplot import savefig
 
