@@ -213,6 +213,17 @@ def eval_volume(p_dir):
 
     return vol, err
 
+def cut_array(arr, block_length):
+    q, r = divmod(arr.shape[0], block_length)
+
+    if q == 0:
+        raise ValueError("'block' too big")
+
+    if r == 0:
+        return arr.reshape(q, -1, *arr.shape[1:])
+    else:
+        return arr[:-r].reshape(q, -1, *arr.shape[1:])
+
 def bootstrap(sample, n_trials=1e4):
     """
     Parameters
@@ -241,13 +252,13 @@ def bootstrap(sample, n_trials=1e4):
     mean = np.mean(re_sample)
     std = np.std(re_sample)
 
-    return mean, std
+    return np.array([mean, std])
 
 def compute_torelons(p_dir, plot):
     from os import chdir, getcwd
     import json
     import numpy as np
-    from matplotlib import pylab as pl
+    from matplotlib import pyplot as plt
 
     cwd = getcwd()
     chdir(p_dir)
@@ -312,9 +323,9 @@ def compute_torelons(p_dir, plot):
     # print(((torelons_decay1 - torelons_decay) > 1e-7).any())
 
     if plot:
-        pl.title(f'TORELON:\n Number of points: {len(indices_cut)}')
-        pl.plot(torelons_decay)
-        pl.show()
+        plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
+        plt.plot(torelons_decay)
+        plt.show()
 
     chdir(cwd)
 
@@ -324,7 +335,7 @@ def compute_profiles_corr(p_dir, plot):
     from os import chdir, getcwd
     import json
     import numpy as np
-    from matplotlib import pylab as pl
+    from matplotlib import pyplot as plt
 
     cwd = getcwd()
     chdir(p_dir)
@@ -335,14 +346,49 @@ def compute_profiles_corr(p_dir, plot):
     cut = measures['cut']
     block = measures['block']
 
-    toblerone = 'history/profiles.txt'
-    A = np.loadtxt(toblerone, unpack=True)
-
+    profiles_file = 'history/profiles.txt'
+    A = np.loadtxt(profiles_file, unpack=True)
     indices = A[0]
     profiles = A[1:].transpose()
 
     profiles_cut = profiles[indices > cut]
     indices_cut = indices[indices > cut]
+
+    index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
+    profiles_blocked = cut_array(profiles_cut, index_block)
+
+
+    # 'b' is the index over bloxks
+    # 'i' is the index over the ensemble
+    # 't' is the index over physical times
+    # 'k' is the index over time-shifts, Δt
+
+    print(profiles_blocked.shape)
+    # <<V_t V_(t+Δt)>>_t
+    profiles_shift = np.array([np.roll(profiles_blocked, Δt, axis=2)
+                             for Δt in range(0, profiles_blocked.shape[2] + 1)])
+    profiles_corr_pre = np.einsum('kbit,bit->bk', profiles_shift,
+                                  profiles_blocked)
+    # <<V_t>**2>_t : before the mean over the ensemble, at the end the mean
+    # over times
+    profiles_mean_sq = (profiles_blocked.mean(axis=1)**2).mean(axis=1)
+
+    profiles_corr = (profiles_corr_pre.transpose() / profiles_blocked[0].size
+                     - profiles_mean_sq)
+    profiles_var = (profiles_blocked**2).mean(axis=(1,2)) - profiles_mean_sq
+    profiles_corr /= profiles_var
+
+    profiles_corr_mean, profiles_corr_std = \
+        np.vectorize(bootstrap, signature='(m)->(k)')(profiles_corr).T
+
+    print(profiles_corr_mean)
+
+    if plot:
+        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        plt.plot(profiles_corr_mean, 'tab:blue')
+        plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
+        plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red')
+        # plt.show()
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times, and it's done after all the other
@@ -356,10 +402,13 @@ def compute_profiles_corr(p_dir, plot):
     profiles_var = (profiles_cut**2).mean() - profiles_mean_sq
     profiles_corr /= profiles_var
 
+    # print(profiles_corr)
+
     if plot:
-        pl.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
-        pl.plot(profiles_corr)
-        pl.show()
+        # plt.figure(2)
+        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        plt.plot(profiles_corr, 'tab:green')
+        plt.show()
 
     chdir(cwd)
 
