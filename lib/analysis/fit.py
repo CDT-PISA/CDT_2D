@@ -224,7 +224,7 @@ def cut_array(arr, block_length):
     else:
         return arr[:-r].reshape(q, -1, *arr.shape[1:])
 
-def bootstrap(sample, n_trials=1e4):
+def bootstrap(sample, n_trials=1e6):
     """
     Parameters
     ----------
@@ -292,12 +292,46 @@ def compute_torelons(p_dir, plot):
     torelons_cut = torelons[indices > cut]
     indices_cut = indices[indices > cut]
 
+    index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
+    torelons_blocked = cut_array(torelons_cut, index_block)
+
+
+    # 'b' is the index over bloxks
+    # 'i' is the index over the ensemble
+    # 't' is the index over physical times
+    # 'k' is the index over time-shifts, Δt
+
+    # print(torelons_blocked.shape)
+    # <<V_t V_(t+Δt)>>_t
+    torelons_shift = np.array([np.roll(torelons_blocked, Δt, axis=2)
+                             for Δt in range(0, torelons_blocked.shape[2] + 1)])
+    torelons_decay_pre = np.abs(np.einsum('kbit,bit->bk', torelons_shift,
+                                          torelons_blocked.conjugate()))
+    # <<V_t>**2>_t : before the mean over the ensemble, at the end the mean
+    # over times
+    torelons_mean_sq = (abs(torelons_blocked.mean(axis=1)**2)).mean(axis=1)
+
+    torelons_decay = (torelons_decay_pre.transpose() / torelons_blocked[0].size
+                     - torelons_mean_sq)
+
+    torelons_decay_mean, torelons_decay_std = \
+        np.vectorize(bootstrap, signature='(m)->(k)')(torelons_decay).T
+
+    # print(torelons_decay_mean)
+
+    if plot:
+        # plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        plt.plot(torelons_decay_mean, 'tab:blue')
+        plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
+        plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red')
+        # plt.show()
+
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times
     torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
                                for Δt in range(0, torelons_cut.shape[1] + 1)])
     torelons_decay_pre = np.abs(np.einsum('kij,ij->k', torelons_shift,
-                                   torelons_cut.conjugate()))
+                                          torelons_cut.conjugate()))
     tolerons_mean_sq = abs((torelons_cut.mean(axis=0)**2).mean())
 
     torelons_decay = (torelons_decay_pre / torelons_cut.size -
@@ -324,7 +358,7 @@ def compute_torelons(p_dir, plot):
 
     if plot:
         plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
-        plt.plot(torelons_decay)
+        plt.plot(torelons_decay, 'tab:green')
         plt.show()
 
     chdir(cwd)
@@ -363,7 +397,7 @@ def compute_profiles_corr(p_dir, plot):
     # 't' is the index over physical times
     # 'k' is the index over time-shifts, Δt
 
-    print(profiles_blocked.shape)
+    # print(profiles_blocked.shape)
     # <<V_t V_(t+Δt)>>_t
     profiles_shift = np.array([np.roll(profiles_blocked, Δt, axis=2)
                              for Δt in range(0, profiles_blocked.shape[2] + 1)])
@@ -381,10 +415,10 @@ def compute_profiles_corr(p_dir, plot):
     profiles_corr_mean, profiles_corr_std = \
         np.vectorize(bootstrap, signature='(m)->(k)')(profiles_corr).T
 
-    print(profiles_corr_mean)
+    # print(profiles_corr_mean)
 
     if plot:
-        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        # plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
         plt.plot(profiles_corr_mean, 'tab:blue')
         plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
         plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red')
