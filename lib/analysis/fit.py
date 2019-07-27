@@ -213,6 +213,36 @@ def eval_volume(p_dir):
 
     return vol, err
 
+def bootstrap(sample, n_trials=1e4):
+    """
+    Parameters
+    ----------
+    sample : 1-D array-like or int
+        original sample
+    n_trials : int or float, optional
+        number of extractions
+
+    Returns
+    -------
+    mean : float
+        resampled mean
+    std : float
+        resampled standard deviation
+    """
+    import numpy as np
+
+    n_trials = int(n_trials)
+
+    if n_trials < len(sample):
+        print('Warning, few ')
+
+    re_sample = np.random.choice(sample, n_trials)
+
+    mean = np.mean(re_sample)
+    std = np.std(re_sample)
+
+    return mean, std
+
 def compute_torelons(p_dir, plot):
     from os import chdir, getcwd
     import json
