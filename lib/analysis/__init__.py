@@ -414,11 +414,14 @@ def sim_obs(points, config, plot):
                 block = measures['block']
             except KeyError:
                 pass
-            print(f'block = {eng_not(block)} ({block})')
+            print(f'block = {eng_not(block)} ({block})', end='   ')
 
             if not cut or not block:
-                print('Nothing modified on last sim.')
+                print('\nNothing modified on last sim.')
                 return
+
+            vol = eval_volume(p_dir)
+            print('volume: {:.4} ± {:.3}'.format(*vol))
 
         what = 'to compute/recompute observables'
         auth = authorization_request(what_to_do=what)
@@ -430,7 +433,7 @@ def sim_obs(points, config, plot):
             except FileNotFoundError:
                 measures = {}
 
-            measures['volume'] = eval_volume(p_dir)
+            measures['volume'] = vol
             measures['torelon-decay'] = compute_torelons(p_dir, plot)
             measures['profiles_corr'] = compute_profiles_corr(p_dir, plot)
             measures['time'] = datetime.fromtimestamp(time()
