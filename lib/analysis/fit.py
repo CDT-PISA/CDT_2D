@@ -450,7 +450,7 @@ def compute_profiles_corr(p_dir, plot):
 
     return list([list(profiles_corr_mean), list(profiles_corr_std)])
 
-def fit_volume(lambdas, volumes, errors, betas):
+def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
     from platform import node
     import json
@@ -554,3 +554,16 @@ def fit_volume(lambdas, volumes, errors, betas):
     savefig('fit.pdf')
     if node() == 'Paperopoli':
         show()
+
+def fit_decay(kind='volume'):
+
+    if kind in ['p', 'profiles']:
+        kind = 'profiles'
+        kind_file = 'profiles'
+    elif kind in ['t', 'torelons']:
+        kind = 'torelons'
+        kind_file = 'torelons'
+    else:
+        raise ValueError(f'{kind} not available for divergence fit.')
+
+    return

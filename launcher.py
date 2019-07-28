@@ -193,11 +193,6 @@ def clear(points_old, points_new, config, force):
 
 # Analyses
 
-def fit(name, reload):
-    from lib.analysis import fit
-
-    fit(name[0], reload=reload)
-
 def pre(kind, config, conf_plot, path, load_path, caller_path):
     from lib.analysis import preliminary_analyses
 
@@ -243,6 +238,14 @@ def export_data(name, unpack):
     from lib.analysis import export_data
 
     export_data(name[0], unpack)
+
+def fit(name, reload, type='divergence', kind='volumes'):
+    from lib.analysis import fit_divergence, fit_decay
+
+    if type in ['div', 'divergence']:
+        fit_divergence(name[0], kind, reload)
+    elif type in ['dec', 'decay']:
+        fit_decay(name[0], kind, reload)
 
 ##################
 #      MAIN      #
@@ -416,9 +419,7 @@ def main():
             clear(points_old, points_new, args.config, args.force)
 
     elif args.command == 'analysis':
-        if args.analysis == 'fit':
-            fit(args.fit_name, args.reload)
-        elif args.analysis == 'pre':
+        if args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot, args.save_path,
                 args.load_path, caller_path)
         elif args.analysis == 'new-fit':
@@ -437,6 +438,8 @@ def main():
                     args.fit)
         elif args.analysis == 'export-data':
             export_data(args.fit_name, args.unpack)
+        elif args.analysis == 'fit':
+            fit(args.fit_name, args.reload, args.type, args.kind)
 
 
 if __name__ == "__main__":

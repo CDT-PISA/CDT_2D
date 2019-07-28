@@ -643,15 +643,6 @@ def define_parser(launcher_path, version):
     sim_obs_sub.add_argument('-p', '--plot', action='store_true',
                         help=msgs.plot_obs)
 
-    # fit command
-
-    fit_sub = analysis_sub.add_parser('fit', help='fit', description=msgs.fit,
-                        formatter_class=argparse.RawDescriptionHelpFormatter)
-    fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
-                        choices=fits, type=str, help=msgs.fit_names)
-    fit_sub.add_argument('-r', '--reload', action='store_true',
-                         help=msgs.reload_data)
-
     # export-data command
 
     data_types = ['v', 'volumes', 'p', 'profiles', 't', 'torelons']
@@ -664,10 +655,27 @@ def define_parser(launcher_path, version):
     export_sub.add_argument('-u', '--unpack', choices=data_types,
                             help=msgs.unpack)
 
+    # fit command
+
+    types = ['div', 'divergence', 'dec', 'decay']
+    kinds = ['v', 'volumes', 'p', 'profiles', 't', 'torelons']
+
+    fit_sub = analysis_sub.add_parser('fit', help='fit', description=msgs.fit,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    fit_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
+                        choices=fits, type=str, help=msgs.fits)
+    fit_sub.add_argument('-r', '--reload', action='store_true',
+                         help=msgs.reload_data)
+    fit_sub.add_argument('-t', '--type', choices=types, default='divergence',
+                         help=msgs.fit_types)
+    fit_sub.add_argument('-k', '--kind', choices=kinds, default='volumes',
+                         help=msgs.fit_kinds)
+
 
     chdir(starting_cwd)
 
     return parser, cmds
+
 
 
 def decode_line(line, i, d, file_path):

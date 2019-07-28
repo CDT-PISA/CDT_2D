@@ -471,99 +471,6 @@ def sim_obs(points, config, plot, fit_name):
 
         i += 1
 
-def fit(name, kind='volume', reload=False):
-    from os import chdir
-    from os.path import basename, dirname, isfile
-    from datetime import datetime
-    import json
-    from pprint import pprint
-    from numpy import genfromtxt
-    from lib.utils import fit_dir, dir_point
-    from lib.analysis.fit import fit_volume
-
-    fit_d = fit_dir(name)
-    chdir(fit_d)
-
-    try:
-        with open('sims.json', 'r') as file:
-            sims = json.load(file)
-    except FileNotFoundError:
-        print('No simulation already assigned to this fit.')
-        # do not return, because if 'volumes.csv' is present it can use that
-
-    if not isfile('volumes.csv') or reload:
-        d = {}
-        lambdas = []
-        betas = []
-        volumes = []
-        sigma_vols = []
-        for s in sims:
-            if s[-1] == '/':
-                s = s[:-1]
-
-            config = basename(dirname(s))
-            Point = dir_point(basename(s))
-
-            if isfile(s + '/max_volume_reached'):
-                print(f'\033[38;5;41m{Point}\033[0m not included in fit, '
-                      'because '
-                      '\033[38;5;80mmax_volume_reached\033[0m is present.')
-                print(f"\033[38;5;80m  config: '{config}'\033[0m")
-                continue
-
-            try:
-                with open(s + '/measures.json', 'r') as file:
-                    measures = json.load(file)
-            except FileNotFoundError:
-                measures = {}
-
-            with open(s + '/state.json', 'r') as file:
-                state = json.load(file)
-
-            if 'time' in measures.keys():
-                s_time = datetime.strptime(state['end_time'],
-                                           '%d-%m-%Y %H:%M:%S')
-                m_time = datetime.strptime(measures['time'],
-                                           '%d-%m-%Y %H:%M:%S')
-            else:
-                print(f'Mising time in {Point}, in config: {config}.')
-                return
-
-            # print(Point)
-            # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))
-            if(s_time > m_time):
-                print('\033[38;5;203mWarning:\033[0m in Point '
-                      f'\033[38;5;41m{Point}\033[0m in '
-                      f"\033[38;5;80mconfig: '{config}'\033[0m measures are "
-                      '\033[38;5;210mnot up to date\033[0m '
-                      'with last simulation\'s data')
-                print()
-
-            d[Point] = {'config': config, **measures, 'time_sim_end': state['end_time']}
-
-            if 'volume' in measures.keys():
-                lambdas += [Point[0]]
-                betas += [Point[1]]
-                volumes += [measures['volume'][0]]
-                sigma_vols += [measures['volume'][1]]
-            else:
-                print(f'Mising volume in {Point}, in config: {config}.')
-                return
-
-        with open('volumes.csv', 'w') as file:
-            file.write('# Lambda Beta Volume Error Config\n')
-            for Point, attr in d.items():
-                vol, err = attr['volume']
-                data = [Point[0], Point[1], vol, err, attr['config']]
-                line = ' '.join([str(x) for x in data])
-                file.write(line + '\n')
-    else:
-        data = genfromtxt('volumes.csv', unpack=True)
-        lambdas, betas = data[:2]
-        volumes, sigma_vols = data[2:4]
-
-    fit_volume(lambdas, volumes, sigma_vols, betas)
-
 def export_data(name, unpack):
     from os import chdir
     from os.path import basename, dirname, isfile
@@ -724,3 +631,110 @@ def export_data(name, unpack):
         print(f"\033[38;5;41m({name})\033[0m torelons from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'torelons.csv'\033[0m")
+
+def fit_divergence(name, kind='volumes', reload=False):
+    from os import chdir
+    from os.path import basename, dirname, isfile
+    from datetime import datetime
+    import json
+    from pprint import pprint
+    from numpy import genfromtxt
+    from lib.utils import fit_dir, dir_point
+    from lib.analysis.fit import fit_divergence
+
+    if kind in ['v', 'volumes']:
+        kind = 'volumes'
+        kind_file = 'volumes'
+    elif kind in ['p', 'profiles']:
+        kind = 'profiles'
+        kind_file = 'profiles_length'
+    elif kind in ['t', 'torelons']:
+        kind = 'torelons'
+        kind_file = 'torelons_length'
+    else:
+        raise ValueError(f'{kind} not available for divergence fit.')
+
+    fit_d = fit_dir(name)
+    chdir(fit_d)
+
+    try:
+        with open('sims.json', 'r') as file:
+            sims = json.load(file)
+    except FileNotFoundError:
+        print('No simulation already assigned to this fit.')
+        # do not return, because if 'kind.csv' is present it can use that
+
+    if not isfile(f'{kind_file}.csv') or reload:
+        d = {}
+        lambdas = []
+        betas = []
+        means = []
+        errors = []
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
+
+            config = basename(dirname(s))
+            Point = dir_point(basename(s))
+
+            if isfile(s + '/max_volume_reached'):
+                print(f'\033[38;5;41m{Point}\033[0m not included in fit, '
+                      'because '
+                      '\033[38;5;80mmax_volume_reached\033[0m is present.')
+                print(f"\033[38;5;80m  config: '{config}'\033[0m")
+                continue
+
+            try:
+                with open(s + '/measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                measures = {}
+
+            with open(s + '/state.json', 'r') as file:
+                state = json.load(file)
+
+            if 'time' in measures.keys():
+                s_time = datetime.strptime(state['end_time'],
+                                           '%d-%m-%Y %H:%M:%S')
+                m_time = datetime.strptime(measures['time'],
+                                           '%d-%m-%Y %H:%M:%S')
+            else:
+                print(f'Mising time in {Point}, in config: {config}.')
+                return
+
+            # print(Point)
+            # print(s_time, type(s_time), '\n' + str(m_time), type(m_time))
+            if(s_time > m_time):
+                print('\033[38;5;203mWarning:\033[0m in Point '
+                      f'\033[38;5;41m{Point}\033[0m in '
+                      f"\033[38;5;80mconfig: '{config}'\033[0m measures are "
+                      '\033[38;5;210mnot up to date\033[0m '
+                      'with last simulation\'s data')
+                print()
+
+            d[Point] = {'config': config, **measures,
+                        'time_sim_end': state['end_time']}
+
+            k_key = f'{kind}'[:-1]
+            if k_key in measures.keys():
+                lambdas += [Point[0]]
+                betas += [Point[1]]
+                means += [measures[k_key][0]]
+                errors += [measures[k_key][1]]
+            else:
+                print(f"Missing {k_key} in {Point}, in config: {config}.")
+                return
+
+        with open(f'{kind_file}.csv', 'w') as file:
+            file.write('# Lambda Beta Volume Error Config\n')
+            for Point, attr in d.items():
+                mean, err = attr[f'{kind}'[:-1]]
+                data = [Point[0], Point[1], mean, err, attr['config']]
+                line = ' '.join([str(x) for x in data])
+                file.write(line + '\n')
+    else:
+        data = genfromtxt(f'{kind_file}.csv', unpack=True)
+        lambdas, betas = data[:2]
+        means, errors = data[2:4]
+
+    fit_divergence(lambdas, means, errors, betas, kind=kind)
