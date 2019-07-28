@@ -325,20 +325,40 @@ def info_fit(name, kind='sims'):
     # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
     # 'obs' attualmente è per le sole flag, ne va implementato uno più esteso con i valori opportuni
 
-def sim_obs(points, config, plot):
+def sim_obs(points, config, plot, fit_name):
     from os import chdir
-    from os.path import isfile
+    from os.path import isfile, basename, dirname, realpath
     from time import time
     from datetime import datetime
     import json
     from pprint import pprint
-    from lib.utils import config_dir, point_dir, authorization_request, eng_not
+    from lib.utils import (config_dir, point_dir, dir_point, fit_dir,
+                           authorization_request, eng_not)
     from lib.analysis.fit import (set_cut, set_block, eval_volume,
                                   compute_torelons, compute_profiles_corr)
 
-    c_dir = config_dir(config)
+    if fit_name:
+        f_dir = fit_dir(fit_name)
+        try:
+            with open(f_dir + '/sims.json', 'r') as file:
+                sims = json.load(file)
+        except FileNotFoundError:
+            print('No simulation already assigned to this fit.')
 
-    col = 216
+        points = []
+        points_configs = {}
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
+
+            Point = dir_point(basename(s))
+            points += [Point]
+            points_configs = {**points_configs, Point: realpath(dirname(s))}
+    else:
+        points_configs = None
+        c_dir = config_dir(config)
+
+    col = 216 # color
     print(f'Number of selected points: \033[38;5;{col}m{len(points)}\033[0m')
     print(f'\033[38;5;{col}m', end='')
     pprint(points)
@@ -346,6 +366,8 @@ def sim_obs(points, config, plot):
 
     i = 0
     for Point in points:
+        if points_configs:
+            c_dir = points_configs[Point]
         p_dir = c_dir + '/' + point_dir(Point)
         chdir(p_dir)
         vol = None
@@ -467,9 +489,9 @@ def fit(name, kind='volume', reload=False):
             sims = json.load(file)
     except FileNotFoundError:
         print('No simulation already assigned to this fit.')
-        # do not return, because if 'data.csv' is present it can use that
+        # do not return, because if 'volumes.csv' is present it can use that
 
-    if not isfile('data.csv') or reload:
+    if not isfile('volumes.csv') or reload:
         d = {}
         lambdas = []
         betas = []
@@ -528,7 +550,7 @@ def fit(name, kind='volume', reload=False):
                 print(f'Mising volume in {Point}, in config: {config}.')
                 return
 
-        with open('data.csv', 'w') as file:
+        with open('volumes.csv', 'w') as file:
             file.write('# Lambda Beta Volume Error Config\n')
             for Point, attr in d.items():
                 vol, err = attr['volume']
@@ -536,7 +558,7 @@ def fit(name, kind='volume', reload=False):
                 line = ' '.join([str(x) for x in data])
                 file.write(line + '\n')
     else:
-        data = genfromtxt('data.csv', unpack=True)
+        data = genfromtxt('volumes.csv', unpack=True)
         lambdas, betas = data[:2]
         volumes, sigma_vols = data[2:4]
 
@@ -700,5 +722,5 @@ def export_data(name, unpack):
               file.write(sep.join(str_point_torelon) + end)
 
         print(f"\033[38;5;41m({name})\033[0m torelons from "
-            "\033[38;5;80m'data.json'\033[0m unpacked to "
-            "\033[38;5;80m'torelons.csv'\033[0m")
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'torelons.csv'\033[0m")

@@ -480,8 +480,8 @@ def fit_volume(lambdas, volumes, errors, betas):
                 new_args += [sub('\033.*?m', '', str(x))]
             self.file.write(sep.join(new_args) + end)
 
-    my_out = MyPrint('output.txt')
-    my_fit_msg = MyPrint('fit_messages.txt')
+    my_out = MyPrint('vol_output.txt')
+    my_fit_msg = MyPrint('vol_fit_messages.txt')
 
     lambdas = np.array(lambdas)
     volumes = np.array(volumes)

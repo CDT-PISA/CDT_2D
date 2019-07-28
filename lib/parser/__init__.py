@@ -638,8 +638,10 @@ def define_parser(launcher_path, version):
                         metavar=meta_configs, help=msgs.config)
     sim_obs_sub.add_argument('-°', dest='is_all', action='store_true',
                         help=msgs.is_all)
+    sim_obs_sub.add_argument('-f', '--fit', metavar=meta_fits, choices=fits,
+                        type=str, help=msgs.fit_names)
     sim_obs_sub.add_argument('-p', '--plot', action='store_true',
-                            help=msgs.plot_obs)
+                        help=msgs.plot_obs)
 
     # fit command
 
