@@ -638,8 +638,10 @@ def define_parser(launcher_path, version):
                         metavar=meta_configs, help=msgs.config)
     sim_obs_sub.add_argument('-°', dest='is_all', action='store_true',
                         help=msgs.is_all)
-    sim_obs_sub.add_argument('-f', '--fit', metavar=meta_fits, choices=fits,
-                        type=str, help=msgs.fit_names)
+    sim_obs_sub.add_argument('-n', '--fit-name', metavar=meta_fits,
+                        choices=fits, type=str, help=msgs.fit_names)
+    sim_obs_sub.add_argument('-f', '--fit', action='store_true',
+                        help=msgs.fit_obs)
     sim_obs_sub.add_argument('-p', '--plot', action='store_true',
                         help=msgs.plot_obs)
 
@@ -657,7 +659,6 @@ def define_parser(launcher_path, version):
 
     # fit command
 
-    types = ['div', 'divergence', 'dec', 'decay']
     kinds = ['v', 'volumes', 'p', 'profiles', 't', 'torelons']
 
     fit_sub = analysis_sub.add_parser('fit', help='fit', description=msgs.fit,
@@ -666,8 +667,6 @@ def define_parser(launcher_path, version):
                         choices=fits, type=str, help=msgs.fits)
     fit_sub.add_argument('-r', '--reload', action='store_true',
                          help=msgs.reload_data)
-    fit_sub.add_argument('-t', '--type', choices=types, default='divergence',
-                         help=msgs.fit_types)
     fit_sub.add_argument('-k', '--kind', choices=kinds, default='volumes',
                          help=msgs.fit_kinds)
 

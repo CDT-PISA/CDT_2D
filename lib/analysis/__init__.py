@@ -325,7 +325,7 @@ def info_fit(name, kind='sims'):
     # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
     # 'obs' attualmente è per le sole flag, ne va implementato uno più esteso con i valori opportuni
 
-def sim_obs(points, config, plot, fit_name):
+def sim_obs(points, config, plot, fit, fit_name):
     from os import chdir
     from os.path import isfile, basename, dirname, realpath
     from time import time
@@ -456,8 +456,14 @@ def sim_obs(points, config, plot, fit_name):
                 measures = {}
 
             measures['volume'] = vol if vol else eval_volume(p_dir)
-            measures['torelon-decay'] = compute_torelons(p_dir, plot)
-            measures['profiles_corr'] = compute_profiles_corr(p_dir, plot)
+            torelons_output = compute_torelons(p_dir, plot, fit)
+            measures['torelon-decay'] = torelons_output[:2]
+            if False:
+                pass
+            profiles_output = compute_profiles_corr(p_dir, plot, fit)
+            measures['profiles_corr'] = profiles_output[:2]
+            if profiles_output[2] is not None:
+                measures['profiles_corr_fit'] = profiles_output[2:]
             measures['time'] = datetime.fromtimestamp(time()
                                         ).strftime('%d-%m-%Y %H:%M:%S')
 

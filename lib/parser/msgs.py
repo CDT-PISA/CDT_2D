@@ -331,6 +331,10 @@ Example:
 
 analysis = """analysis tools"""
 
+#-------#
+fits = """list of fits currently available"""
+#-------#
+
 # PRELIMINARY
 
 ana_pre = cleandoc("""
@@ -357,26 +361,6 @@ Patterns are also available as regex, starting with '§'.
 
 save_path = """path to store data."""
 load_path = """path to load data."""
-
-# FIT
-
-fit = cleandoc("""
-┌───────────┐
-│FIT COMMAND│
-└───────────┘
-...
-
-Example:
-    ...""")
-
-skip = """skip"""
-reload_data = """reload [T/F]"""
-fit_types = """types"""
-fit_kinds = """kinds"""
-
-#-------#
-fits = """list of fits currently available"""
-#-------#
 
 # NEW_FIT
 
@@ -464,8 +448,8 @@ sim_obs = cleandoc("""
 Example:
     ...""")
 
-plot_obs = """Plot observables during setting.
-"""
+plot_obs = """Plot observables during setting."""
+fit_obs = """Fit observables, such as corr. lengths"""
 
 # EXPORT_DATA
 
@@ -479,3 +463,18 @@ Example:
     ...""")
 
 unpack = """unpack data exported in json to csv"""
+
+# FIT
+
+fit = cleandoc("""
+┌───────────┐
+│FIT COMMAND│
+└───────────┘
+...
+
+Example:
+    ...""")
+
+skip = """skip"""
+reload_data = """reload [T/F]"""
+fit_kinds = """kinds"""

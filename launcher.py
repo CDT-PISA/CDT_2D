@@ -226,26 +226,23 @@ def info_fit(name, kind):
 
     info_fit(name[0], kind)
 
-def sim_obs(points, points_new, config, plot, fit_name):
+def sim_obs(points, points_new, config, plot, fit, fit_name):
     from lib.analysis import sim_obs
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
 
-    sim_obs(points, config, plot, fit_name)
+    sim_obs(points, config, plot, fit, fit_name)
 
 def export_data(name, unpack):
     from lib.analysis import export_data
 
     export_data(name[0], unpack)
 
-def fit(name, reload, type='divergence', kind='volumes'):
-    from lib.analysis import fit_divergence, fit_decay
+def fit(name, reload, kind='volumes'):
+    from lib.analysis import fit_divergence
 
-    if type in ['div', 'divergence']:
-        fit_divergence(name[0], kind, reload)
-    elif type in ['dec', 'decay']:
-        fit_decay(name[0], kind, reload)
+    fit_divergence(name[0], kind, reload)
 
 ##################
 #      MAIN      #
@@ -435,11 +432,11 @@ def main():
             info_fit(args.fit_name, args.kind)
         elif args.analysis == 'sim-obs':
             sim_obs(points_old, points_new, args.config, args.plot,
-                    args.fit)
+                    args.fit, args.fit_name)
         elif args.analysis == 'export-data':
             export_data(args.fit_name, args.unpack)
         elif args.analysis == 'fit':
-            fit(args.fit_name, args.reload, args.type, args.kind)
+            fit(args.fit_name, args.reload, args.kind)
 
 
 if __name__ == "__main__":

@@ -215,52 +215,12 @@ def eval_volume(p_dir):
 
     return vol, err
 
-def cut_array(arr, block_length):
-    q, r = divmod(arr.shape[0], block_length)
-
-    if q == 0:
-        raise ValueError("'block' too big")
-
-    if r == 0:
-        return arr.reshape(q, -1, *arr.shape[1:])
-    else:
-        return arr[:-r].reshape(q, -1, *arr.shape[1:])
-
-def bootstrap(sample, n_trials=1e6):
-    """
-    Parameters
-    ----------
-    sample : 1-D array-like or int
-        original sample
-    n_trials : int or float, optional
-        number of extractions
-
-    Returns
-    -------
-    mean : float
-        resampled mean
-    std : float
-        resampled standard deviation
-    """
-    import numpy as np
-
-    n_trials = int(n_trials)
-
-    if n_trials < len(sample):
-        print('Warning, few ')
-
-    re_sample = np.random.choice(sample, n_trials)
-
-    mean = np.mean(re_sample)
-    std = np.std(re_sample)
-
-    return np.array([mean, std])
-
-def compute_torelons(p_dir, plot):
+def compute_torelons(p_dir, plot, fit):
     from os import chdir, getcwd
     import json
     import numpy as np
     from matplotlib import pyplot as plt
+    from lib.analysis.tools import block_array, bootstrap
 
     cwd = getcwd()
     chdir(p_dir)
@@ -295,7 +255,7 @@ def compute_torelons(p_dir, plot):
     indices_cut = indices[indices > cut]
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
-    torelons_blocked = cut_array(torelons_cut, index_block)
+    torelons_blocked = block_array(torelons_cut, index_block)
 
 
     # 'b' is the index over bloxks
@@ -367,11 +327,12 @@ def compute_torelons(p_dir, plot):
 
     return list(torelons_decay)
 
-def compute_profiles_corr(p_dir, plot):
+def compute_profiles_corr(p_dir, plot, fit):
     from os import chdir, getcwd
     import json
     import numpy as np
     from matplotlib import pyplot as plt
+    from lib.analysis.tools import block_array, bootstrap
 
     cwd = getcwd()
     chdir(p_dir)
@@ -391,7 +352,7 @@ def compute_profiles_corr(p_dir, plot):
     indices_cut = indices[indices > cut]
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
-    profiles_blocked = cut_array(profiles_cut, index_block)
+    profiles_blocked = block_array(profiles_cut, index_block)
 
 
     # 'b' is the index over bloxks
@@ -418,13 +379,23 @@ def compute_profiles_corr(p_dir, plot):
         np.vectorize(bootstrap, signature='(m)->(k)')(profiles_corr).T
 
     # print(profiles_corr_mean)
+    if fit:
+        from lib.analysis.tools import decay
+        par, cov = fit_decay(profiles_corr_mean, profiles_corr_std)
+        if plot:
+            x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
+            x_t = np.linspace(-1., 1., 1001)
+            y = np.vectorize(decay)(x_t, *par)
+            plt.plot(x, y, 'tab:purple', label='fit')
+    else:
+        par, cov = None, None
 
     if plot:
-        # plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
-        plt.plot(profiles_corr_mean, 'tab:blue')
+        # ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
+        plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
         plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
-        plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red')
-        # plt.show()
+        plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
+                 label='bootstrap std')
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times, and it's done after all the other
@@ -443,12 +414,33 @@ def compute_profiles_corr(p_dir, plot):
     if plot:
         # plt.figure(2)
         plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
-        plt.plot(profiles_corr, 'tab:green')
+        plt.plot(profiles_corr, 'tab:green', label='mean')
+        plt.legend()
         plt.show()
 
     chdir(cwd)
 
-    return list([list(profiles_corr_mean), list(profiles_corr_std)])
+    return list([profiles_corr_mean.tolist(),
+                 profiles_corr_std.tolist(),
+                 None if par is None else par.tolist(),
+                 None if cov is None else cov.tolist()])
+
+def fit_decay(profile, errors):
+    import numpy as np
+    from scipy.optimize import curve_fit
+    from lib.analysis.tools import decay
+
+    times = np.arange(len(profile)) - ((len(profile) - 1) / 2)
+    h = max(times)
+    times /= max(times)
+    profile = np.array(profile)
+    errors = np.array(errors)
+
+    par, cov = curve_fit(decay, times[1:-1], profile[1:-1], sigma=errors[1:-1],
+                         absolute_sigma=True, p0=(1., 0.))
+    # err = np.sqrt(np.diag(cov))
+
+    return par, cov
 
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
@@ -456,9 +448,10 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import json
     from pprint import pprint
     import numpy as np
-    from scipy.optimize import curve_fit
+    from scipy.optimize import curve_fiterrerr
     from scipy.stats import chi2
     from matplotlib.pyplot import figure, show, savefig
+    from lib.analysis.tools import divergence
 
     if len(set(betas)) > 1:
         print('Volume fit is possible only for fixed β.')
@@ -492,9 +485,6 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
 
     ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
 
-    def vol_fun(l, l_c, alpha, A):
-        return A*(l - l_c)**(-alpha)
-
     my_fit_msg.write('\033[36m')
     my_fit_msg.write('Messages from fit (if any):')
     my_fit_msg.write('--------------------------')
@@ -502,9 +492,9 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     stderr_save = sys.stderr
     sys.stderr = my_fit_msg
 
-    par, cov = curve_fit(vol_fun, lambdas, volumes, sigma=errors,
+    par, cov = curve_fit(divergence, lambdas, volumes, sigma=errors,
                          absolute_sigma=True, p0=(min(lambdas)*0.7, 2.4, 61))
-                         # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
+        # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
     err = np.sqrt(np.diag(cov))
 
     sys.stderr = stderr_save
@@ -513,7 +503,8 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_fit_msg.write('End fit')
     my_fit_msg.write('\033[0m')
 
-    residuals_sq = ((volumes - np.vectorize(vol_fun)(lambdas, *par))/errors)**2
+    residuals_sq = ((volumes - np.vectorize(divergence)(lambdas, *par))
+                    /errors)**2
     χ2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
     p_value = chi2.sf(χ2, dof)
@@ -549,21 +540,8 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write("\t" + str(corr).replace('\n','\n\t'))
 
     l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
-    ax.plot(l_inter, vol_fun(l_inter, *par))
+    ax.plot(l_inter, divergence(l_inter, *par))
 
     savefig('fit.pdf')
     if node() == 'Paperopoli':
         show()
-
-def fit_decay(kind='volume'):
-
-    if kind in ['p', 'profiles']:
-        kind = 'profiles'
-        kind_file = 'profiles'
-    elif kind in ['t', 'torelons']:
-        kind = 'torelons'
-        kind_file = 'torelons'
-    else:
-        raise ValueError(f'{kind} not available for divergence fit.')
-
-    return
