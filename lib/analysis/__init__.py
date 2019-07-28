@@ -467,6 +467,7 @@ def fit(name, kind='volume', reload=False):
             sims = json.load(file)
     except FileNotFoundError:
         print('No simulation already assigned to this fit.')
+        # do not return, because if 'data.csv' is present it can use that
 
     if not isfile('data.csv') or reload:
         d = {}
@@ -540,3 +541,164 @@ def fit(name, kind='volume', reload=False):
         volumes, sigma_vols = data[2:4]
 
     fit_volume(lambdas, volumes, sigma_vols, betas)
+
+def export_data(name, unpack):
+    from os import chdir
+    from os.path import basename, dirname, isfile
+    import json
+    from lib.utils import fit_dir, dir_point
+
+    fit_d = fit_dir(name)
+    chdir(fit_d)
+
+    if not unpack:
+        try:
+            with open('sims.json', 'r') as file:
+                sims = json.load(file)
+        except FileNotFoundError:
+            print('No simulation assigned to this fit.')
+            return
+
+        data = []
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
+
+            config = basename(dirname(s))
+            Point = dir_point(basename(s))
+            point_data = {}
+
+            if isfile(s + '/max_volume_reached'):
+                print(f'\033[38;5;41m{Point}\033[0m not included in fit, '
+                      'because '
+                      '\033[38;5;80mmax_volume_reached\033[0m is present.')
+                print(f"\033[38;5;80m  config: '{config}'\033[0m")
+                continue
+            try:
+                with open(s + '/measures.json', 'r') as file:
+                    measures = json.load(file)
+            except FileNotFoundError:
+                print(f'\033[38;5;41m{Point}\033[0m no measure file present.')
+                print(f"\033[38;5;80m  config: '{config}'\033[0m")
+                continue
+
+            point_data['lambda'] = Point[0]
+            point_data['beta'] = Point[1]
+            point_data['config'] = config
+            point_data.update(measures.copy())
+
+            for prop in ['cut', 'block', 'time']:
+                try:
+                    del point_data[prop]
+                except KeyError:
+                    pass
+
+            data += [point_data]
+            print(f'\033[38;5;41m{Point}\033[0m collected.')
+
+        with open('data.json', 'w') as file:
+            json.dump(data, file, indent=4)
+
+    elif unpack in ['v', 'volumes']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        vol_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                volume = point_data['volume']
+            except KeyError:
+                continue
+            # print(f'\033[38;5;41m{Point}\033[0m, {config}:')
+            # print('\t', volume)
+            vol_data += [[Point[0], Point[1], volume[0], volume[1], config]]
+
+        with open('volumes.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda Beta Volume Error Config' + end)
+            for point_vol in vol_data:
+                str_point_vol = []
+                for x in point_vol:
+                    str_point_vol += [str(x)]
+                file.write(sep.join(str_point_vol) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m volumes from "
+              "\033[38;5;80m'data.json'\033[0m unpacked to "
+              "\033[38;5;80m'volumes.csv'\033[0m")
+    elif unpack in ['p', 'profiles']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        profile_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                # print(Point)
+                profile, errors = point_data['profiles_corr']
+                # print(len(point_data['profiles_corr']))
+            except KeyError:
+                continue
+
+            profile_data += [[Point[0], Point[1], config, *profile, *errors]]
+
+        with open('profiles.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda[0] Beta[1] Config[2] Profile[3:3+t}] ' +
+                  'Errors[3+t:3+2t]' + end)
+            for point_profile in profile_data:
+              str_point_profile = []
+              for x in point_profile:
+                  str_point_profile += [str(x)]
+              file.write(sep.join(str_point_profile) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m profiles from "
+            "\033[38;5;80m'data.json'\033[0m unpacked to "
+            "\033[38;5;80m'profiles.csv'\033[0m")
+    elif unpack in ['t', 'torelons']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        torelon_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                # print(Point)
+                torelon, errors = point_data['torelon-decay']
+                # print(len(point_data['torelon-decay']))
+            except KeyError:
+                continue
+
+            torelon_data += [[Point[0], Point[1], config, *torelon, *errors]]
+
+        with open('torelons.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda[0] Beta[1] Config[2] Torelon[3:3+t}] ' +
+                  'Errors[3+t:3+2t]' + end)
+            for point_torelon in torelon_data:
+              str_point_torelon = []
+              for x in point_torelon:
+                  str_point_torelon += [str(x)]
+              file.write(sep.join(str_point_torelon) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m torelons from "
+            "\033[38;5;80m'data.json'\033[0m unpacked to "
+            "\033[38;5;80m'torelons.csv'\033[0m")

@@ -239,6 +239,11 @@ def sim_obs(points, points_new, config, plot):
 
     sim_obs(points, config, plot)
 
+def export_data(name, unpack):
+    from lib.analysis import export_data
+
+    export_data(name[0], unpack)
+
 ##################
 #      MAIN      #
 ##################
@@ -309,7 +314,7 @@ def main():
 
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
-                'pre', 'fit', 'new-fit', 'show-fits', 'info-fit']
+                'pre', 'fit', 'new-fit', 'show-fits', 'info-fit', 'export-data']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
@@ -429,6 +434,8 @@ def main():
             info_fit(args.fit_name, args.kind)
         elif args.analysis == 'sim-obs':
             sim_obs(points_old, points_new, args.config, args.plot)
+        elif args.analysis == 'export-data':
+            export_data(args.fit_name, args.unpack)
 
 
 if __name__ == "__main__":

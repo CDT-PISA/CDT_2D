@@ -650,6 +650,17 @@ def define_parser(launcher_path, version):
     fit_sub.add_argument('-r', '--reload', action='store_true',
                          help=msgs.reload_data)
 
+    # export-data command
+
+    data_types = ['v', 'volumes', 'p', 'profiles', 't', 'torelons']
+
+    export_sub = analysis_sub.add_parser('export-data',
+            description=msgs.export_data, help='export data for fit',
+            formatter_class=argparse.RawDescriptionHelpFormatter)
+    export_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
+                            choices=fits, type=str, help=msgs.fit_names)
+    export_sub.add_argument('-u', '--unpack', choices=data_types,
+                            help=msgs.unpack)
 
 
     chdir(starting_cwd)

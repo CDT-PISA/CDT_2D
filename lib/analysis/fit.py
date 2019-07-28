@@ -210,7 +210,7 @@ def eval_volume(p_dir):
     vol, err = blocked_mean_std(indices_cut, volumes_cut, block)
 
     chdir(cwd)
-    
+
     print('volume: {:.4} ± {:.3}'.format(vol, err))
 
     return vol, err
@@ -448,7 +448,7 @@ def compute_profiles_corr(p_dir, plot):
 
     chdir(cwd)
 
-    return list(profiles_corr)
+    return list([list(profiles_corr_mean), list(profiles_corr_std)])
 
 def fit_volume(lambdas, volumes, errors, betas):
     import sys

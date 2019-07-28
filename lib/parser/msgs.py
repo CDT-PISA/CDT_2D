@@ -464,3 +464,16 @@ Example:
 
 plot_obs = """Plot observables during setting.
 """
+
+# EXPORT_DATA
+
+export_data = cleandoc("""
+┌───────────────────┐
+│EXPORT_DATA COMMAND│
+└───────────────────┘
+...
+
+Example:
+    ...""")
+
+unpack = """unpack data exported in json to csv"""
