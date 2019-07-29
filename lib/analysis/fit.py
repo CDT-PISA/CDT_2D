@@ -365,8 +365,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     cut = measures['cut']
     block = measures['block']
 
-    # profiles_file = 'history/profiles.txt'
-    profiles_file = 'profiles.txt'
+    profiles_file = 'history/profiles.txt'
     A = np.loadtxt(profiles_file, unpack=True)
     indices = A[0]
     profiles = A[1:].transpose()
