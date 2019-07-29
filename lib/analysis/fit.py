@@ -211,11 +211,11 @@ def eval_volume(p_dir):
 
     chdir(cwd)
 
-    print('volume: {:.4} ± {:.3}'.format(vol, err))
+    print('\033[38;5;80mvolume:\033[0m {:.4} ± {:.3}'.format(vol, err))
 
     return vol, err
 
-def eval_top_susc(p_dir):
+def eval_top_susc(p_dir, type=1):
     from os import chdir, getcwd
     import json
     import numpy as np
@@ -238,14 +238,46 @@ def eval_top_susc(p_dir):
     volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
     top_ch_cut = top_ch[g_indices > cut]
 
-    top_susc_cut = top_ch_cut**2 / volumes_cut
+    if type == 1:
+        top_susc_cut = top_ch_cut**2 / volumes_cut
 
+        top_susc, err = blocked_mean_std(indices_cut, top_susc_cut, block)
+    if type == 2:
+        from lib.analysis.tools import blocked_bootstrap_gen
+        try:
+            import progressbar
+            pbar = True
+        except ModuleNotFoundError:
+            pbar = False
 
-    top_susc, err = blocked_mean_std(indices_cut, top_susc_cut, block)
+        top_2 = np.array([top_ch_cut**2 / volumes_cut**2, volumes_cut]).T
+        index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
+
+        top_2_resampled = blocked_bootstrap_gen(top_2, index_block)
+        top_susc_l = []
+
+        if pbar:
+            with progressbar.ProgressBar(max_value=1000) as bar:
+                i = 0
+                for sample in top_2_resampled:
+                    sample = sample.T
+                    sample_top_susc = sample[0] * sample[1]
+                    top_susc_l += [sample_top_susc]
+                    bar.update(i)
+                    i += 1
+        else:
+            for sample in top_2_resampled:
+                sample = sample.T
+                sample_top_susc = sample[0] * sample[1]
+                top_susc_l += [sample_top_susc]
+
+        top_susc_a = np.array(top_susc_l)
+        top_susc, err = top_susc_a.mean(), top_susc_a.std()
 
     chdir(cwd)
 
-    print('topological susceptibility: {:.4} ± {:.3}'.format(top_susc, err))
+    print('\033[38;5;80mtopological susceptibility:\033[0m '
+          '{:.4} ± {:.3}'.format(top_susc, err))
 
     return top_susc, err
 
@@ -254,8 +286,7 @@ def compute_torelons(p_dir, plot, fit):
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    from lib.analysis.tools import (block_array, blocked_bootstrap_gen,
-                                    get_time_corr)
+    from lib.analysis.tools import blocked_bootstrap_gen, get_time_corr
 
     try:
         import progressbar
@@ -296,9 +327,8 @@ def compute_torelons(p_dir, plot, fit):
     indices_cut = indices[indices > cut]
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
-    torelons_blocked = block_array(torelons_cut, index_block)
     n_samp = 200
-    torelons_resampled = blocked_bootstrap_gen(torelons_blocked,
+    torelons_resampled = blocked_bootstrap_gen(torelons_cut, index_block,
                                                n_new_samples=n_samp)
 
     torelons_decay = []
@@ -383,8 +413,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    from lib.analysis.tools import (block_array, blocked_bootstrap_gen,
-                                    get_time_corr)
+    from lib.analysis.tools import blocked_bootstrap_gen, get_time_corr
 
     try:
         import progressbar
@@ -410,9 +439,8 @@ def compute_profiles_corr(p_dir, plot, fit):
     indices_cut = indices[indices > cut]
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
-    profiles_blocked = block_array(profiles_cut, index_block)
     n_samp = 200
-    profiles_resampled = blocked_bootstrap_gen(profiles_blocked,
+    profiles_resampled = blocked_bootstrap_gen(profiles_cut, index_block,
                                                n_new_samples=n_samp)
 
     profiles_corr = []

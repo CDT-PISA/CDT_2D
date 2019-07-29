@@ -44,7 +44,8 @@ def bootstrap(sample, n_trials=1e6):
 
     return np.array([mean, std])
 
-def blocked_bootstrap(sample, n_new_samples=1e3, len_new_sample=None):
+def blocked_bootstrap(raw_sample, block_size,
+                      n_new_samples=1e3, len_new_sample=None):
     """
     Parameters
     ----------
@@ -60,6 +61,8 @@ def blocked_bootstrap(sample, n_new_samples=1e3, len_new_sample=None):
         resampled array with bootstrap
     """
     import numpy as np
+
+    sample = block_array(raw_sample, block_size)
 
     len_samp = len_new_sample if len_new_sample else len(sample)
     n_samp = int(n_new_samples)
@@ -79,13 +82,14 @@ def blocked_bootstrap(sample, n_new_samples=1e3, len_new_sample=None):
 
     return re_sample
 
-def blocked_bootstrap_gen(sample, n_new_samples=1e3, len_new_sample=None):
+def blocked_bootstrap_gen(raw_sample, block_size,
+                          n_new_samples=1e3, len_new_sample=None):
     """
     Parameters
     ----------
-    sample : 2-D array-like
-        original sample, (also n-D with n > 2 is supported, only the first two
-        dimensions are used, the other are preserved).
+    sample : 1-D array-like
+        original sample, (also n-D with n > q is supported, only the first
+        dimensions is used, the other are preserved).
     n_trials : int or float, optional
         number of extractions
 
@@ -95,6 +99,8 @@ def blocked_bootstrap_gen(sample, n_new_samples=1e3, len_new_sample=None):
         resampled array with bootstrap
     """
     import numpy as np
+
+    sample = block_array(raw_sample, block_size)
 
     len_samp = len_new_sample if len_new_sample else len(sample)
     n_samp = int(n_new_samples)
