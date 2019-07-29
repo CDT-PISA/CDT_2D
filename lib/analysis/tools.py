@@ -44,6 +44,79 @@ def bootstrap(sample, n_trials=1e6):
 
     return np.array([mean, std])
 
+def blocked_bootstrap(sample, n_new_samples=1e3, len_new_sample=None):
+    """
+    Parameters
+    ----------
+    sample : 2-D array-like
+        original sample, (also n-D with n > 2 is supported, only the first two
+        dimensions are used, the other are preserved).
+    n_trials : int or float, optional
+        number of extractions
+
+    Returns
+    -------
+    re_sample : 2-D array-like
+        resampled array with bootstrap
+    """
+    import numpy as np
+
+    len_samp = len_new_sample if len_new_sample else len(sample)
+    n_samp = int(n_new_samples)
+
+    if n_samp < len(sample):
+        print('Warning, few sample requested for resampling.')
+
+    # first extract randomly blocks' ids
+    blocks_extr = np.random.randint(len(sample), size=(n_samp, len_samp))
+
+    # than use blocks' ids to get actual blocks
+    re_sample_blocked = sample[blocks_extr]
+
+    # eventually flattened along block axis
+    s = sample.shape
+    re_sample = re_sample_blocked.reshape(n_samp, len_samp * s[1], *s[2:])
+
+    return re_sample
+
+def blocked_bootstrap_gen(sample, n_new_samples=1e3, len_new_sample=None):
+    """
+    Parameters
+    ----------
+    sample : 2-D array-like
+        original sample, (also n-D with n > 2 is supported, only the first two
+        dimensions are used, the other are preserved).
+    n_trials : int or float, optional
+        number of extractions
+
+    Returns
+    -------
+    re_sample : 2-D array-like
+        resampled array with bootstrap
+    """
+    import numpy as np
+
+    len_samp = len_new_sample if len_new_sample else len(sample)
+    n_samp = int(n_new_samples)
+
+    if n_samp < len(sample):
+        print('Warning, few sample requested for resampling.')
+
+    # first extract randomly blocks' ids
+    blocks_extr = np.random.randint(len(sample), size=(n_samp, len_samp))
+
+    for sample_blocks in blocks_extr:
+        # than use blocks' ids to get actual blocks
+        re_sample_blocked = sample[sample_blocks]
+
+        # eventually flattened along block axis
+        s = sample.shape
+        re_sample = re_sample_blocked.reshape(len_samp * s[1], *s[2:])
+
+        yield re_sample
+
+    return
+
 def decay(t, t_corr, A):
     from numpy import cosh
 
