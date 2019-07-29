@@ -117,6 +117,84 @@ def blocked_bootstrap_gen(sample, n_new_samples=1e3, len_new_sample=None):
 
     return
 
+def get_time_corr(profiles, cl=False):
+    """
+    Parameters
+    ----------
+    profiles : 2-D array-like
+        sample of profiles
+
+    Returns
+    -------
+    profiles_corr : 1-D array-like
+        profiles time correlation
+    """
+    from time import clock
+
+    # 's' is the index over samples
+    # 'i' is the index over the ensemble
+    # 't' is the index over physical times
+    # 'k' is the index over time-shifts, Δt
+
+    # too hard for memory, extimated 128GB of memory needed (use case)
+    #
+    # # print(profiles_blocked.shape)
+    # # <<V_t V_(t+Δt)>>_t
+    # profiles_shift = np.array([np.roll(profiles_resampled, Δt, axis=2)
+    #                          for Δt in range(0, profiles.shape[1] + 1)])
+    # profiles_cov = np.einsum('ksit,sit->sk', profiles_shift,
+    #                          profiles_resampled) / profiles_resampled[0].size
+    # # last division realizes the averages <> and <>_t, because 'np.einsum' is
+    # # doing only the sum
+    #
+    # # <<V_t>**2>_t : before the mean over the ensemble 'sit->st', at the end
+    # # the mean over times 'st->s'
+    # profiles_mean_sq = (profiles_resampled.mean(axis=1)**2).mean(axis=1)
+    #
+    # # '(sk->ks),s->ks'
+    # profiles_corr_pre = profiles_cov.transpose() - profiles_mean_sq
+    # # '(sit->s),s->s'
+    # profiles_var = (profiles_resampled**2).mean(axis=(1,2)) - profiles_mean_sq
+    # # 'ks,s->ks'
+    # profiles_corr = profiles_corr_pre / profiles_var
+    #
+    # # 'ks->k'
+    # profiles_corr_mean = profiles_corr.mean(axis=1)
+    # profiles_corr_std = profiles_corr.std(axis=1)
+
+    # redo all without s index, so for a single sample
+
+    # print(profiles.shape, flush=True)
+    c = clock()
+    profiles_shift = np.array([np.roll(profiles, Δt, axis=1)
+                             for Δt in range(0, profiles.shape[1] + 1)])
+    profiles_cov = np.einsum('kit,it->k', profiles_shift,
+                             profiles) / profiles.size
+    # last division realizes the averages <> and <>_t, because 'np.einsum'
+    # is doing only the sum
+    if cl:
+        print(clock() - c)
+        c = clock()
+
+    # <<V_t>**2>_t : before the mean over the ensemble 'it->t', at the
+    # end the mean over times 't->'
+    profiles_mean_sq = (profiles.mean(axis=0)**2).mean()
+    if cl:
+        print(clock() - c)
+        c = clock()
+
+    # 'k,->k'
+    profiles_corr_pre = profiles_cov - profiles_mean_sq
+    # '(it->),->'
+    profiles_var = (profiles**2).mean() - profiles_mean_sq
+    # 'k,->k'
+    profiles_corr = profiles_corr_pre / profiles_var
+    if cl:
+        print(clock() - c)
+        c = clock()
+
+    return profiles_corr
+
 def decay(t, t_corr, A):
     from numpy import cosh
 
