@@ -348,8 +348,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    # from lib.analysis.tools import block_array, blocked_bootstrap_gen, get_time_corr
-    from tools import block_array, blocked_bootstrap_gen, get_time_corr
+    from lib.analysis.tools import block_array, blocked_bootstrap_gen, get_time_corr
 
     try:
         import progressbar
@@ -360,13 +359,11 @@ def compute_profiles_corr(p_dir, plot, fit):
     cwd = getcwd()
     chdir(p_dir)
 
-    # with open('measures.json', 'r') as file:
-    #     measures = json.load(file)
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
 
-    # cut = measures['cut']
-    # block = measures['block']
-    cut = 165540000
-    block = 156272640
+    cut = measures['cut']
+    block = measures['block']
 
     # profiles_file = 'history/profiles.txt'
     profiles_file = 'profiles.txt'
