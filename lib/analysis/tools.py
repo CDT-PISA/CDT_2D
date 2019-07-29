@@ -117,7 +117,7 @@ def blocked_bootstrap_gen(sample, n_new_samples=1e3, len_new_sample=None):
 
     return
 
-def get_time_corr(profiles, cl=False):
+def get_time_corr(profiles):
     """
     Parameters
     ----------
@@ -129,7 +129,7 @@ def get_time_corr(profiles, cl=False):
     profiles_corr : 1-D array-like
         profiles time correlation
     """
-    from time import clock
+    import numpy as np
 
     # 's' is the index over samples
     # 'i' is the index over the ensemble
@@ -165,33 +165,27 @@ def get_time_corr(profiles, cl=False):
     # redo all without s index, so for a single sample
 
     # print(profiles.shape, flush=True)
-    c = clock()
-    profiles_shift = np.array([np.roll(profiles, Δt, axis=1)
-                             for Δt in range(0, profiles.shape[1] + 1)])
-    profiles_cov = np.einsum('kit,it->k', profiles_shift,
-                             profiles) / profiles.size
-    # last division realizes the averages <> and <>_t, because 'np.einsum'
-    # is doing only the sum
-    if cl:
-        print(clock() - c)
-        c = clock()
+    Δts = np.arange(profiles.shape[1] + 1)
+    profiles_corr = []
+    for Δt in Δts:
+        profiles_shift = np.roll(profiles, Δt, axis=1)
+        profiles_cov = np.einsum('it,it->', profiles_shift,
+                                 profiles) / profiles.size
+        # last division realizes the averages <> and <>_t, because 'np.einsum'
+        # is doing only the sum
 
-    # <<V_t>**2>_t : before the mean over the ensemble 'it->t', at the
-    # end the mean over times 't->'
-    profiles_mean_sq = (profiles.mean(axis=0)**2).mean()
-    if cl:
-        print(clock() - c)
-        c = clock()
+        # <<V_t>**2>_t : before the mean over the ensemble 'it->t', at the
+        # end the mean over times 't->'
+        profiles_mean_sq = (profiles.mean(axis=0)**2).mean()
 
-    # 'k,->k'
-    profiles_corr_pre = profiles_cov - profiles_mean_sq
-    # '(it->),->'
-    profiles_var = (profiles**2).mean() - profiles_mean_sq
-    # 'k,->k'
-    profiles_corr = profiles_corr_pre / profiles_var
-    if cl:
-        print(clock() - c)
-        c = clock()
+        # 'k,->k'
+        profiles_corr_pre = profiles_cov - profiles_mean_sq
+        # '(it->),->'
+        profiles_var = (profiles**2).mean() - profiles_mean_sq
+        # 'k,->k'
+        profiles_corr += [profiles_corr_pre / profiles_var]
+
+    profiles_corr = np.array(profiles_corr)
 
     return profiles_corr
 

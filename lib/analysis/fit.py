@@ -343,22 +343,33 @@ def compute_torelons(p_dir, plot, fit):
                  None if cov is None else cov.tolist()])
 
 def compute_profiles_corr(p_dir, plot, fit):
+    import sys
     from os import chdir, getcwd
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    from lib.analysis.tools import block_array, blocked_bootstrap_gen, get_time_corr
+    # from lib.analysis.tools import block_array, blocked_bootstrap_gen, get_time_corr
+    from tools import block_array, blocked_bootstrap_gen, get_time_corr
+
+    try:
+        import progressbar
+        pbar = True
+    except ModuleNotFoundError:
+        pbar = False
 
     cwd = getcwd()
     chdir(p_dir)
 
-    with open('measures.json', 'r') as file:
-        measures = json.load(file)
+    # with open('measures.json', 'r') as file:
+    #     measures = json.load(file)
 
-    cut = measures['cut']
-    block = measures['block']
+    # cut = measures['cut']
+    # block = measures['block']
+    cut = 165540000
+    block = 156272640
 
-    profiles_file = 'history/profiles.txt'
+    # profiles_file = 'history/profiles.txt'
+    profiles_file = 'profiles.txt'
     A = np.loadtxt(profiles_file, unpack=True)
     indices = A[0]
     profiles = A[1:].transpose()
@@ -368,14 +379,21 @@ def compute_profiles_corr(p_dir, plot, fit):
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
     profiles_blocked = block_array(profiles_cut, index_block)
-    profiles_resampled = blocked_bootstrap_gen(profiles_blocked)
+    profiles_resampled = blocked_bootstrap_gen(profiles_blocked, len_new_sample=96)
 
     profiles_corr = []
-    i = 0
-    for profiles in profiles_resampled:
-        i += 1
-        profiles_corr += [get_time_corr(profiles, i % 10)]
-    profiles_corr = np.array(profiles_corr)
+    if pbar:
+        with progressbar.ProgressBar(max_value=1e3) as bar:
+            i = 0
+            for profiles in profiles_resampled:
+                profiles_corr += [get_time_corr(profiles)]
+                bar.update(i)
+                i += 1
+            profiles_corr = np.array(profiles_corr)
+    else:
+        for profiles in profiles_resampled:
+            profiles_corr += [get_time_corr(profiles)]
+        profiles_corr = np.array(profiles_corr)
 
     profiles_corr_mean = profiles_corr.mean(axis=0)
     profiles_corr_std = profiles_corr.std(axis=0)
