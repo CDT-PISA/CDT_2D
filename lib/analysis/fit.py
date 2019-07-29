@@ -257,8 +257,7 @@ def compute_torelons(p_dir, plot, fit):
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
     torelons_blocked = block_array(torelons_cut, index_block)
 
-
-    # 'b' is the index over bloxks
+    # 'b' is the index over blocks
     # 'i' is the index over the ensemble
     # 't' is the index over physical times
     # 'k' is the index over time-shifts, Δt
@@ -280,6 +279,17 @@ def compute_torelons(p_dir, plot, fit):
         np.vectorize(bootstrap, signature='(m)->(k)')(torelons_decay).T
 
     # print(torelons_decay_mean)
+
+    if fit:
+        from lib.analysis.tools import decay
+        par, cov = fit_decay(torelons_decay_mean, torelons_decay_std)
+        if plot and par:
+            x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
+            x_t = np.linspace(-1., 1., 1001)
+            y = np.vectorize(decay)(x_t, *par)
+            plt.plot(x, y, 'tab:purple', label='fit')
+    else:
+        par, cov = None, None
 
     if plot:
         # plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
@@ -318,6 +328,8 @@ def compute_torelons(p_dir, plot, fit):
     # print(torelons_decay1.shape)
     # print(((torelons_decay1 - torelons_decay) > 1e-7).any())
 
+    # print(profiles_corr_mean)
+
     if plot:
         plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
         plt.plot(torelons_decay, 'tab:green')
@@ -325,7 +337,10 @@ def compute_torelons(p_dir, plot, fit):
 
     chdir(cwd)
 
-    return list(torelons_decay)
+    return list([torelons_decay_mean.tolist(),
+                 torelons_decay_std.tolist(),
+                 None if par is None else par.tolist(),
+                 None if cov is None else cov.tolist()])
 
 def compute_profiles_corr(p_dir, plot, fit):
     from os import chdir, getcwd
@@ -436,9 +451,12 @@ def fit_decay(profile, errors):
     profile = np.array(profile)
     errors = np.array(errors)
 
-    par, cov = curve_fit(decay, times[1:-1], profile[1:-1], sigma=errors[1:-1],
-                         absolute_sigma=True, p0=(1., 0.))
-    # err = np.sqrt(np.diag(cov))
+    try:
+        par, cov = curve_fit(decay, times[1:-1], profile[1:-1], sigma=errors[1:-1],
+                             absolute_sigma=True, p0=(1., 0.))
+        # err = np.sqrt(np.diag(cov))
+    except RuntimeError:
+        par, cov = None, None
 
     return par, cov
 

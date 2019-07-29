@@ -457,9 +457,10 @@ def sim_obs(points, config, plot, fit, fit_name):
 
             measures['volume'] = vol if vol else eval_volume(p_dir)
             torelons_output = compute_torelons(p_dir, plot, fit)
-            measures['torelon-decay'] = torelons_output[:2]
-            if False:
-                pass
+            if torelons_output:
+                measures['torelon-decay'] = torelons_output[:2]
+                if torelons_output[2] is not None:
+                    measures['torelon-decay-fit'] = torelons_output[2:]
             profiles_output = compute_profiles_corr(p_dir, plot, fit)
             measures['profiles_corr'] = profiles_output[:2]
             if profiles_output[2] is not None:
