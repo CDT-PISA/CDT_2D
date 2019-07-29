@@ -215,6 +215,40 @@ def eval_volume(p_dir):
 
     return vol, err
 
+def eval_top_susc(p_dir):
+    from os import chdir, getcwd
+    import json
+    import numpy as np
+
+    cwd = getcwd()
+    chdir(p_dir)
+
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
+
+    cut = measures['cut']
+    block = measures['block']
+
+    vol_file = 'history/volumes.txt'
+    v_indices, volumes = np.loadtxt(vol_file, unpack=True)
+    gauge_file = 'history/gauge.txt'
+    g_indices, _, top_ch = np.loadtxt(gauge_file, unpack=True)
+
+    indices_cut = g_indices[g_indices > cut]
+    volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
+    top_ch_cut = top_ch[g_indices > cut]
+
+    top_susc_cut = top_ch_cut**2 / volumes_cut
+
+
+    top_susc, err = blocked_mean_std(indices_cut, top_susc_cut, block)
+
+    chdir(cwd)
+
+    print('topological susceptibility: {:.4} ± {:.3}'.format(top_susc, err))
+
+    return top_susc, err
+
 def compute_torelons(p_dir, plot, fit):
     from os import chdir, getcwd
     import json

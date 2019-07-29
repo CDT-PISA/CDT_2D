@@ -334,7 +334,8 @@ def sim_obs(points, config, plot, fit, fit_name):
     from pprint import pprint
     from lib.utils import (config_dir, point_dir, dir_point, fit_dir,
                            authorization_request, eng_not)
-    from lib.analysis.fit import (set_cut, set_block, eval_volume,
+    from lib.analysis.fit import (set_cut, set_block,
+                                  eval_volume, eval_top_susc,
                                   compute_torelons, compute_profiles_corr)
 
     if fit_name:
@@ -456,6 +457,7 @@ def sim_obs(points, config, plot, fit, fit_name):
                 measures = {}
 
             measures['volume'] = vol if vol else eval_volume(p_dir)
+            measures['top-susc'] = eval_top_susc(p_dir)
             torelons_output = compute_torelons(p_dir, plot, fit)
             if torelons_output:
                 measures['torelon-decay'] = torelons_output[:2]
