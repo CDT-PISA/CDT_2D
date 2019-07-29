@@ -375,11 +375,13 @@ def compute_profiles_corr(p_dir, plot, fit):
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
     profiles_blocked = block_array(profiles_cut, index_block)
-    profiles_resampled = blocked_bootstrap_gen(profiles_blocked, len_new_sample=96)
+    n_samp = 200
+    profiles_resampled = blocked_bootstrap_gen(profiles_blocked,
+                                                n_new_samples=n_samp)
 
     profiles_corr = []
     if pbar:
-        with progressbar.ProgressBar(max_value=1e3) as bar:
+        with progressbar.ProgressBar(max_value=n_samp) as bar:
             i = 0
             for profiles in profiles_resampled:
                 profiles_corr += [get_time_corr(profiles)]
@@ -412,27 +414,27 @@ def compute_profiles_corr(p_dir, plot, fit):
         plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
         plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
                  label='bootstrap std')
+        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        plt.legend()
+        plt.show()
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times, and it's done after all the other
     # operations
-    profiles_shift = np.array([np.roll(profiles_cut, Δt, axis=1)
-                               for Δt in range(0, profiles_cut.shape[1] + 1)])
-    profiles_corr_pre = np.einsum('kij,ij->k', profiles_shift, profiles_cut)
-    profiles_mean_sq = (profiles_cut.mean(axis=0)**2).mean()
-
-    profiles_corr = profiles_corr_pre / profiles_cut.size - profiles_mean_sq
-    profiles_var = (profiles_cut**2).mean() - profiles_mean_sq
-    profiles_corr /= profiles_var
+    # profiles_shift = np.array([np.roll(profiles_cut, Δt, axis=1)
+    #                            for Δt in range(0, profiles_cut.shape[1] + 1)])
+    # profiles_corr_pre = np.einsum('kij,ij->k', profiles_shift, profiles_cut)
+    # profiles_mean_sq = (profiles_cut.mean(axis=0)**2).mean()
+    #
+    # profiles_corr = profiles_corr_pre / profiles_cut.size - profiles_mean_sq
+    # profiles_var = (profiles_cut**2).mean() - profiles_mean_sq
+    # profiles_corr /= profiles_var
 
     # print(profiles_corr)
 
-    if plot:
-        # plt.figure(2)
-        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
-        plt.plot(profiles_corr, 'tab:green', label='mean')
-        plt.legend()
-        plt.show()
+    # if plot:
+    #     # plt.figure(2)
+    #     plt.plot(profiles_corr, 'tab:green', label='mean')
 
     chdir(cwd)
 
