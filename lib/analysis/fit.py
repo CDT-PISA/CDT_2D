@@ -220,7 +220,14 @@ def compute_torelons(p_dir, plot, fit):
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    from lib.analysis.tools import block_array, bootstrap
+    from lib.analysis.tools import (block_array, blocked_bootstrap_gen,
+                                    get_time_corr)
+
+    try:
+        import progressbar
+        pbar = True
+    except ModuleNotFoundError:
+        pbar = False
 
     cwd = getcwd()
     chdir(p_dir)
@@ -256,29 +263,26 @@ def compute_torelons(p_dir, plot, fit):
 
     index_block = len(indices_cut[indices_cut < indices_cut[0] + block])
     torelons_blocked = block_array(torelons_cut, index_block)
+    n_samp = 200
+    torelons_resampled = blocked_bootstrap_gen(torelons_blocked,
+                                               n_new_samples=n_samp)
 
-    # 'b' is the index over blocks
-    # 'i' is the index over the ensemble
-    # 't' is the index over physical times
-    # 'k' is the index over time-shifts, Δt
+    torelons_decay = []
+    if pbar:
+        with progressbar.ProgressBar(max_value=n_samp) as bar:
+            i = 0
+            for torelons in torelons_resampled:
+                torelons_decay += [get_time_corr(torelons)]
+                bar.update(i)
+                i += 1
+            torelons_decay = np.array(torelons_decay)
+    else:
+        for torelons in torelons_resampled:
+            torelons_decay += [get_time_corr(torelons)]
+        torelons_decay = np.array(torelons_decay)
 
-    # print(torelons_blocked.shape)
-    # <<V_t V_(t+Δt)>>_t
-    torelons_shift = np.array([np.roll(torelons_blocked, Δt, axis=2)
-                             for Δt in range(0, torelons_blocked.shape[2] + 1)])
-    torelons_decay_pre = np.abs(np.einsum('kbit,bit->bk', torelons_shift,
-                                          torelons_blocked.conjugate()))
-    # <<V_t>**2>_t : before the mean over the ensemble, at the end the mean
-    # over times
-    torelons_mean_sq = (abs(torelons_blocked.mean(axis=1)**2)).mean(axis=1)
-
-    torelons_decay = (torelons_decay_pre.transpose() / torelons_blocked[0].size
-                     - torelons_mean_sq)
-
-    torelons_decay_mean, torelons_decay_std = \
-        np.vectorize(bootstrap, signature='(m)->(k)')(torelons_decay).T
-
-    # print(torelons_decay_mean)
+    torelons_decay_mean = torelons_decay.mean(axis=0)
+    torelons_decay_std = torelons_decay.std(axis=0)
 
     if fit:
         from lib.analysis.tools import decay
@@ -287,27 +291,29 @@ def compute_torelons(p_dir, plot, fit):
             x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
             x_t = np.linspace(-1., 1., 1001)
             y = np.vectorize(decay)(x_t, *par)
-            plt.plot(x, y, 'tab:purple', label='fit')
+            plt.plot(x, y, 'tab:green', label='fit')
     else:
         par, cov = None, None
 
     if plot:
-        # plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
-        plt.plot(torelons_decay_mean, 'tab:blue')
+        plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
+        plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
         plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
-        plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red')
-        # plt.show()
+        plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
+                 label='bootstrap std')
+        plt.legend()
+        plt.show()
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times
-    torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
-                               for Δt in range(0, torelons_cut.shape[1] + 1)])
-    torelons_decay_pre = np.abs(np.einsum('kij,ij->k', torelons_shift,
-                                          torelons_cut.conjugate()))
-    tolerons_mean_sq = abs((torelons_cut.mean(axis=0)**2).mean())
-
-    torelons_decay = (torelons_decay_pre / torelons_cut.size -
-                      tolerons_mean_sq)
+    # torelons_shift = np.array([np.roll(torelons_cut, Δt, axis=1)
+    #                            for Δt in range(0, torelons_cut.shape[1] + 1)])
+    # torelons_decay_pre = np.abs(np.einsum('kij,ij->k', torelons_shift,
+    #                                       torelons_cut.conjugate()))
+    # tolerons_mean_sq = abs((torelons_cut.mean(axis=0)**2).mean())
+    #
+    # torelons_decay = (torelons_decay_pre / torelons_cut.size -
+    #                   tolerons_mean_sq)
            # np.einsum('ij,ij', torelons_cut, torelons_cut) / torelons_cut.size)
     # tolerons_var = abs((torelons_cut**2).mean()) - tolerons_mean_sq
     # torelons_decay /= tolerons_var
@@ -330,11 +336,6 @@ def compute_torelons(p_dir, plot, fit):
 
     # print(profiles_corr_mean)
 
-    if plot:
-        plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
-        plt.plot(torelons_decay, 'tab:green')
-        plt.show()
-
     chdir(cwd)
 
     return list([torelons_decay_mean.tolist(),
@@ -348,7 +349,8 @@ def compute_profiles_corr(p_dir, plot, fit):
     import json
     import numpy as np
     from matplotlib import pyplot as plt
-    from lib.analysis.tools import block_array, blocked_bootstrap_gen, get_time_corr
+    from lib.analysis.tools import (block_array, blocked_bootstrap_gen,
+                                    get_time_corr)
 
     try:
         import progressbar
@@ -377,7 +379,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     profiles_blocked = block_array(profiles_cut, index_block)
     n_samp = 200
     profiles_resampled = blocked_bootstrap_gen(profiles_blocked,
-                                                n_new_samples=n_samp)
+                                               n_new_samples=n_samp)
 
     profiles_corr = []
     if pbar:
@@ -404,7 +406,7 @@ def compute_profiles_corr(p_dir, plot, fit):
             x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
             x_t = np.linspace(-1., 1., 1001)
             y = np.vectorize(decay)(x_t, *par)
-            plt.plot(x, y, 'tab:purple', label='fit')
+            plt.plot(x, y, 'tab:green', label='fit')
     else:
         par, cov = None, None
 
@@ -414,7 +416,7 @@ def compute_profiles_corr(p_dir, plot, fit):
         plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
         plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
                  label='bootstrap std')
-        plt.title(f'TIME CORR.:\n Number of points: {len(indices_cut)}')
+        plt.title(f'PROFILE CORR.:\n Number of points: {len(indices_cut)}')
         plt.legend()
         plt.show()
 
@@ -459,6 +461,7 @@ def fit_decay(profile, errors):
                              absolute_sigma=True, p0=(1., 0.))
         # err = np.sqrt(np.diag(cov))
     except RuntimeError:
+        print('Fit failed.')
         par, cov = None, None
 
     return par, cov

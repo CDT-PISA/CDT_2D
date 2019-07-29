@@ -169,19 +169,19 @@ def get_time_corr(profiles):
     profiles_corr = []
     for Δt in Δts:
         profiles_shift = np.roll(profiles, Δt, axis=1)
-        profiles_cov = np.einsum('it,it->', profiles_shift,
-                                 profiles) / profiles.size
+        profiles_cov = np.abs( np.einsum('it,it->', profiles_shift,
+                          np.conj(profiles)) ) / profiles.size
         # last division realizes the averages <> and <>_t, because 'np.einsum'
         # is doing only the sum
 
         # <<V_t>**2>_t : before the mean over the ensemble 'it->t', at the
         # end the mean over times 't->'
-        profiles_mean_sq = (profiles.mean(axis=0)**2).mean()
+        profiles_mean_sq = (np.abs(profiles.mean(axis=0)**2)).mean()
 
         # 'k,->k'
         profiles_corr_pre = profiles_cov - profiles_mean_sq
         # '(it->),->'
-        profiles_var = (profiles**2).mean() - profiles_mean_sq
+        profiles_var = (np.abs(profiles**2)).mean() - profiles_mean_sq
         # 'k,->k'
         profiles_corr += [profiles_corr_pre / profiles_var]
 
