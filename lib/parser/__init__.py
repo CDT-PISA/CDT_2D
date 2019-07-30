@@ -644,6 +644,8 @@ def define_parser(launcher_path, version):
                         help=msgs.fit_obs)
     sim_obs_sub.add_argument('-p', '--plot', action='store_true',
                         help=msgs.plot_obs)
+    sim_obs_sub.add_argument('--et', '--exclude-torelons', action='store_true',
+                             dest='exclude_torelons', help=msgs.excl_tor)
 
     # export-data command
 

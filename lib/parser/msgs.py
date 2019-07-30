@@ -449,7 +449,8 @@ Example:
     ...""")
 
 plot_obs = """Plot observables during setting."""
-fit_obs = """Fit observables, such as corr. lengths"""
+fit_obs = """Fit observables, such as corr. lengths."""
+excl_tor = """Exlude torelons from observables calculation."""
 
 # EXPORT_DATA
 

@@ -35,7 +35,7 @@ def bootstrap(sample, n_trials=1e6):
     n_trials = int(n_trials)
 
     if n_trials < len(sample):
-        print('Warning, few ')
+        print('Warning, few sample requested for resampling.')
 
     re_sample = np.random.choice(sample, n_trials)
 
