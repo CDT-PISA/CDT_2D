@@ -559,9 +559,9 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import json
     from pprint import pprint
     import numpy as np
-    from scipy.optimize import curve_fiterrerr
+    from scipy.optimize import curve_fit
     from scipy.stats import chi2
-    from matplotlib.pyplot import figure, show, savefig
+    from matplotlib import pyplot as plt
     from lib.analysis.tools import divergence
 
     if len(set(betas)) > 1:
@@ -591,10 +591,12 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     volumes = np.array(volumes)
     errors = np.array(errors)
 
-    fig = figure()
-    ax = fig.add_subplot(111)
+    kw = {'height_ratios':[3,1]}
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw=kw)
+    # ax1 = fig.add_subplot(211)
+    # ax2 = fig.add_subplot(212)
 
-    ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
+    ax1.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
 
     my_fit_msg.write('\033[36m')
     my_fit_msg.write('Messages from fit (if any):')
@@ -651,8 +653,11 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write("\t" + str(corr).replace('\n','\n\t'))
 
     l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
-    ax.plot(l_inter, divergence(l_inter, *par))
+    ax1.plot(l_inter, divergence(l_inter, *par))
+    ax2.plot(lambdas, residuals_sq, 'o', mfc='tab:green', ms=5, mec='k', mew=.5)
 
-    savefig('fit.pdf')
+    ax1.set_title(f'Fit {kind}:\n$χ^2$ = {χ2:0.1f}, dof = {dof}')
+    plt.tight_layout(pad=1.5)
+    plt.savefig('fit.pdf')
     if node() == 'Paperopoli':
-        show()
+        plt.show()

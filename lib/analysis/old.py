@@ -44,7 +44,7 @@ def analyze_output(outdir):
 
     # figure2 represents the evolution in simulation time
     kw = {'height_ratios':[4,1], "width_ratios":[97,3]}
-    fig2, ((ev, ax2),(sm,aux)) = subplots(2,2,  gridspec_kw=kw)
+    fig2, ((ev, ax2),(sm,aux)) = subplots(2, 2, gridspec_kw=kw)
     sm.get_shared_x_axes().join(ev, sm)
     subplots_adjust(bottom=0.05,top=0.89,left=0.07,right=0.95,hspace=0.05,wspace=0.05)
     sm.plot(space_profiles.sum(1),color="#A10000")
