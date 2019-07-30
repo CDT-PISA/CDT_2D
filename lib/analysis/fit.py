@@ -350,14 +350,14 @@ def compute_torelons(p_dir, plot, fit):
 
     if fit:
         from lib.analysis.tools import decay
-        par, cov = fit_decay(torelons_decay_mean, torelons_decay_std)
+        par, cov, χ2 = fit_decay(torelons_decay_mean, torelons_decay_std)
         if plot and par:
             x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
             x_t = np.linspace(-1., 1., 1001)
             y = np.vectorize(decay)(x_t, *par)
             plt.plot(x, y, 'tab:green', label='fit')
     else:
-        par, cov = None, None
+        par, cov, χ2 = None, None, None
 
     if plot:
         plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
@@ -404,8 +404,9 @@ def compute_torelons(p_dir, plot, fit):
 
     return list([torelons_decay_mean.tolist(),
                  torelons_decay_std.tolist(),
-                 None if par is None else par.tolist(),
-                 None if cov is None else cov.tolist()])
+                 {'par': None if par is None else par.tolist(),
+                  'cov': None if cov is None else cov.tolist(),
+                  'chi2': χ2[0], 'dof': χ2[1]}])
 
 def compute_profiles_corr(p_dir, plot, fit):
     import sys
@@ -463,14 +464,14 @@ def compute_profiles_corr(p_dir, plot, fit):
     # print(profiles_corr_mean)
     if fit:
         from lib.analysis.tools import decay
-        par, cov = fit_decay(profiles_corr_mean, profiles_corr_std)
+        par, cov, χ2 = fit_decay(profiles_corr_mean, profiles_corr_std)
         if plot:
             x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
             x_t = np.linspace(-1., 1., 1001)
             y = np.vectorize(decay)(x_t, *par)
             plt.plot(x, y, 'tab:green', label='fit')
     else:
-        par, cov = None, None
+        par, cov, χ2 = None, None, None
 
     if plot:
         # ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
@@ -504,12 +505,14 @@ def compute_profiles_corr(p_dir, plot, fit):
 
     return list([profiles_corr_mean.tolist(),
                  profiles_corr_std.tolist(),
-                 None if par is None else par.tolist(),
-                 None if cov is None else cov.tolist()])
+                 {'par': None if par is None else par.tolist(),
+                  'cov': None if cov is None else cov.tolist(),
+                  'chi2': χ2[0], 'dof': χ2[1]}])
 
 def fit_decay(profile, errors):
     import numpy as np
     from scipy.optimize import curve_fit
+    from scipy.stats import chi2
     from lib.analysis.tools import decay
 
     times = np.arange(len(profile)) - ((len(profile) - 1) / 2)
@@ -519,14 +522,28 @@ def fit_decay(profile, errors):
     errors = np.array(errors)
 
     try:
-        par, cov = curve_fit(decay, times[1:-1], profile[1:-1], sigma=errors[1:-1],
+        par, cov = curve_fit(decay, times[1:-1], profile[1:-1],
+                             sigma=errors[1:-1],
                              absolute_sigma=True, p0=(1., 0.))
         # err = np.sqrt(np.diag(cov))
+
+        residuals_sq = ((profile[1:-1] - np.vectorize(decay)(times[1:-1], *par))
+                        /errors[1:-1])**2
+        χ2 = residuals_sq.sum()
+        dof = len(times[1:-1]) - len(par)
+        p_value = chi2.sf(χ2, dof)
+        p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
+        print('\033[94mFit evaluation:\033[0m')
+        print('\t\033[93mχ²\033[0m =', χ2)
+        print('\t\033[93mdof\033[0m =', dof)
+        print(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
+                      '\033[0m')
     except RuntimeError:
         print('Fit failed.')
         par, cov = None, None
+        χ2, dof = None, None
 
-    return par, cov
+    return par, cov, [χ2, dof]
 
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
@@ -594,7 +611,7 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     χ2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
     p_value = chi2.sf(χ2, dof)
-    p_al = 31 if 0.99 < p_value or p_value < 0.01 else 0
+    p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
     β = str(betas[0])
     my_out.write('\033[38;5;87m┌──', '─' * len(β), '──┐', sep='')
@@ -607,7 +624,7 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write('\033[94mFit evaluation:\033[0m')
     my_out.write('\t\033[93mχ²\033[0m =', χ2)
     my_out.write('\t\033[93mdof\033[0m =', dof)
-    my_out.write(f'\t\033[93mp-value\033[0m = \033[{p_al}m', p_value,
+    my_out.write(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
                   '\033[0m')
 
     names = ['λ_c', 'α', 'A']

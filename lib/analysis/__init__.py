@@ -461,12 +461,12 @@ def sim_obs(points, config, plot, fit, fit_name):
             torelons_output = compute_torelons(p_dir, plot, fit)
             if torelons_output:
                 measures['torelon-decay'] = torelons_output[:2]
-                if torelons_output[2] is not None:
-                    measures['torelon-decay-fit'] = torelons_output[2:]
+                if None not in torelons_output[2].values():
+                    measures['torelon-decay-fit'] = torelons_output[2]
             profiles_output = compute_profiles_corr(p_dir, plot, fit)
             measures['profiles_corr'] = profiles_output[:2]
-            if profiles_output[2] is not None:
-                measures['profiles_corr_fit'] = profiles_output[2:]
+            if None not in profiles_output[2].values():
+                measures['profiles_corr_fit'] = profiles_output[2]
             measures['time'] = datetime.fromtimestamp(time()
                                         ).strftime('%d-%m-%Y %H:%M:%S')
 
