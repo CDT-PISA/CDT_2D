@@ -310,10 +310,12 @@ def info_fit(name, kind='sims'):
             config = basename(dirname(s))
             Point = dir_point(basename(s))
             try:
-                d[config] += [Point, flags]
+                d[config] += [[Point, flags]]
             except KeyError:
-                d[config] = [Point, flags]
+                d[config] = [[Point, flags]]
 
+    for k in d.keys():
+        d[k] = sorted(d[k])
 
     if kind == 'sims':
         pprint(d)
