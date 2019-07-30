@@ -6,7 +6,8 @@ Created on Sun Jan 27 11:32:00 2019
 """
 
 from numpy import loadtxt
-from matplotlib.pyplot import plot, imshow, colorbar, figure, savefig, subplots, subplots_adjust, close
+from matplotlib.pyplot import (plot, imshow, colorbar, figure, savefig,
+                               subplots, subplots_adjust, close)
 
 # PRELIMINARY ANALYSES
 

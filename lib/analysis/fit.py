@@ -352,7 +352,7 @@ def compute_torelons(p_dir, plot, fit):
     if fit:
         from lib.analysis.tools import decay
         par, cov, χ2 = fit_decay(torelons_decay_mean, torelons_decay_std)
-        if plot and par:
+        if plot and (par is not None):
             x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
             y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
@@ -366,6 +366,7 @@ def compute_torelons(p_dir, plot, fit):
         plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
                  label='bootstrap std')
         plt.legend()
+        plt.savefig('torelon.pdf')
         plt.show()
 
     # the sum over 'i' is the sum over the ensemble
@@ -466,7 +467,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     if fit:
         from lib.analysis.tools import decay
         par, cov, χ2 = fit_decay(profiles_corr_mean, profiles_corr_std)
-        if plot:
+        if plot and (par is not None):
             x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
             y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
@@ -481,6 +482,7 @@ def compute_profiles_corr(p_dir, plot, fit):
                  label='bootstrap std')
         plt.title(f'PROFILE CORR.:\n Number of points: {len(indices_cut)}')
         plt.legend()
+        plt.savefig('profile.pdf')
         plt.show()
 
     # the sum over 'i' is the sum over the ensemble
