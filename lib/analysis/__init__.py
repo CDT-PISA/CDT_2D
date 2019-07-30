@@ -565,6 +565,7 @@ def export_data(name, unpack):
             sep = ' '
             end = '\n'
             file.write('# Lambda Beta Volume Error Config' + end)
+            vol_data = sorted(vol_data)
             for point_vol in vol_data:
                 str_point_vol = []
                 for x in point_vol:
@@ -600,6 +601,7 @@ def export_data(name, unpack):
             end = '\n'
             file.write('# Lambda[0] Beta[1] Config[2] Profile[3:3+t}] ' +
                   'Errors[3+t:3+2t]' + end)
+            profile_data = sorted(profile_data)
             for point_profile in profile_data:
               str_point_profile = []
               for x in point_profile:
@@ -637,6 +639,7 @@ def export_data(name, unpack):
                   'Errors[3+t:3+2t]' + end)
             for point_torelon in torelon_data:
               str_point_torelon = []
+              torelon_data = sorted(torelon_data)
               for x in point_torelon:
                   str_point_torelon += [str(x)]
               file.write(sep.join(str_point_torelon) + end)
