@@ -211,7 +211,7 @@ def eval_volume(p_dir):
 
     chdir(cwd)
 
-    print('\033[38;5;80mvolume:\033[0m {:.4} ± {:.3}'.format(vol, err))
+    print('\033[93mvolume:\033[0m {:.4} ± {:.3}'.format(vol, err))
 
     return vol, err
 
@@ -276,7 +276,7 @@ def eval_top_susc(p_dir, type=1):
 
     chdir(cwd)
 
-    print('\033[38;5;80mtopological susceptibility:\033[0m '
+    print('\033[93mtopological susceptibility:\033[0m '
           '{:.4} ± {:.3}'.format(top_susc, err))
 
     return top_susc, err
@@ -331,6 +331,7 @@ def compute_torelons(p_dir, plot, fit):
     torelons_resampled = blocked_bootstrap_gen(torelons_cut, index_block,
                                                n_new_samples=n_samp)
 
+    print('\033[38;5;80mbootstrapping torelons:\033[0m')
     torelons_decay = []
     if pbar:
         with progressbar.ProgressBar(max_value=n_samp) as bar:
@@ -353,8 +354,7 @@ def compute_torelons(p_dir, plot, fit):
         par, cov, χ2 = fit_decay(torelons_decay_mean, torelons_decay_std)
         if plot and par:
             x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
-            x_t = np.linspace(-1., 1., 1001)
-            y = np.vectorize(decay)(x_t, *par)
+            y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
     else:
         par, cov, χ2 = None, None, None
@@ -444,6 +444,7 @@ def compute_profiles_corr(p_dir, plot, fit):
     profiles_resampled = blocked_bootstrap_gen(profiles_cut, index_block,
                                                n_new_samples=n_samp)
 
+    print('\033[38;5;80mbootstrapping profiles:\033[0m')
     profiles_corr = []
     if pbar:
         with progressbar.ProgressBar(max_value=n_samp) as bar:
@@ -467,8 +468,7 @@ def compute_profiles_corr(p_dir, plot, fit):
         par, cov, χ2 = fit_decay(profiles_corr_mean, profiles_corr_std)
         if plot:
             x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
-            x_t = np.linspace(-1., 1., 1001)
-            y = np.vectorize(decay)(x_t, *par)
+            y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
     else:
         par, cov, χ2 = None, None, None
@@ -533,6 +533,12 @@ def fit_decay(profile, errors):
         dof = len(times[1:-1]) - len(par)
         p_value = chi2.sf(χ2, dof)
         p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
+
+        rescale = np.array([h, 1])
+        par = par * rescale
+        cov = ((cov * rescale).T * rescale).T
+        print(f'\033[93mcorr_length\033[0m = {par[0]} ± {np.sqrt(cov[0][0])}')
+
         print('\033[94mFit evaluation:\033[0m')
         print('\t\033[93mχ²\033[0m =', χ2)
         print('\t\033[93mdof\033[0m =', dof)
