@@ -561,7 +561,7 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import numpy as np
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
-    from matplotlib import pyplot as plt
+    from matplotlib import pyplot as plt, colors as clr
     from lib.analysis.tools import divergence
 
     if len(set(betas)) > 1:
@@ -584,8 +584,8 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
                 new_args += [sub('\033.*?m', '', str(x))]
             self.file.write(sep.join(new_args) + end)
 
-    my_out = MyPrint('vol_output.txt')
-    my_fit_msg = MyPrint('vol_fit_messages.txt')
+    my_out = MyPrint(f'{kind[:3]}_output.txt')
+    my_fit_msg = MyPrint(f'{kind[:3]}_fit_messages.txt')
 
     lambdas = np.array(lambdas)
     volumes = np.array(volumes)
@@ -616,8 +616,9 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_fit_msg.write('End fit')
     my_fit_msg.write('\033[0m')
 
-    residuals_sq = ((volumes - np.vectorize(divergence)(lambdas, *par))
-                    /errors)**2
+    residuals = ((volumes - np.vectorize(divergence)(lambdas, *par))
+                    /errors)
+    residuals_sq = residuals**2
     χ2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
     p_value = chi2.sf(χ2, dof)
@@ -654,7 +655,12 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
 
     l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
     ax1.plot(l_inter, divergence(l_inter, *par))
-    ax2.plot(lambdas, residuals_sq, 'o', mfc='tab:green', ms=5, mec='k', mew=.5)
+
+    fc_ = residuals.astype(str)
+    fc_[residuals > 0.] = 'tab:green'
+    fc_[fc_ != 'tab:green'] = 'w'
+    ax2.scatter(lambdas, residuals, c=clr.to_rgba_array(fc_), #s=5,
+             edgecolors='k', linewidths=.5)
 
     ax1.set_title(f'Fit {kind}:\n$χ^2$ = {χ2:0.1f}, dof = {dof}')
     plt.tight_layout(pad=1.5)

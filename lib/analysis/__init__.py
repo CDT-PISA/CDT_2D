@@ -488,6 +488,7 @@ def export_data(name, unpack):
     from os import chdir
     from os.path import basename, dirname, isfile
     import json
+    import numpy as np
     from lib.utils import fit_dir, dir_point
 
     fit_d = fit_dir(name)
@@ -573,8 +574,8 @@ def export_data(name, unpack):
                 file.write(sep.join(str_point_vol) + end)
 
         print(f"\033[38;5;41m({name})\033[0m volumes from "
-              "\033[38;5;80m'data.json'\033[0m unpacked to "
-              "\033[38;5;80m'volumes.csv'\033[0m")
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'volumes.csv'\033[0m")
     elif unpack in ['p', 'profiles']:
         try:
             with open('data.json', 'r') as file:
@@ -588,9 +589,7 @@ def export_data(name, unpack):
             Point = (point_data['lambda'], point_data['beta'])
             config = point_data['config']
             try:
-                # print(Point)
                 profile, errors = point_data['profiles_corr']
-                # print(len(point_data['profiles_corr']))
             except KeyError:
                 continue
 
@@ -609,8 +608,43 @@ def export_data(name, unpack):
               file.write(sep.join(str_point_profile) + end)
 
         print(f"\033[38;5;41m({name})\033[0m profiles from "
-            "\033[38;5;80m'data.json'\033[0m unpacked to "
-            "\033[38;5;80m'profiles.csv'\033[0m")
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'profiles.csv'\033[0m")
+    elif unpack in ['pf', 'profiles-fit']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        profile_fit_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                fit_data = point_data['profiles_corr_fit']
+                len_corr = fit_data['par'][0]
+                err = np.sqrt(fit_data['cov'][0][0])
+            except KeyError:
+                continue
+
+            profile_fit_data += [[Point[0], Point[1], len_corr, err, config]]
+
+        with open('profiles_length.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda Beta Corr_Length Error Config' + end)
+            profile_fit_data = sorted(profile_fit_data)
+            for point_profile in profile_fit_data:
+              str_point_profile = []
+              for x in point_profile:
+                  str_point_profile += [str(x)]
+              file.write(sep.join(str_point_profile) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m profiles fit from "
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'profiles_length.csv'\033[0m")
     elif unpack in ['t', 'torelons']:
         try:
             with open('data.json', 'r') as file:
