@@ -178,7 +178,7 @@ def set_block(p_dir, i=0):
         _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
         stdevs += [stdev]
 
-    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='y',
+    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='xy',
                                 block=True)
     if block == None or block == -1:
         print('Nothing done.')
