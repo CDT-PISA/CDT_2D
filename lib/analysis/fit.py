@@ -664,6 +664,6 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
 
     ax1.set_title(f'Fit {kind}:\n$χ^2$ = {χ2:0.1f}, dof = {dof}')
     plt.tight_layout(pad=1.5)
-    plt.savefig('fit.pdf')
+    plt.savefig(f'fit_{kind[:3]}.pdf')
     if node() == 'Paperopoli':
         plt.show()
