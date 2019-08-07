@@ -509,7 +509,8 @@ def compute_profiles_corr(p_dir, plot, fit):
                  profiles_corr_std.tolist(),
                  {'par': None if par is None else par.tolist(),
                   'cov': None if cov is None else cov.tolist(),
-                  'chi2': χ2[0], 'dof': χ2[1]}])
+                  'chi2': χ2[0] if χ2 else None,
+                  'dof': χ2[1] if χ2 else None}])
 
 def fit_decay(profile, errors):
     import numpy as np
