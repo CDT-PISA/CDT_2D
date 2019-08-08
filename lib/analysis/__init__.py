@@ -5,10 +5,6 @@ Created on Sun Jan 27 11:32:00 2019
 @author: alessandro
 """
 
-from numpy import loadtxt
-from matplotlib.pyplot import (plot, imshow, colorbar, figure, savefig,
-                               subplots, subplots_adjust, close)
-
 # PRELIMINARY ANALYSES
 
 def preliminary_analyses(kind, configs=None, conf_plot=False, path=None,
@@ -170,6 +166,12 @@ def reset_fit(names, delete):
             return
         else:
             print('Nothing done.')
+
+def preplot(fit_name, kind):
+    from lib.analysis.pre import preplot
+
+    preplot(fit_name, kind)
+
 
 # def rm_conf(config, force):
 #     from os import rmdir, remove
@@ -576,6 +578,7 @@ def export_data(name, unpack):
         print(f"\033[38;5;41m({name})\033[0m volumes from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'volumes.csv'\033[0m")
+
     elif unpack in ['p', 'profiles']:
         try:
             with open('data.json', 'r') as file:
@@ -610,6 +613,7 @@ def export_data(name, unpack):
         print(f"\033[38;5;41m({name})\033[0m profiles from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'profiles.csv'\033[0m")
+
     elif unpack in ['pf', 'profiles-fit']:
         try:
             with open('data.json', 'r') as file:
@@ -645,6 +649,40 @@ def export_data(name, unpack):
         print(f"\033[38;5;41m({name})\033[0m profiles fit from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'profiles_length.csv'\033[0m")
+
+    elif unpack in ['top', 'susc', 'top-susc']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        susc_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                susc = point_data['top-susc']
+            except KeyError:
+                continue
+            susc_data += [[Point[0], Point[1], susc[0], susc[1], config]]
+
+        with open('top_susc.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda Beta Top-Susc Error Config' + end)
+            susc_data = sorted(susc_data)
+            for point_susc in susc_data:
+                str_point_susc = []
+                for x in point_susc:
+                    str_point_susc += [str(x)]
+                file.write(sep.join(str_point_susc) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m topological susceptibilities from "
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'top_susc.csv'\033[0m")
+
     elif unpack in ['t', 'torelons']:
         try:
             with open('data.json', 'r') as file:

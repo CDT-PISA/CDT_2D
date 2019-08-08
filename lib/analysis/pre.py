@@ -178,3 +178,38 @@ def volumes_plot(configs=None, path=None):
     plt.ylabel('Volume')
     plt.legend()
     plt.show()
+
+
+def preplot(fit_name, kind):
+    from os import chdir
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from lib.utils import fit_dir
+
+    chdir(fit_dir(fit_name))
+
+    if kind in ['v', 'volumes']:
+        try:
+            data = np.genfromtxt('volumes.csv', unpack=True)
+        except (FileNotFoundError, OSError):
+            print(f"No file 'volumes.csv' for fit {fit_name}")
+            return
+        Lambda = data[0]
+        vol, err = data[2], data[3]
+
+        plt.title('Volumes:\n' + fit_name)
+        plt.errorbar(Lambda, vol, err, fmt='none', capsize=5)
+        plt.show()
+
+    elif kind in ['top', 'susc', 'top-susc']:
+        try:
+            data = np.genfromtxt('top_susc.csv', unpack=True)
+        except (FileNotFoundError, OSError):
+            print(f"No file 'top_susc.csv' for fit {fit_name}")
+            return
+        Lambda = data[0]
+        top, err = data[2], data[3]
+
+        plt.title('Topological susceptibilities:\n' + fit_name)
+        plt.errorbar(Lambda, top, err, fmt='none', capsize=5)
+        plt.show()

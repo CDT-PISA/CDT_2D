@@ -518,6 +518,15 @@ def define_parser(launcher_path, version):
     analysis = subparsers.add_parser('analysis', help=msgs.analysis)
     analysis_sub = analysis.add_subparsers(dest='analysis')
 
+    def fit_pattern(fit):
+        if not isinstance(fit, str):
+            msg = f"{fit} is not a valid str."
+            raise argparse.ArgumentTypeError(msg)
+        if fit not in fits and fit[0] != '§':
+            msg = f"{fit} is not valid fit nor pattern"
+            raise argparse.ArgumentTypeError(msg)
+        return fit
+
     # preliminary command
 
     def config_pattern(config):
@@ -545,6 +554,18 @@ def define_parser(launcher_path, version):
     pre_sub.add_argument('-l', '--load_path', type=str,
                          default=None, help=msgs.load_path)
 
+    # preliminary plots command
+
+    kinds = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
+                  'top', 'susc', 'top-susc', 't', 'torelons']
+
+    pre_plot_sub = analysis_sub.add_parser('plot', help='preliminary analyses',
+                        description=msgs.ana_pre,
+                        formatter_class=argparse.RawDescriptionHelpFormatter)
+    pre_plot_sub.add_argument('fit_name', metavar=meta_fits, nargs='+',
+                             type=fit_pattern, help=msgs.fit_names)
+    pre_plot_sub.add_argument('-k', '--kind', choices=kinds, help=msgs.pre_kind)
+
     # new fit command
 
     new_fit_sub = analysis_sub.add_parser('new-fit', help='create new fit',
@@ -564,15 +585,6 @@ def define_parser(launcher_path, version):
                                help=msgs.show_fit_paths)
 
     # reset fit command
-
-    def fit_pattern(fit):
-        if not isinstance(fit, str):
-            msg = f"{fit} is not a valid str."
-            raise argparse.ArgumentTypeError(msg)
-        if fit not in fits and fit[0] != '§':
-            msg = f"{fit} is not valid fit nor pattern"
-            raise argparse.ArgumentTypeError(msg)
-        return fit
 
     reset_fit_sub = analysis_sub.add_parser('reset',
                       help='reset or delete fit', description=msgs.reset,
@@ -650,7 +662,7 @@ def define_parser(launcher_path, version):
     # export-data command
 
     data_types = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
-                  't', 'torelons']
+                  'top', 'susc', 'top-susc', 't', 'torelons']
 
     export_sub = analysis_sub.add_parser('export-data',
             description=msgs.export_data, help='export data for fit',

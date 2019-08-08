@@ -198,6 +198,11 @@ def pre(kind, config, conf_plot, path, load_path, caller_path):
 
     preliminary_analyses(kind, config, conf_plot, path, load_path, caller_path)
 
+def pre_plot(fit_name, kind):
+    from lib.analysis import preplot
+
+    preplot(fit_name[0], kind)
+
 def new_fit(name, path, caller_path):
     from lib.analysis import new_fit
 
@@ -314,7 +319,8 @@ def main():
 
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
-                'pre', 'fit', 'new-fit', 'show-fits', 'info-fit', 'export-data']
+                'pre', 'plot',
+                'fit', 'new-fit', 'show-fits', 'info-fit', 'export-data']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
            any([args.__dict__[x] is not None for x in ['lamda', 'beta']]):
@@ -419,6 +425,8 @@ def main():
         if args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot, args.save_path,
                 args.load_path, caller_path)
+        elif args.analysis == 'plot':
+            pre_plot(args.fit_name, args.kind)
         elif args.analysis == 'new-fit':
             new_fit(args.fit_name, args.path, caller_path)
         elif args.analysis == 'show-fits':
