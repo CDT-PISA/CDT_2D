@@ -33,9 +33,7 @@ def main():
     # fetch exe, and change permissions to make it runnable
     chdir(point_folder)
 
-    print('-- Moving: CDT_2D/bin/cdt_2d --> CDT_2D/output/' +
-          point_folder.split('/')[-2] + '/Lambda' + Lambda_str +
-          "_Beta" + Beta_str + '/bin/cdt_2d')
+    print(f'-- Moving: CDT_2D/bin/cdt_2d --> {point_folder}/bin/')
     move(project_folder + '/bin/cdt_2d', 'bin/' + exe_name)
     system('chmod 777 bin/' + exe_name)
 

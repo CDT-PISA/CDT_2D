@@ -211,16 +211,16 @@ def preplot(fit_name, kind):
         g_action, err = data[2], data[3]
         g_action_density, density_err = data[4], data[5]
 
-        g_action_density = g_action_density / Beta
-        density_err = density_err / Beta
+        g_av_plaq = - (g_action_density / Beta - 1)
+        av_plaq_err = density_err / Beta
 
         fig, axs = plt.subplots(2,1)
         axs[0].set_title('Gauge action:\n' + fit_name)
         axs[0].errorbar(Lambda, g_action, err, fmt='none', c='tab:green',
                      capsize=5, label='action')
         axs[0].legend()
-        axs[1].errorbar(Lambda, g_action_density, density_err, fmt='none',
-                     capsize=5, label='density (/β)')
+        axs[1].errorbar(Lambda, g_av_plaq, av_plaq_err, fmt='none',
+                     capsize=5, label='average plaquette')
         axs[1].legend()
         plt.show()
 
