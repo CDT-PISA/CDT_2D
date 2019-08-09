@@ -369,7 +369,7 @@ def main():
 
     # Further parsing (not supported by `argparse`)
     wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
-                'pre', 'plot',
+                'pre', 'pre-plot',
                 'fit', 'new-fit', 'show-fits', 'info-fit', 'export-data']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \
@@ -475,7 +475,7 @@ def main():
         if args.analysis == 'pre':
             pre(args.kind, args.config, args.conf_plot, args.save_path,
                 args.load_path, caller_path)
-        elif args.analysis == 'plot':
+        elif args.analysis == 'pre-plot':
             pre_plot(args.fit_name, args.kind)
         elif args.analysis == 'new-fit':
             new_fit(args.fit_name, args.path, caller_path)

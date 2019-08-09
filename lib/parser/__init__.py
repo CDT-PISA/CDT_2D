@@ -560,7 +560,8 @@ def define_parser(launcher_path, version):
              'g', 'action', 'gauge', 'gauge-action',
              'top', 'susc', 'top-susc', 't', 'torelons']
 
-    pre_plot_sub = analysis_sub.add_parser('plot', help='preliminary analyses',
+    pre_plot_sub = analysis_sub.add_parser('pre-plot',
+                        help='preliminary analyses',
                         description=msgs.ana_pre,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     pre_plot_sub.add_argument('fit_name', metavar=meta_fits, nargs='+',
