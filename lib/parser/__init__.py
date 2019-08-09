@@ -671,8 +671,8 @@ def define_parser(launcher_path, version):
     export_sub = analysis_sub.add_parser('export-data',
             description=msgs.export_data, help='export data for fit',
             formatter_class=argparse.RawDescriptionHelpFormatter)
-    export_sub.add_argument('fit_name', metavar=meta_fits, nargs=1,
-                            choices=fits, type=str, help=msgs.fit_names)
+    export_sub.add_argument('fit_name', metavar=meta_fits,
+                            type=fit_pattern, nargs='+', help=msgs.fit_names)
     export_sub.add_argument('-u', '--unpack', choices=data_types,
                             help=msgs.unpack)
 

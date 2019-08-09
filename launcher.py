@@ -233,7 +233,6 @@ def info_fit(name, kind):
 
 def sim_obs(points, points_new, config, plot, fit, excl_tor, excl_boot,
             fit_name, force):
-    # from inspect import cleandoc
     from lib.analysis import sim_obs
 
     if len(points_new) > 0:
@@ -267,10 +266,33 @@ def sim_obs(points, points_new, config, plot, fit, excl_tor, excl_boot,
         print(msg)
         sim_obs(points, config, plot, fit, excl_tor, excl_boot, fit_name, force)
 
-def export_data(name, unpack):
+def export_data(names, unpack):
+    from re import fullmatch
+    from lib.utils import find_fits
     from lib.analysis import export_data
 
-    export_data(name[0], unpack)
+    pattern_names = []
+    pure_names = []
+    all_names = list(find_fits().keys())
+    for name in names:
+        if name[0] == '§':
+            pattern_names += [c for c in all_names
+                                if fullmatch(name[1:], c)]
+        else:
+            pure_names += [name]
+
+    names = sorted(list(set(pure_names + pattern_names)))
+    print(f'Chosen fits are:\n  {names}')
+
+    for name in names:
+        msg = f"""\033[94m
+        ┌────{'─'*len(name)}──┐
+        │FIT '{name}'│
+        └────{'─'*len(name)}──┘
+        \033[0m"""
+        print(msg)
+
+        export_data(name, unpack)
 
 def fit(name, reload, kind='volumes'):
     from lib.analysis import fit_divergence
