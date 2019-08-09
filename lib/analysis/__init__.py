@@ -597,6 +597,43 @@ def export_data(name, unpack):
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'volumes.csv'\033[0m")
 
+    elif unpack in ['g', 'gauge-action']:
+        try:
+            with open('data.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("No data file (\033[38;5;80m'data.json'\033[0m) to unpack.")
+            return
+
+        g_action_data = []
+        for point_data in data:
+            Point = (point_data['lambda'], point_data['beta'])
+            config = point_data['config']
+            try:
+                g_action = point_data['action']
+                g_action_density = point_data['action-density']
+            except KeyError:
+                continue
+            # print(f'\033[38;5;41m{Point}\033[0m, {config}:')
+            # print('\t', volume)
+            g_action_data += [[Point[0], Point[1], g_action[0], g_action[1],
+                            g_action_density[0], g_action_density[1], config]]
+
+        with open('gauge_action.csv', 'w') as file:
+            sep = ' '
+            end = '\n'
+            file.write('# Lambda Beta Volume Error Config' + end)
+            g_action_data = sorted(g_action_data)
+            for point_g_action in g_action_data:
+                str_point_g_action = []
+                for x in point_g_action:
+                    str_point_g_action += [str(x)]
+                file.write(sep.join(str_point_g_action) + end)
+
+        print(f"\033[38;5;41m({name})\033[0m gauge actions from "
+               "\033[38;5;80m'data.json'\033[0m unpacked to "
+               "\033[38;5;80m'gauge_action.csv'\033[0m")
+
     elif unpack in ['p', 'profiles']:
         try:
             with open('data.json', 'r') as file:

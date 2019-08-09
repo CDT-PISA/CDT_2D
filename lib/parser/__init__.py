@@ -557,7 +557,8 @@ def define_parser(launcher_path, version):
     # preliminary plots command
 
     kinds = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
-                  'top', 'susc', 'top-susc', 't', 'torelons']
+             'g', 'action', 'gauge', 'gauge-action',
+             'top', 'susc', 'top-susc', 't', 'torelons']
 
     pre_plot_sub = analysis_sub.add_parser('plot', help='preliminary analyses',
                         description=msgs.ana_pre,
@@ -666,7 +667,8 @@ def define_parser(launcher_path, version):
     # export-data command
 
     data_types = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
-                  'top', 'susc', 'top-susc', 't', 'torelons']
+                  'g', 'gauge-action', 'top', 'susc', 'top-susc',
+                  't', 'torelons']
 
     export_sub = analysis_sub.add_parser('export-data',
             description=msgs.export_data, help='export data for fit',

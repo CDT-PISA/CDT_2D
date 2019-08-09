@@ -201,6 +201,29 @@ def preplot(fit_name, kind):
         plt.errorbar(Lambda, vol, err, fmt='none', capsize=5)
         plt.show()
 
+    elif kind in ['g', 'action', 'gauge', 'gauge-action']:
+        try:
+            data = np.genfromtxt('gauge_action.csv', unpack=True)
+        except (FileNotFoundError, OSError):
+            print(f"No file 'gauge_action.csv' for fit {fit_name}")
+            return
+        Lambda, Beta = data[0], data[1]
+        g_action, err = data[2], data[3]
+        g_action_density, density_err = data[4], data[5]
+
+        g_action_density = g_action_density / Beta
+        density_err = density_err / Beta
+
+        fig, axs = plt.subplots(2,1)
+        axs[0].set_title('Gauge action:\n' + fit_name)
+        axs[0].errorbar(Lambda, g_action, err, fmt='none', c='tab:green',
+                     capsize=5, label='action')
+        axs[0].legend()
+        axs[1].errorbar(Lambda, g_action_density, density_err, fmt='none',
+                     capsize=5, label='density (/β)')
+        axs[1].legend()
+        plt.show()
+
     elif kind in ['top', 'susc', 'top-susc']:
         try:
             data = np.genfromtxt('top_susc.csv', unpack=True)
