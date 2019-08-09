@@ -215,6 +215,72 @@ def eval_volume(p_dir):
 
     return vol, err
 
+def eval_action(p_dir):
+    from os import chdir, getcwd
+    import json
+    import numpy as np
+
+    cwd = getcwd()
+    chdir(p_dir)
+
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
+
+    cut = measures['cut']
+    block = measures['block']
+
+    vol_file = 'history/volumes.txt'
+    v_indices, volumes = np.loadtxt(vol_file, unpack=True)
+    gauge_file = 'history/gauge.txt'
+    g_indices, g_action, _ = np.loadtxt(gauge_file, unpack=True)
+
+    indices_cut = g_indices[g_indices > cut]
+    volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
+    g_action_cut = g_action[g_indices > cut]
+
+    g_action_cut = g_action_cut
+    g_action, err = blocked_mean_std(indices_cut, g_action_cut, block)
+
+    chdir(cwd)
+
+    print('\033[93mgauge action:\033[0m '
+          '{:.4} ± {:.3}'.format(g_action, err))
+
+    return g_action, err
+
+def eval_action_density(p_dir):
+    from os import chdir, getcwd
+    import json
+    import numpy as np
+
+    cwd = getcwd()
+    chdir(p_dir)
+
+    with open('measures.json', 'r') as file:
+        measures = json.load(file)
+
+    cut = measures['cut']
+    block = measures['block']
+
+    vol_file = 'history/volumes.txt'
+    v_indices, volumes = np.loadtxt(vol_file, unpack=True)
+    gauge_file = 'history/gauge.txt'
+    g_indices, g_action, _ = np.loadtxt(gauge_file, unpack=True)
+
+    indices_cut = g_indices[g_indices > cut]
+    volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
+    g_action_cut = g_action[g_indices > cut]
+
+    g_density_cut = g_action_cut / volumes_cut
+    g_density, err = blocked_mean_std(indices_cut, g_density_cut, block)
+
+    chdir(cwd)
+
+    print('\033[93mgauge action density:\033[0m '
+          '{:.4} ± {:.3}'.format(g_density, err))
+
+    return g_density, err
+
 def eval_top_susc(p_dir, type=1):
     from os import chdir, getcwd
     import json

@@ -651,13 +651,17 @@ def define_parser(launcher_path, version):
     sim_obs_sub.add_argument('-°', dest='is_all', action='store_true',
                         help=msgs.is_all)
     sim_obs_sub.add_argument('-n', '--fit-name', metavar=meta_fits,
-                        choices=fits, type=str, help=msgs.fit_names)
+                        type=fit_pattern, nargs='+', help=msgs.fit_names)
     sim_obs_sub.add_argument('-f', '--fit', action='store_true',
                         help=msgs.fit_obs)
     sim_obs_sub.add_argument('-p', '--plot', action='store_true',
                         help=msgs.plot_obs)
     sim_obs_sub.add_argument('--et', '--exclude-torelons', action='store_true',
                              dest='exclude_torelons', help=msgs.excl_tor)
+    sim_obs_sub.add_argument('--eb', '--exclude-bootstrap', action='store_true',
+                          dest='exclude_bootstrap', help=msgs.excl_tor)
+    sim_obs_sub.add_argument('--force', action='store_true', help=msgs.force)
+
 
     # export-data command
 

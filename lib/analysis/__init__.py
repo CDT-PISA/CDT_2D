@@ -330,7 +330,8 @@ def info_fit(name, kind='sims'):
     # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
     # 'obs' attualmente è per le sole flag, ne va implementato uno più esteso con i valori opportuni
 
-def sim_obs(points, config, plot, fit, exclude_torelons, fit_name):
+def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
+            fit_name, force):
     from os import chdir
     from os.path import isfile, basename, dirname, realpath
     from time import time
@@ -341,6 +342,7 @@ def sim_obs(points, config, plot, fit, exclude_torelons, fit_name):
                            authorization_request, eng_not)
     from lib.analysis.fit import (set_cut, set_block,
                                   eval_volume, eval_top_susc,
+                                  eval_action, eval_action_density,
                                   compute_torelons, compute_profiles_corr)
 
     if fit_name:
@@ -404,55 +406,60 @@ def sim_obs(points, config, plot, fit, exclude_torelons, fit_name):
             measures = {}
             cb_exist = False
 
-        what = 'to select cut & block'
-        extra = ('\033[92m(existing value present for both)\033[0m'
-                 if cb_exist else None)
-        auth = authorization_request(what_to_do=what, Point=Point,
-                                     extra_message=extra)
+        if not force:
+            what = 'to select cut & block'
+            extra = ('\033[92m(existing value present for both)\033[0m'
+                     if cb_exist else None)
+            auth = authorization_request(what_to_do=what, Point=Point,
+                                         extra_message=extra)
 
-        if auth == 'quit':
-            print('Nothing done on the last sim.')
-            return
-        elif auth == 'yes':
-            try:
-                measures['cut'] = state['linear-history-cut']
-                cut = state['linear-history-cut']
-                with open('measures.json', 'w') as file:
-                    json.dump(measures, file, indent=4)
-                print("\033[38;5;80m'linear-history-cut'\033[0m "
-                      "has been used as cut")
-            except KeyError:
-                cut = set_cut(p_dir, i)
-                if cut:
-                    measures['cut'] = cut
+            if auth == 'quit':
+                print('Nothing done on the last sim.')
+                return
+            elif auth == 'yes':
+                try:
+                    measures['cut'] = state['linear-history-cut']
+                    cut = state['linear-history-cut']
                     with open('measures.json', 'w') as file:
                         json.dump(measures, file, indent=4)
-                try :
-                    cut = measures['cut']
+                    print("\033[38;5;80m'linear-history-cut'\033[0m "
+                          "has been used as cut")
+                except KeyError:
+                    cut = set_cut(p_dir, i)
+                    if cut:
+                        measures['cut'] = cut
+                        with open('measures.json', 'w') as file:
+                            json.dump(measures, file, indent=4)
+                    try :
+                        cut = measures['cut']
+                    except KeyError:
+                        pass
+                if cut:
+                    print(f'cut = {eng_not(cut)} ({cut})', end='   ')
+
+                block = set_block(p_dir, i)
+                if block:
+                    measures['block'] = block
+                    with open('measures.json', 'w') as file:
+                        json.dump(measures, file, indent=4)
+                try:
+                    block = measures['block']
                 except KeyError:
                     pass
-            if cut:
-                print(f'cut = {eng_not(cut)} ({cut})', end='   ')
+                print(f'block = {eng_not(block)} ({block})', end='   ')
 
-            block = set_block(p_dir, i)
-            if block:
-                measures['block'] = block
-                with open('measures.json', 'w') as file:
-                    json.dump(measures, file, indent=4)
-            try:
-                block = measures['block']
-            except KeyError:
-                pass
-            print(f'block = {eng_not(block)} ({block})', end='   ')
+                if not cut or not block:
+                    print('\nNothing modified on last sim.')
+                    return
 
-            if not cut or not block:
-                print('\nNothing modified on last sim.')
-                return
+                vol = eval_volume(p_dir)
 
-            vol = eval_volume(p_dir)
-
-        what = 'to compute/recompute observables'
-        auth = authorization_request(what_to_do=what)
+        if not force:
+            what = 'to compute/recompute observables'
+            auth = authorization_request(what_to_do=what)
+        else:
+            auth = 'yes'
+            print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")
 
         if auth == 'yes':
             try:
@@ -461,18 +468,29 @@ def sim_obs(points, config, plot, fit, exclude_torelons, fit_name):
             except FileNotFoundError:
                 measures = {}
 
+            if force:
+                if not 'cut' in measures.keys():
+                    print('cut not set')
+                    continue
+                if not 'block' in measures.keys():
+                    print('block not set')
+                    continue
+
             measures['volume'] = vol if vol else eval_volume(p_dir)
+            measures['action'] = eval_action(p_dir)
+            measures['action-density'] = eval_action_density(p_dir)
             measures['top-susc'] = eval_top_susc(p_dir)
-            if not exclude_torelons:
+            if not exclude_torelons and not exclude_bootstrap:
                 torelons_output = compute_torelons(p_dir, plot, fit)
                 if torelons_output:
                     measures['torelon-decay'] = torelons_output[:2]
                     if None not in torelons_output[2].values():
                         measures['torelon-decay-fit'] = torelons_output[2]
-            profiles_output = compute_profiles_corr(p_dir, plot, fit)
-            measures['profiles_corr'] = profiles_output[:2]
-            if None not in profiles_output[2].values():
-                measures['profiles_corr_fit'] = profiles_output[2]
+            if not exclude_bootstrap:
+                profiles_output = compute_profiles_corr(p_dir, plot, fit)
+                measures['profiles_corr'] = profiles_output[:2]
+                if None not in profiles_output[2].values():
+                    measures['profiles_corr_fit'] = profiles_output[2]
             measures['time'] = datetime.fromtimestamp(time()
                                         ).strftime('%d-%m-%Y %H:%M:%S')
 
