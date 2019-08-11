@@ -423,7 +423,7 @@ def compute_torelons(p_dir, plot, fit):
             y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
     else:
-        par, cov, χ2 = None, None, None
+        par, cov, χ2 = None, None, [None, None]
 
     if plot:
         plt.title(f'TORELON:\n Number of points: {len(indices_cut)}')
@@ -538,7 +538,7 @@ def compute_profiles_corr(p_dir, plot, fit):
             y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
             plt.plot(x, y, 'tab:green', label='fit')
     else:
-        par, cov, χ2 = None, None, None
+        par, cov, χ2 = None, None, [None, None]
 
     if plot:
         # ax.errorbar(lambdas, volumes, yerr=errors, fmt='none', capsize=5)
