@@ -258,12 +258,14 @@ def sim_obs(points, points_new, config, plot, fit, excl_tor, excl_boot,
         names = [None]
 
     for fit_name in names:
-        msg = f"""\033[94m
-        ┌────{'─'*len(fit_name)}──┐
-        │FIT '{fit_name}'│
-        └────{'─'*len(fit_name)}──┘
-        \033[0m"""
-        print(msg)
+        if fit_name:
+            msg = f"""\033[94m
+            ┌────{'─'*len(fit_name)}──┐
+            │FIT '{fit_name}'│
+            └────{'─'*len(fit_name)}──┘
+            \033[0m"""
+            print(msg)
+
         sim_obs(points, config, plot, fit, excl_tor, excl_boot, fit_name, force)
 
 def export_data(names, unpack):
