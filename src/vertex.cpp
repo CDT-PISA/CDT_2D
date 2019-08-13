@@ -164,7 +164,7 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
         
         // ORIENTAZIONE
         ///@todo
-        if(not orientation_convention(*current, previous_idx))
+        if(orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
         Plaquette *= current_previous.dagger();
