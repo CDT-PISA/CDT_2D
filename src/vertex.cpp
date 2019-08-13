@@ -241,7 +241,7 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
         
         // ORIENTAZIONE
         ///@todo
-        if(not orientation_convention(*current, previous_idx))
+        if(orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
         Staple *= current_previous.dagger();
