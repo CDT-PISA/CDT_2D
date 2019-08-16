@@ -212,6 +212,7 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
         Triangle* aux = start;
         start = previous;
         previous = aux;
+        previous_idx = (4 - previous_idx) % 3; // is the `opposite` function: 1 <--> 0, 2 <--> 2
     }                        
     
     if(debug_flag){
