@@ -211,8 +211,9 @@ def preplot(fit_name, kind):
         g_action, err = data[2], data[3]
         g_action_density, density_err = data[4], data[5]
 
-        g_av_plaq = - (g_action_density / Beta - 1)
-        av_plaq_err = density_err / Beta
+        # the average coord num in 2d is fixed and it is 6
+        g_av_plaq = - ((g_action_density * 6) / Beta - 1)
+        av_plaq_err = (density_err * 6) / Beta
 
         fig, axs = plt.subplots(2,1)
         axs[0].set_title('Gauge action:\n' + fit_name)

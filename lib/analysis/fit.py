@@ -170,6 +170,15 @@ def set_block(p_dir, i=0):
     volumes_cut = volumes[indices > cut]
     indices_cut = indices[indices > cut]
 
+    if volumes_cut.std() < 1e-5:
+        # use gauge-action as a pseudo-volume if volume is fixed
+        vol_file = 'history/gauge.txt'
+        indices, volumes = read_csv(vol_file, sep=' ').values[:,:2].transpose()
+        imax = indices[-1]
+
+        volumes_cut = volumes[indices > cut]
+        indices_cut = indices[indices > cut]
+
     ratio = 1.3
     block_sizes = [ratio**k for k in
                    range(15, int(log(imax - cut, ratio)) - 10)]
