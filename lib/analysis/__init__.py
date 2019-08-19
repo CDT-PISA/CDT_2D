@@ -413,7 +413,7 @@ def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
             auth = authorization_request(what_to_do=what, Point=Point,
                                          extra_message=extra)
 
-            if auth == 'quit':
+            if auth == 'quit' or auth == 'eof':
                 print('Nothing done on the last sim.')
                 return
             elif auth == 'yes':
@@ -496,7 +496,7 @@ def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
 
             with open('measures.json', 'w') as file:
                 json.dump(measures, file, indent=4)
-        elif auth == 'quit':
+        elif auth == 'quit' or auth == 'eof':
             print('Observables have not been recomputed.')
             return
         else:
