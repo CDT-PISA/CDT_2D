@@ -582,9 +582,9 @@ def show(points_old, config, disk_usage=''):
                 print(a, ' │ ', b, ' │ ', c, '  │ ', d)
             print()
 
-def plot(points_old, config):
+def plot(points_old, config, gauge=False):
     from matplotlib.pyplot import figure, show
-    from numpy import loadtxt
+    import numpy as np
     from lib.utils import find_running, point_dir, config_dir
 
     points_run, _ = find_running()
@@ -598,15 +598,34 @@ def plot(points_old, config):
     i = -1
     for Point in points_old:
         i += 1
-        vol_file = (config_dir(config) + '/' + point_dir(Point) +
-                    '/history/volumes.txt')
-        indices, volumes = loadtxt(vol_file, unpack=True)
-        # , gauge_action, topological_charge
+
+        Lambda = Point[0]
+        Beta = Point[1]
+
+        if not gauge:
+            vol_file = (config_dir(config) + '/' + point_dir(Point) +
+                        '/history/volumes.txt')
+            indices, volumes = np.loadtxt(vol_file, unpack=True)
+            file = vol_file
+        else:
+            vol_file = (config_dir(config) + '/' + point_dir(Point) +
+                        '/history/volumes.txt')
+            v_indices, volumes = np.loadtxt(vol_file, unpack=True)
+            gauge_file = (config_dir(config) + '/' + point_dir(Point) +
+                        '/history/gauge.txt')
+            g_indices, gauge_action, \
+                topological_charge = np.loadtxt(gauge_file, unpack=True)
+
+            v_indices = tuple([np.searchsorted(v_indices, g_indices)])
+
+            indices = g_indices
+            volumes = 6 * (gauge_action / volumes[v_indices]) / Beta
+            file = gauge_file
 
         fig = figure()
         ax = fig.add_subplot(111)
         props += [{'fig': fig, 'ax': ax, 'skip': len(volumes),
-                  'vol_file': vol_file}]
+                  'file': file}]
         canvases += [fig.canvas]
 
         fig.set_size_inches(7, 5)
@@ -615,14 +634,18 @@ def plot(points_old, config):
             run_t = ', running'
         else:
             run_t = ''
-        ax.set_title('λ = ' + str(Point[0]) + ', β = ' + str(Point[1]) + run_t)
+
+        title = 'λ = ' + str(Point[0]) + ', β = ' + str(Point[1]) + run_t
+        if gauge:
+            title = 'average plaquette\n' + title
+        ax.set_title(title)
 
         def on_key(event):
             i = canvases.index(event.canvas)
             p = props[i]
             if event.key == 'f5':
                 try:
-                    ind_aux, vol_aux = loadtxt(p['vol_file'], unpack=True,
+                    ind_aux, vol_aux = np.loadtxt(p['file'], unpack=True,
                                                skiprows=p['skip'])
                 except ValueError:
                     ind_aux = []
@@ -637,6 +660,7 @@ def plot(points_old, config):
                 except TypeError:
                     pass
 
-        fig.canvas.mpl_connect('key_press_event', on_key)
+        if not gauge:
+            fig.canvas.mpl_connect('key_press_event', on_key)
 
     show()

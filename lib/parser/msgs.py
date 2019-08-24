@@ -138,6 +138,8 @@ Used to plot the volume history of a simulation.
 Example:
     cdt2d plot -l -1. -b .5""")
 
+plot_gauge = "..."
+
 # SHOW
 
 show_h = """shows the existing simulations and basic infos"""

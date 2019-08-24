@@ -49,14 +49,14 @@ def show(points_old, config, disk_usage):
     from lib.data import show
     show(points_old, config, disk_usage)
 
-def plot(points_old, points_new, config):
+def plot(points_old, points_new, config, gauge):
     from lib.data import plot
 
     if len(points_new) > 0:
         print("Following (λ, β) not found: ", points_new)
     if len(points_old) > 0:
         print()
-    plot(points_old, config)
+    plot(points_old, config, gauge)
 
 # def fit(points_old, points_new, config, skip):
 #     from lib.analysis import fit
@@ -440,7 +440,7 @@ def main():
         show(points_old, args.config, args.disk_usage)
 
     elif args.command == 'plot':
-        plot(points_old, points_new, args.config)
+        plot(points_old, points_new, args.config, args.gauge)
 
     elif args.command == 'tools':
         if args.tools == 'recovery':

@@ -262,6 +262,8 @@ def define_parser(launcher_path, version):
     plot_sub.add_argument('-c', '--config', choices=configs, default='test',
                           metavar=meta_configs,
                           help=msgs.config)
+    plot_sub.add_argument('-g', '--gauge', action='store_true',
+                          help=msgs.plot_gauge)
 
     # show command
 
