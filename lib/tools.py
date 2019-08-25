@@ -447,6 +447,7 @@ def clear_data(points, config='test', force=False):
     Point : float
         the parameter of the simulation whose data you want to remove
     """
+    from os import scandir
     from shutil import rmtree
     from lib.utils import (find_all_availables, find_running,
                           authorization_request, config_dir, point_str,
@@ -487,16 +488,30 @@ def clear_data(points, config='test', force=False):
             raise ValueError("A folder with the given point doesn't exist"+
                              "\n\t\t\t all_points: " + str(all_points))
 
+    if all([not 'Beta' in str(x) for x in scandir(config_dir(config))]):
+        return True
+    else:
+        return False
+
 def rm_conf(config, force):
-    from os import rmdir, remove
+    from os import rmdir, remove, scandir
     from os.path import isfile
+    from re import fullmatch
     import json
     from lib.utils import points_recast, config_dir, project_folder
 
     points_old, _ = points_recast([], [], '', True, config, 'tools')
-    clear_data(points_old, config, force)
+    cleared = clear_data(points_old, config, force)
+
+    if not cleared:
+        print('Config not empty.')
+        return
 
     path = config_dir(config)
+    for x in scandir(path):
+        if fullmatch('.*.cdt', x.name):
+            remove(x)
+
     if isfile(path + '/pstop.pickle'):
         remove(path + '/pstop.pickle')
     rmdir(path)
