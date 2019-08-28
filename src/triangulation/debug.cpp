@@ -397,15 +397,73 @@ bool Triangulation::find_vertex_in_triangle(Triangle* adjacent_triangle, int v_i
     }
 }
 
+void Triangulation::explore(){
+    cout << *this << endl;
+    
+    bool quit = false;
+    
+    while(not quit){
+        cout << "\033[94mexplore\033[0m >> ";
+        
+        string s;
+        cin >> s;
+        
+        if(s == "q" or s == "quit")
+            quit = true;
+        else{
+            switch(s[0]){
+                case 'v':
+                {
+                    cin >> s;
+                    try{
+                        cout << *this->list0[stoi(s)].dync_vertex() << endl;
+                    }
+                    catch(...){
+                        cout << "Invalid number for Vertex." << endl;
+                    }
+                    break;
+                }
+                case 'e':
+                {
+                    cin >> s;
+                    try{
+                        cout << *this->list1[stoi(s)].dync_edge() << endl;
+                    }
+                    catch(...){
+                        cout << "Invalid number for Edge." << endl;
+                    }
+                    break;
+                }
+                case 't':
+                {
+                    cin >> s;
+                    try{
+                        cout << *this->list2[stoi(s)].dync_triangle() << endl;
+                    }
+                    catch(...){
+                        cout << "Invalid number for Triangle." << endl;
+                    }
+                    break;
+                }
+                default:
+                {
+                    cout << "Invalid choice (choose 'v/e/t {num}')." << endl;
+                    break;
+                }
+            }            
+        }
+    }
+}
+
 ostream& operator<<(ostream& os, Triangulation& T){
     
     os << endl;
-    os << "-------------" << endl;
+    os << "\033[93m-------------" << endl;
     os << "TRIANGULATION" << endl;
-    os << "-------------" << endl;
+    os << "-------------\033[0m" << endl;
     
     os << "lambda: " << T.lambda << ", beta: " << T.beta << ", N: " << T.N << endl;
-    os << "volume_step: " << T.volume_step << " steps_done: " << T.steps_done << " iterations_done: " << T.iterations_done << endl << endl;
+    os << "iterations_done: " << T.iterations_done << " volume_step: " << T.volume_step << " steps_done: " << T.steps_done << endl << endl;
     
     
     os << "num40: " << T.num40 << ", num40p: " << T.num40p << ", n_v: " << T.list0.size() << endl;

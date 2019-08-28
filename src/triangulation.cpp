@@ -398,7 +398,7 @@ Label Triangulation::create_edge(const Label (&vertices)[2], const Label& triang
  */
 void Triangulation::remove_vertex(Label lab_v)
 {
-    try{        
+    try{
         if(lab_v->id < num40){
             list0[lab_v->id] = list0[num40 - 1];
             list0[lab_v->id]->id = lab_v->id;
@@ -649,7 +649,6 @@ vector<double> Triangulation::gauge_action_top_charge(bool debug_flag)
     
     return v;
 }
-
 
 // ##### FILE I/O #####
 

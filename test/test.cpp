@@ -44,9 +44,9 @@ int dice()
 int main(int argc, char* argv[]){
     Triangulation uni(3, 0.4, 6.);
     
-    for(int i=0; i<stoi(argv[1]); i++)
-        uni.move_gauge();
-    uni.move_gauge(true);
+    cout << boolalpha << uni.list0[0].dync_vertex()->orientation_convention(*uni.list2[3].dync_triangle(), 2);
+    uni.explore();
+    
 
 //     for(int i=0; i<1000; ++i){
 // 

@@ -345,6 +345,8 @@ public:
      */
     bool find_vertex_in_triangle(Triangle* adjacent_triangle,int v_id);
     
+    void explore();
+    
     friend ostream& operator<<(ostream& os, Triangulation& T);
 };
 
