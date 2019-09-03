@@ -117,6 +117,8 @@ public:
     complex<double> trace();
     complex<double> tr();
     
+    double norm();
+    
     // scalars
     
     GaugeElement alpha_id(const complex<double>& alpha);

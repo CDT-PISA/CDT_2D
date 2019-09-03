@@ -134,6 +134,16 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
     tri_lab0->gauge_transform(e_lab0->gauge_element());
+    
+    if(debug_flag){
+        GaugeElement Id(1.);
+        GaugeElement Zero = e_lab0->gauge_element() - Id;
+        
+        if(Zero.norm() > 1e-10)
+            throw runtime_error("move 22_1: e_lab0 element is not Id after gauge_transform.");
+        else
+            cout << endl << "move 22_1: gauge_transform check passed!" << endl << endl;
+    }
         
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -417,13 +427,23 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     Edge* e_lab4 = lab_e4.dync_edge();
     
     if(debug_flag){
-        cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << e_lab4;
+//         cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << *e_lab4;
     }
     
     // ___ gauge transform on t1 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab1->gauge_transform(e_lab0->gauge_element());
+    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    
+    if(debug_flag){
+        GaugeElement Id(1.);
+        GaugeElement Zero = e_lab0->gauge_element() - Id;
+        
+        if(Zero.norm() > 1e-10)
+            throw runtime_error("move 22_2: e_lab0 element is not Id after gauge_transform.");
+        else
+            cout << endl << "move 22_2: gauge_transform check passed!" << endl << endl;
+    }
 
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -573,15 +593,15 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
         
-        cout << "+----------+" << endl;
-        cout << "|TRIANGLES:|" << endl;
-        cout << "+----------+";
-        cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
-        
-        cout << "+------+" << endl;
-        cout << "|EDGES:|" << endl;
-        cout << "+------+";
-        cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << e_lab4;
+//         cout << "+----------+" << endl;
+//         cout << "|TRIANGLES:|" << endl;
+//         cout << "+----------+";
+//         cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
+//         
+//         cout << "+------+" << endl;
+//         cout << "|EDGES:|" << endl;
+//         cout << "+------+";
+//         cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << *e_lab4;
     }
     // ----- END MOVE -----
 }

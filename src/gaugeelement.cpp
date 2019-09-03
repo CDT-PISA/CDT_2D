@@ -285,6 +285,19 @@ complex<double> GaugeElement::tr()
     return trace();
 }
 
+double GaugeElement::norm()
+{
+    double norm = 0;
+    
+    for(int i=0; i<N; i++){
+        for(int j=0; j<N; j++){
+            norm += pow(abs(mat[i][j]), 2);
+        }
+    }
+    
+    return norm;
+}
+
 // scalars
 
 GaugeElement GaugeElement::alpha_id(const complex<double>& alpha)

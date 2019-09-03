@@ -129,8 +129,17 @@ int Triangle::opposite(int i){
 
 void Triangle::gauge_transform(GaugeElement G)
 {
-    e[0].dync_edge()->U *= G.dagger();
-    e[1].dync_edge()->U *= G;
+    bool debug_flag = true;
+    
+    if(debug_flag){
+        cout << "╔═══════════════════════╗" << endl;
+        cout << "║    GAUGE TRANSFORM    ║" << endl;
+        cout << "╚═══════════════════════╝" << endl;
+        cout << G << endl;
+    }
+    
+    e[0].dync_edge()->U *= G;
+    e[1].dync_edge()->U *= G.dagger();
     if(this->is12())
         e[2].dync_edge()->U *= G;
     else
