@@ -43,19 +43,30 @@ int dice()
 
 int main(int argc, char* argv[]){
     Triangulation uni(3, 0.4, 6.);
-    
-//     cout << boolalpha << uni.list0[0].dync_vertex()->orientation_convention(*uni.list2[0].dync_triangle(), 2);
-//     uni.explore();
-    
-    GaugeElement U(1.);
-    GaugeElement V(1.);
-    
-    cout << (U - V).norm() << endl;
+    RandomGen r;
     
     for(int i=0; i<10000; i++)
         uni.move_gauge();
     
-    uni.move_22_2(true);
+    
+    double current = uni.total_gauge_action();
+    for(int i=0; i<10000; i++){
+        double previous = current;
+        
+        int a = uni.list2.size()*r.next();
+        GaugeElement U;
+        U = U.random_element(1.);
+        
+        uni.list2[a].dync_triangle()->gauge_transform(U);
+        current = uni.total_gauge_action();
+        
+        cout << a << endl << U << endl;
+        
+        if(current - previous > 1e-10){
+            cout << current - previous << endl;
+            throw runtime_error("not gauge invariant");
+        }
+    }
         
     
 //     U[0][0] = 3i;
