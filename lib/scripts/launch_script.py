@@ -53,7 +53,7 @@ def recovery_sim(run_id, succesful):
             from numpy import savetxt
             vol_file = loadtxt('history/volumes.txt', dtype=int)
             pro_file = loadtxt('history/profiles.txt', dtype=int)
-            pro_file = loadtxt('history/gauge.txt', dtype=int)
+            # pro_file = loadtxt('history/gauge.txt', dtype=int)
             vol_file = vol_file[vol_file[:,0] < iter_done]
             pro_file = pro_file[pro_file[:,0] < iter_done]
             savetxt('history/volumes.txt', vol_file, fmt='%d',

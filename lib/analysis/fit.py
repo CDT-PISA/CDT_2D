@@ -241,7 +241,7 @@ def eval_action(p_dir):
     vol_file = 'history/volumes.txt'
     v_indices, volumes = np.loadtxt(vol_file, unpack=True)
     gauge_file = 'history/gauge.txt'
-    g_indices, g_action, _ = np.loadtxt(gauge_file, unpack=True)
+    g_indices, g_action, _, _ = np.loadtxt(gauge_file, unpack=True)
 
     indices_cut = g_indices[g_indices > cut]
     volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
@@ -274,7 +274,7 @@ def eval_action_density(p_dir):
     vol_file = 'history/volumes.txt'
     v_indices, volumes = np.loadtxt(vol_file, unpack=True)
     gauge_file = 'history/gauge.txt'
-    g_indices, g_action, _ = np.loadtxt(gauge_file, unpack=True)
+    g_indices, g_action, _, _ = np.loadtxt(gauge_file, unpack=True)
 
     indices_cut = g_indices[g_indices > cut]
     volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]
@@ -307,7 +307,7 @@ def eval_top_susc(p_dir, type=1):
     vol_file = 'history/volumes.txt'
     v_indices, volumes = np.loadtxt(vol_file, unpack=True)
     gauge_file = 'history/gauge.txt'
-    g_indices, _, top_ch = np.loadtxt(gauge_file, unpack=True)
+    g_indices, _, top_ch, _ = np.loadtxt(gauge_file, unpack=True)
 
     indices_cut = g_indices[g_indices > cut]
     volumes_cut = volumes[np.searchsorted(v_indices, indices_cut)]

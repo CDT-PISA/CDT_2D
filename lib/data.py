@@ -613,8 +613,8 @@ def plot(points_old, config, gauge=False):
             v_indices, volumes = np.loadtxt(vol_file, unpack=True)
             gauge_file = (config_dir(config) + '/' + point_dir(Point) +
                         '/history/gauge.txt')
-            g_indices, gauge_action, \
-                topological_charge = np.loadtxt(gauge_file, unpack=True)
+            g_indices, gauge_action, topological_charge, \
+                 av_contr = np.loadtxt(gauge_file, unpack=True)
 
             v_indices = tuple([np.searchsorted(v_indices, g_indices)])
 
