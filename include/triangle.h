@@ -117,8 +117,8 @@ public:
     int opposite(int i);
     
     // ##### GAUGE #####
-    
-    void gauge_transform(GaugeElement G);
+
+    void gauge_transform(GaugeElement G, bool debug_flag = false);
     
     // ##### FILE I/O #####
     

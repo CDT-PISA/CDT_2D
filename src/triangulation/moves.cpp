@@ -133,7 +133,7 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     // ___ gauge transform on t0 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -433,7 +433,7 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     // ___ gauge transform on t1 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element());
+    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -695,7 +695,17 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
     GaugeElement gt0(e_lab0->gauge_element());
-    tri_lab0->gauge_transform(gt0);
+    tri_lab0->gauge_transform(gt0, debug_flag);
+    
+    if(debug_flag){
+        GaugeElement Id(1.);
+        GaugeElement Zero = e_lab0->gauge_element() - Id;
+        
+        if(Zero.norm() > 1e-10)
+            throw runtime_error("move 24: e_lab0 element is not Id after gauge_transform.");
+        else
+            cout << endl << "move 24: gauge_transform check passed!" << endl << endl;
+    }
 
 
     double beta_N = beta * N;
@@ -920,7 +930,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     
     if((num40 == 0) && (num40p == 0)){
         if(debug_flag){
-            cout << endl;
+            cout << "no legal move_42 available" << endl;
         }
         return;
     }
@@ -1008,11 +1018,28 @@ void Triangulation::move_42(int cell, bool debug_flag)
     //  - the right triangle with G, the gauge element on e3
     // this element (G) will be transform with G.dagger()
     GaugeElement gt1(e_lab1->gauge_element().dagger());
-    tri_lab1->gauge_transform(gt1);
+    tri_lab1->gauge_transform(gt1, debug_flag);
     GaugeElement gt0(e_lab0->gauge_element());
-    tri_lab0->gauge_transform(gt0);
+    tri_lab0->gauge_transform(gt0, debug_flag);
     GaugeElement gt3(e_lab3->gauge_element());
-    tri_lab3->gauge_transform(gt3);
+    tri_lab3->gauge_transform(gt3, debug_flag);
+    
+    
+    if(debug_flag){
+        GaugeElement Id(1.);
+        GaugeElement Zero1 = e_lab1->gauge_element() - Id;
+        GaugeElement Zero0 = e_lab0->gauge_element() - Id;
+        GaugeElement Zero3 = e_lab3->gauge_element() - Id;
+        
+        if(Zero1.norm() > 1e-10)
+            throw runtime_error("move 42: e_lab1 element is not Id after gauge_transform.");
+        else if(Zero0.norm() > 1e-10)
+            throw runtime_error("move 42: e_lab0 element is not Id after gauge_transform.");
+        else if(Zero3.norm() > 1e-10)
+            throw runtime_error("move 42: e_lab3 element is not Id after gauge_transform.");
+        else
+            cout << endl << "move 42: gauge_transform check passed!" << endl << endl;
+    }
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge2_t[2] = {tri_lab2, tri_lab3};

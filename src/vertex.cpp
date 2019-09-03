@@ -125,12 +125,16 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     
     Label lab_bond = owner->list0[bond.position()];
     int bond_idx = start->find_element(lab_bond, SimplexType::_vertex);
+    
+    // the purpose of the followng `shift` is to guarantee that plaquettes are
+    // traversed counter-clockwise (is needed for topological charge computation)
     int shift;
     if(start->is21())
         shift = 2;
     else
         shift = 1;
     previous_idx = (bond_idx + shift) % 3;
+    
     Triangle *previous = start->adjacent_triangles()[previous_idx].dync_triangle();
     /*
     if(*(start.vertices()[0].dync_vertex()) == bond){

@@ -127,10 +127,8 @@ int Triangle::opposite(int i){
 
 // ##### GAUGE #####
 
-void Triangle::gauge_transform(GaugeElement G)
-{
-    bool debug_flag = true;
-    
+void Triangle::gauge_transform(GaugeElement G, bool debug_flag)
+{    
     if(debug_flag){
         cout << "╔═══════════════════════╗" << endl;
         cout << "║    GAUGE TRANSFORM    ║" << endl;
