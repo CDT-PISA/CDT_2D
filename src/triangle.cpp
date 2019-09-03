@@ -136,8 +136,8 @@ void Triangle::gauge_transform(GaugeElement G, bool debug_flag)
         cout << G << endl;
     }
     
-    e[0].dync_edge()->U *= G.dagger();
-    e[1].dync_edge()->U *= G;
+    e[0].dync_edge()->U *= G;
+    e[1].dync_edge()->U *= G.dagger();
     if(this->is12())
         e[2].dync_edge()->U *= G;
     else
