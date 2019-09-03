@@ -568,6 +568,13 @@ double Triangulation::total_gauge_action(bool debug_flag)
     return S;
 }
 
+double Triangulation::average_gauge_action_contribute(bool debug_flag)
+{
+    double action = total_gauge_action(debug_flag);
+    
+    return action / ((beta * N) * list0.size());
+}
+
 constexpr double pi() { return atan(1)*4; }
 
 double Triangulation::topological_charge(bool debug_flag)

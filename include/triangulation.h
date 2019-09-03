@@ -283,6 +283,8 @@ public:
     
     double total_gauge_action(bool debug_flag = false);
     
+    double average_gauge_action_contribute(bool debug_flag = false);
+    
     double topological_charge(bool debug_flag = false);
     
     GaugeElement space_loop(Triangle* start, bool debug_flag = false);

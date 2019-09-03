@@ -164,7 +164,7 @@ int main(int argc, char* argv[]){
     if (!gauge_stream)
         throw runtime_error("couldn't open 'gauge.txt' for writing");
     if (stod(run_id) == 1.)
-        gauge_stream << "# iteration[0] - action[1] - ch.top.[2]" << endl << endl;
+        gauge_stream << "# iteration[0] - action[1] - ch.top.[2] - av.contr.[3]" << endl << endl;
     
     string tolerons_file = "history/toblerone.txt";
     ofstream tolerons_stream(tolerons_file, ofstream::out | ofstream::app);
@@ -387,7 +387,8 @@ void print_obs(T& time_ref,
     if(k == gauge_ratio){
         k = 0;
         vector<double> v = universe.gauge_action_top_charge();
-        gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << endl;
+        double av_contr = universe.average_gauge_action_contribute();
+        gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
     }
     if(h == adjacencies_ratio){
         h = 0;
