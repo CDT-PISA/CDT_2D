@@ -133,7 +133,7 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     // ___ gauge transform on t0 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    tri_lab0->gauge_transform(e_lab0->gauge_element().dagger(), debug_flag);
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -433,7 +433,7 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     // ___ gauge transform on t1 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    tri_lab0->gauge_transform(e_lab0->gauge_element().dagger(), debug_flag);
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -1018,11 +1018,11 @@ void Triangulation::move_42(int cell, bool debug_flag)
     //  - the right triangle with G, the gauge element on e3
     // this element (G) will be transform with G.dagger()
     GaugeElement gt1(e_lab1->gauge_element().dagger());
-    tri_lab1->gauge_transform(gt1, debug_flag);
+    tri_lab1->gauge_transform(gt1.dagger(), debug_flag);
     GaugeElement gt0(e_lab0->gauge_element());
     tri_lab0->gauge_transform(gt0, debug_flag);
     GaugeElement gt3(e_lab3->gauge_element());
-    tri_lab3->gauge_transform(gt3, debug_flag);
+    tri_lab3->gauge_transform(gt3.dagger(), debug_flag);
     
     
     if(debug_flag){
@@ -1072,9 +1072,9 @@ void Triangulation::move_42(int cell, bool debug_flag)
     double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
     
     if(reject_trial > reject_ratio){
-        tri_lab3->gauge_transform(gt3.dagger());
+        tri_lab3->gauge_transform(gt3);
         tri_lab0->gauge_transform(gt0.dagger());
-        tri_lab1->gauge_transform(gt1.dagger());
+        tri_lab1->gauge_transform(gt1);
         if(debug_flag){
             cout << endl;
         }
