@@ -84,7 +84,7 @@ GaugeElement Edge::force(bool debug_flag)
     edge_t[1] = near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
     for(int i=0; i<2; i++)
-        Force += v[i].dync_vertex()->looparound(edge_t, debug_flag);
+        Force += v[i].dync_vertex()->looparound(edge_t, debug_flag) / v[i].dync_vertex()->coordination();
     
     return Force;
 }
