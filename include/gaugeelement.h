@@ -51,6 +51,11 @@ public:
     /**
      * 
      */
+    GaugeElement(const complex<double> alpha);
+    
+    /**
+     * 
+     */
     GaugeElement(const complex<double> (&matrix)[N][N]);
 
      /**

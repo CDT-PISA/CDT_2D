@@ -44,8 +44,18 @@ GaugeElement::GaugeElement(const Label& edge)
     *this = alpha_id(1.);
 }
 
+GaugeElement::GaugeElement(const complex<double> alpha)
+{
+    Label lab;
+    base_edge = lab;
+    *this = alpha_id(alpha);
+}
+
 GaugeElement::GaugeElement(const complex<double> (&matrix)[N][N])
 {
+    Label lab;
+    base_edge = lab;
+    
     for(int i=0; i<N; i++){
         for(int j=0; j<N; j++)
             mat[i][j] = matrix[i][j];
@@ -145,9 +155,10 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     
     double a;
     double c;
-    if( N == 1)
-        a = 2 * beta * abs(Force.tr()) ;
+    if( N == 1){
+        a = 2 * beta * abs(Force.tr());
         c = sqrt(a/2);
+    }
     
     // double max_rho;
     // if(N == 1)
