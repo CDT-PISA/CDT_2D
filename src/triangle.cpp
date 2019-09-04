@@ -135,7 +135,6 @@ void Triangle::gauge_transform(GaugeElement G, bool debug_flag)
         cout << "╚═══════════════════════╝" << endl;
         cout << G << endl;
     }
-    
     /**
      * @todo: va sistemato per N > 1: non devono essere moltiplicati tutti
      * a destra, ma i G a dx e i G.dagger() a sx o viceversa, non ricordo
