@@ -136,6 +136,13 @@ void Triangle::gauge_transform(GaugeElement G, bool debug_flag)
         cout << G << endl;
     }
     
+    /**
+     * @todo: va sistemato per N > 1: non devono essere moltiplicati tutti
+     * a destra, ma i G a dx e i G.dagger() a sx o viceversa, non ricordo
+     * (è sufficiente sceglierne uno dei due e lanciare una mossa 22 con
+     * debug_flag=true: se da errore quella giusta è l'altra, altrimenti
+     * va bene quella scelta)
+     */
     e[0].dync_edge()->U *= G;
     e[1].dync_edge()->U *= G.dagger();
     if(this->is12())
