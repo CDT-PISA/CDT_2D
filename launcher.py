@@ -370,8 +370,8 @@ def main():
         args.analysis = ''
 
     # Further parsing (not supported by `argparse`)
-    wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'clear',
-                'rm-conf', 'pre', 'pre-plot',
+    wo_point = ['state', 'config', 'new-conf', 'show-confs', 'reset', 'rm-conf',
+                'pre', 'pre-plot',
                 'fit', 'new-fit', 'show-fits', 'info-fit', 'export-data']
     if hasattr(args, 'is_all') and args.is_all:
         if any([hasattr(args, x) for x in ['lamda', 'beta']]) and \

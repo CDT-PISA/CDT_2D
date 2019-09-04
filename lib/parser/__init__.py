@@ -300,9 +300,9 @@ def define_parser(launcher_path, version):
                         description=msgs.recovery,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     recovery_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                              required=True, help=msgs.lamda)
+                              help=msgs.lamda)
     recovery_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                              required=True, help=msgs.beta)
+                              help=msgs.beta)
     lambdas = recovery_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help=msgs.range)
@@ -382,9 +382,9 @@ def define_parser(launcher_path, version):
                         description=msgs.autoremove,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     remove_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help=msgs.lamda)
+                            help=msgs.lamda)
     remove_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help=msgs.beta)
+                            help=msgs.beta)
     lambdas = remove_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help=msgs.range)
@@ -409,9 +409,9 @@ def define_parser(launcher_path, version):
                         description=msgs.remote,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     remote_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                            required=True, help=msgs.lamda)
+                            help=msgs.lamda)
     remote_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                            required=True, help=msgs.beta)
+                            help=msgs.beta)
     lambdas = remote_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help=msgs.range)
@@ -499,9 +499,9 @@ def define_parser(launcher_path, version):
                         description=msgs.clear,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
     clear_sub.add_argument('-l', '--lamda', nargs='+', type=float,
-                           required=True, help=msgs.lamda)
+                           help=msgs.lamda)
     clear_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
-                           required=True, help=msgs.beta)
+                           help=msgs.beta)
     lambdas = clear_sub.add_mutually_exclusive_group()
     lambdas.add_argument('--range', choices=['b', 'l', 'bl', 'lb'], default='',
                          help=msgs.range)
