@@ -130,7 +130,7 @@ GaugeElement GaugeElement::random_element(double a)
         double c = sqrt(a/2);
         double k = atan(c*pi);
         
-        double x = r.next()*2.-1.;
+        double x = r.next();
         double alpha = tan(k * x) / c;
         
         ret.mat[0][0] = exp(1i * alpha);
@@ -167,31 +167,38 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
    
     GaugeElement ret;
+    double alpha;
+    
     ret.set_base(this->base_edge); 
     while(not accepted){
         ret = random_element(a);
         
         if( N == 1){
-            double alpha = arg(ret[0][0]);
+            alpha = arg(ret[0][0]);
             double x = r.next();
             double eta;
             if(a >= 0.8)
                 eta = 0.99;
             else
                 eta = 0.73;
-            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );            
+            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );  
+            
+            if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
+                cerr << "heatbath: a = " << a << endl;
+                throw runtime_error("heatbath: invalid numerical value generated");
+            }
         }
         else
             throw runtime_error("heatbath: Not implemented for N!=1");
         
-        if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
-            cerr << "heatbath: a = " << a << endl;
-            throw runtime_error("heatbath: invalid numerical value generated");
-        }
-        
         // double rho = exp(real((*this * Force).tr()) * beta);
-    }    
-    *this = ret * (Force.dagger()/abs(Force.tr()));
+    }
+    
+    if( N == 1 ){
+        complex<double> prev = this->mat[0][0];
+        double sgn = (imag(prev) > 0) * 2 - 1;
+        *this = (Force.dagger()/abs(Force.tr())) * exp(- 1i * alpha * sgn);
+    }
 }
 
 // ##### ALGEBRA #####
