@@ -32,9 +32,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 
 template <typename T>
 void print_obs(T& time_ref,
-               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& tolerons_stream,
+               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
                Triangulation& universe, long iter_from_beginning, long& i,
-               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int tolerons_ratio,
+               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
 int dice();
@@ -166,19 +166,19 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         gauge_stream << "# iteration[0] - action[1] - ch.top.[2] - av.contr.[3]" << endl << endl;
     
-    string tolerons_file = "history/toblerone.txt";
-    ofstream tolerons_stream(tolerons_file, ofstream::out | ofstream::app);
-    if (!tolerons_stream)
+    string torelons_file = "history/toblerone.txt";
+    ofstream torelons_stream(torelons_file, ofstream::out | ofstream::app);
+    if (!torelons_stream)
         throw runtime_error("couldn't open 'toblerone.txt' for writing");
     if (stod(run_id) == 1.)
-        tolerons_stream << "# iteration[0] - tolerons[1:]" << endl << endl;
+        torelons_stream << "# iteration[0] - torelons[1:]" << endl << endl;
     
     // ratios
     
     int profile_ratio = 4;
     int gauge_ratio = 16;
     int adjacencies_ratio = 128;
-    int tolerons_ratio = gauge_ratio;
+    int torelons_ratio = gauge_ratio;
     
     // SETUP THE TRIANGULATION
     // and output parameters
@@ -249,9 +249,9 @@ int main(int argc, char* argv[]){
         long iter_from_beginning = universe.iterations_done + i;
         if(linear_history > 0){
             if((iter_from_beginning) % linear_history == 0)
-                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, tolerons_stream, universe,
+                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, 
-                          profile_ratio, gauge_ratio, adjacencies_ratio, tolerons_ratio,
+                          profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts);
         }
         else{
@@ -261,9 +261,9 @@ int main(int argc, char* argv[]){
                         universe.volume_step *= 2;
                         universe.steps_done = 0;
                 }
-                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, tolerons_stream, universe,
+                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, 
-                          profile_ratio, gauge_ratio, adjacencies_ratio, tolerons_ratio,
+                          profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts);
             }
         }
@@ -362,9 +362,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 
 template <typename T>
 void print_obs(T& time_ref,
-               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& tolerons_stream,
+               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
                Triangulation& universe, long iter_from_beginning, long& i,
-               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int tolerons_ratio,
+               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts)
 {
     static int j = 0;
@@ -387,7 +387,7 @@ void print_obs(T& time_ref,
     if(k == gauge_ratio){
         k = 0;
         vector<double> v = universe.gauge_action_top_charge();
-        double av_contr = universe.average_gauge_action_contribute();
+        double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
     }
     if(h == adjacencies_ratio){
@@ -396,14 +396,14 @@ void print_obs(T& time_ref,
                                                 iter_from_beginning);
         n++;
     }
-    if(l == tolerons_ratio){
-        l = 0;
-        tolerons_stream << iter_from_beginning << " ";
-        vector<complex<double>> tolerons = universe.toleron();
-        for(auto x: tolerons)
-            tolerons_stream << x << " ";
-        tolerons_stream << endl;
-    }
+//     if(l == torelons_ratio){
+//         l = 0;
+//         torelons_stream << iter_from_beginning << " ";
+//         vector<complex<double>> torelons = universe.toleron();
+//         for(auto x: torelons)
+//             torelons_stream << x << " ";
+//         torelons_stream << endl;
+//     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
         time_ref = chrono::system_clock::now();
