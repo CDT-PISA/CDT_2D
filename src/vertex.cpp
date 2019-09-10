@@ -51,7 +51,7 @@ Label Vertex::adjacent_triangle(){ return near_t; }
 
 bool Vertex::orientation_convention(const Triangle& pointed, int from)
 {
-    return from == 0 || (from == 2 && pointed.is21());
+    return from == 1 || (from == 2 && pointed.is21());
 }
 
 Triangle* Vertex::next(Triangle* current, int& previous_idx, bool debug_flag){
