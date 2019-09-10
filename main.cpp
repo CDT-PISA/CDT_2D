@@ -33,7 +33,7 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 template <typename T>
 void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
-               Triangulation& universe, long iter_from_beginning, long& i,
+               Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]){
         if(linear_history > 0){
             if((iter_from_beginning) % linear_history == 0)
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
-                          iter_from_beginning, i, 
+                          iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts);
         }
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]){
                         universe.steps_done = 0;
                 }
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
-                          iter_from_beginning, i, 
+                          iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts);
             }
@@ -363,7 +363,7 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 template <typename T>
 void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
-               Triangulation& universe, long iter_from_beginning, long& i,
+               Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts)
 {
@@ -390,7 +390,7 @@ void print_obs(T& time_ref,
         double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
     }
-    if(h == adjacencies_ratio){
+    if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
         universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json",
                                                 iter_from_beginning);
