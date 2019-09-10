@@ -700,7 +700,7 @@ void Triangulation::save(ofstream& output)
     
     int TimeLength = spatial_profile.size();
     output.write((char*)&TimeLength, sizeof(TimeLength));
-}
+} 
 
 void Triangulation::load(string filename)
 {

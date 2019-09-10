@@ -42,16 +42,19 @@ int dice()
 }
 
 int main(int argc, char* argv[]){
-//     Triangulation uni(3, 0.4, 6.);
-//     RandomGen r;
+    Triangulation uni(3, 0.4, 6.);
+    RandomGen r;
     
-//     for(int i=0; i<1000; i++)
-//         uni.move_24();
-//     
-//     for(int i=0; i<10000; i++)
-//         uni.move_gauge();
-//    
-//     uni.move_42(true);
+    for(int i=0; i<1000; i++)
+        uni.move_24();
+    
+    for(int i=0; i<10000; i++)
+        uni.move_gauge();
+   
+    uni.move_22_1(true);
+    uni.move_22_2(true);
+    uni.move_24(true);
+    uni.move_42(true);
     
 //     double current = uni.total_gauge_action();
 //     for(int i=0; i<10000; i++){
@@ -71,8 +74,8 @@ int main(int argc, char* argv[]){
 //             throw runtime_error("not gauge invariant");
 //         }
 //     }
-    complex<double> prev = exp(1i*4.6);
-    cout << (imag(prev) > 0) * 2 - 1 << endl;
+//     complex<double> prev = exp(1i*4.6);
+//     cout << (imag(prev) > 0) * 2 - 1 << endl;
     
 //     U[0][0] = 3i;
 //     V[0][0] = 1. + 7i;
