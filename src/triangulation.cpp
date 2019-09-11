@@ -35,7 +35,7 @@ using namespace std;
  * 
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
- */ 
+ */
 Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag)
 {
     volume_step = 16;
@@ -97,7 +97,7 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool de
     /* at the end of these first steps the only things missed are:\n
      * - related to the vertices at time 0, that will be initialize in the next section (Triangle::vertices)
      * - or the adjacency relations among triangles, that will be fixed in the final section (Triangle::adjacents_t)
-     */ 
+     */
     
     // ----- INTERMEDIATE STRIPS -----
     

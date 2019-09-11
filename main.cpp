@@ -191,6 +191,10 @@ int main(int argc, char* argv[]){
         universe.load(loadfile);
     }
     
+    // randomize the generator
+    RandomGen r;
+    r.really_rand();
+    
     // FIRST SAVE, then begin
     save_routine(chkpts, n_chkpt, universe, 0);
     auto time_ref = chrono::system_clock::now();

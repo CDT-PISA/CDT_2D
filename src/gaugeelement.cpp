@@ -181,7 +181,7 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
                 eta = 0.99;
             else
                 eta = 0.73;
-            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) );  
+            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) ); 
             
             if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
                 cerr << "heatbath: a = " << a << endl;
@@ -195,9 +195,10 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     }
     
     if( N == 1 ){
-        complex<double> prev = this->mat[0][0];
+        GaugeElement Force_phase = (Force.dagger()/abs(Force.tr()));
+        complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
         double sgn = (imag(prev) > 0) * 2 - 1;
-        *this = (Force.dagger()/abs(Force.tr())) * exp(- 1i * alpha * sgn);
+        *this =  Force_phase * exp(- 1i * alpha * sgn);
     }
 }
 
