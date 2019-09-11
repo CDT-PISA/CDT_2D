@@ -133,7 +133,13 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     // ___ gauge transform on t0 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(e_lab0->gauge_element().dagger(), debug_flag);
+    }
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -285,6 +291,14 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
         }        
     }
     
+    GaugeElement U;
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(U.rand(), debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(U.rand(), debug_flag);
+    }
+    
     if(debug_flag){
         cout << endl;
         cout << "┌────────────────────────┐" << endl;
@@ -433,7 +447,12 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     // ___ gauge transform on t1 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
     // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(e_lab0->gauge_element().dagger(), debug_flag);
+    }
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -582,6 +601,14 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
             list0[num40 + num40p] = lab;
             list0[num40 + num40p]->id = num40 + num40p;
         }        
+    }
+    
+    GaugeElement U;
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(U.rand(), debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(U.rand(), debug_flag);
     }
     
     if(debug_flag){

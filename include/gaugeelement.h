@@ -94,6 +94,8 @@ public:
     
     double partition_function();
     
+    GaugeElement rand();
+    
     GaugeElement random_element(double a = nan(""));
     
     void heatbath(GaugeElement Force, bool debug_flag = false);

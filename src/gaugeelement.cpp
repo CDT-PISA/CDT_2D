@@ -113,6 +113,17 @@ double GaugeElement::partition_function()
     return Z;
 }
 
+GaugeElement GaugeElement::rand(){
+    RandomGen r;
+    
+    double pi = 2 * asin(1);
+    double alpha = 2 * pi * r.next();
+    
+    GaugeElement U(exp(1i * alpha));
+    
+    return U;
+}
+
 GaugeElement GaugeElement::random_element(double a)
 {
     RandomGen r;

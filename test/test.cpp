@@ -58,8 +58,12 @@ int main(int argc, char* argv[]){
     uni.move_24(true);
     uni.move_42(true);
     
+    GaugeElement U;
+    for(int i=0; i < 1000; i++)
+        cout << arg(U.rand()[0][0]) << endl;
+    
     double current = uni.total_gauge_action();
-    for(int i=0; i<10000; i++){
+    for(int i=0; i<1000; i++){
         double previous = current;
         
         int a = uni.list2.size()*r.next();
