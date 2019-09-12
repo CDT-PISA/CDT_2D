@@ -117,7 +117,7 @@ GaugeElement GaugeElement::rand(){
     RandomGen r;
     
     double pi = 2 * asin(1);
-    double alpha = 2 * pi * r.next();
+    double alpha = pi * (2 * r.next() - 1);
     
     GaugeElement U(exp(1i * alpha));
     
