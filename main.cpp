@@ -413,7 +413,7 @@ void print_obs(T& time_ref,
         double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
         
-        acc_stream << iter_from_beginning << " " << acceptance << dS_g << endl;
+        acc_stream << iter_from_beginning << " " << acceptance << " " << dS_g << endl;
     }
     if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
