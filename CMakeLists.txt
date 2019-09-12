@@ -35,12 +35,14 @@ project(cdt_2d)
 # Bring the headers into the project
 include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
+file(GLOB TRIANGULATION "src/triangulation/*.cpp")
 
 use_gnu_compiler()
 
 # The file(GLOB...) allows for wildcard additions:
 message(${CMAKE_CXX_COMPILER})
 add_library(cdt_2d_lib STATIC ${SOURCES})
+add_custom_command(OUTPUT "src/triangulation.cpp" DEPENDS ${TRIANGULATION})
 add_executable(cdt_2d main.cpp)
 target_link_libraries(cdt_2d cdt_2d_lib)
 
