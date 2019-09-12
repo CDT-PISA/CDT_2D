@@ -18,13 +18,16 @@
  * 
  * @test devo fare i test per questa mossa (forse devo trovare un modo semplice di stampare tutta la triangolazione)
  */ 
-void Triangulation::move_22_1(int cell, bool debug_flag)
+vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
 {   
     long num_t = transition1221.size(); 
     
     // if I don't consider this case separately transition would have an Undefined Behaviour
-    if(num_t == 0)
-        return;
+    if(num_t == 0){
+        vector<double> v;
+        v.push_back(0.123456789);
+        return v; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
     RandomGen r;
     
@@ -111,10 +114,17 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
     delta_Sg -= ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x));
+    double acceptance = exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x);
+    double reject_ratio = min(1.0, acceptance);
     
-    if(reject_trial > reject_ratio)
-        return; // if not rejected goes on, otherwise it returns with nothing done
+    
+    if(reject_trial > reject_ratio){
+        vector<double> v;
+        v.push_back(acceptance);
+        v.push_back(delta_Sg);
+        
+        return v; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
     // ----- CELL "EVOLUTION" -----
     
@@ -308,6 +318,12 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
+    
+    vector<double> v;
+    v.push_back(acceptance);
+    v.push_back(delta_Sg);
+    
+    return v;
     // ----- END MOVE -----
 }
 
@@ -325,13 +341,16 @@ void Triangulation::move_22_1(int cell, bool debug_flag)
  *     v3         v2            v3         v2 
  * \endcode
  */ 
-void Triangulation::move_22_2(int cell, bool debug_flag)
+vector<double> Triangulation::move_22_2(int cell, bool debug_flag)
 {
     long num_t = transition2112.size(); 
     
     // if I don't consider this case separately transition would have an Undefined Behaviour
-    if(num_t == 0)
-        return;
+    if(num_t == 0){
+        vector<double> v;
+        v.push_back(0.123456789);
+        return v; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
 //     random_device rd;
 //     mt19937_64 mt(rd());
@@ -420,11 +439,17 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
     delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ( (v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
     delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ( (v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
     
-    double reject_trial = r.next();
-    double reject_ratio = min(1.0,exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x));
+    double reject_trial = r.next();    
+    double acceptance = exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x);
+    double reject_ratio = min(1.0, acceptance);
     
-    if(reject_trial > reject_ratio)
-        return; // if not rejected goes on, otherwise it returns with nothing done
+    if(reject_trial > reject_ratio){
+        vector<double> v;
+        v.push_back(acceptance);
+        v.push_back(delta_Sg);
+        
+        return v; // if not rejected goes on, otherwise it returns with nothing done
+    }
     
     // ----- CELL "EVOLUTION" -----
     
@@ -630,6 +655,12 @@ void Triangulation::move_22_2(int cell, bool debug_flag)
 //         cout << "+------+";
 //         cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << *e_lab4;
     }
+    
+    vector<double> v;
+    v.push_back(acceptance);
+    v.push_back(delta_Sg);
+    
+    return v;
     // ----- END MOVE -----
 }
 

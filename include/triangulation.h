@@ -214,11 +214,11 @@ public:
     /**
     * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
     */
-    void move_22_1(int cell = -1, bool debug_flag = false);
-    void move_22_1(bool debug_flag){ move_22_1(-1, debug_flag);}
+    vector<double> move_22_1(int cell = -1, bool debug_flag = false);
+    vector<double> move_22_1(bool debug_flag){ move_22_1(-1, debug_flag);}
     
-    void move_22_2(int cell = -1, bool debug_flag = false);
-    void move_22_2(bool debug_flag){ move_22_2(-1, debug_flag);}
+    vector<double> move_22_2(int cell = -1, bool debug_flag = false);
+    vector<double> move_22_2(bool debug_flag){ move_22_2(-1, debug_flag);}
     
     void move_24(int cell = -1, bool debug_flag = false);
     void move_24(bool debug_flag){ move_24(-1, debug_flag);}

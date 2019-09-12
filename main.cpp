@@ -35,7 +35,8 @@ void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
-               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
+               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
+               ofstream& acc_stream, double acceptance, double dS_g);
 
 int dice();
 int dice(double move22, double move24);
@@ -173,6 +174,13 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         torelons_stream << "# iteration[0] - torelons[1:]" << endl << endl;
     
+    string acc_file = "history/acceptance.txt";
+    ofstream acc_stream(acc_file, ofstream::out | ofstream::app);
+    if (!acc_stream)
+        throw runtime_error("couldn't open 'acceptance.txt' for writing");
+    if (stod(run_id) == 1.)
+        acc_stream << "# iteration[0] - acceptance[1] - DeltaS_g[2]" << endl << endl;
+    
     // ratios
     
     int profile_ratio = 4;
@@ -206,7 +214,9 @@ int main(int argc, char* argv[]){
     
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
-    long i=0;
+    long i = 0;
+    double acceptance = 0.;
+    double dS_g = 0.;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < max_volume){        
         chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
@@ -220,12 +230,20 @@ int main(int argc, char* argv[]){
         switch(dice(move22, move24)){
             case 1:
             {
-                universe.move_22_1(debug_flag);
+                vector<double> v = universe.move_22_1(debug_flag);
+                if(v.size() == 2){
+                    acceptance = v[0];
+                    dS_g = v[1];
+                }
                 break;
             }
             case 2:
             {
-                universe.move_22_2(debug_flag);
+                vector<double> v = universe.move_22_2(debug_flag);
+                if(v.size() == 2){
+                    acceptance = v[0];
+                    dS_g = v[1];
+                }
                 break;
             }
             case 3:
@@ -256,7 +274,7 @@ int main(int argc, char* argv[]){
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts);
+                          save_interval, run_id, n_chkpt, chkpts, acc_stream, acceptance, dS_g);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -268,7 +286,7 @@ int main(int argc, char* argv[]){
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts);
+                          save_interval, run_id, n_chkpt, chkpts, acc_stream, acceptance, dS_g);
             }
         }
         
@@ -369,7 +387,8 @@ void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
-               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts)
+               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
+               ofstream& acc_stream, double acceptance, double dS_g)
 {
     static int j = 0;
     static int k = 0;
@@ -393,6 +412,8 @@ void print_obs(T& time_ref,
         vector<double> v = universe.gauge_action_top_charge();
         double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
+        
+        acc_stream << iter_from_beginning << " " << acceptance << dS_g << endl;
     }
     if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
