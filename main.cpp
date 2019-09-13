@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 #include "triangulation.h"
 #include "randomgenerator.h"
+#include "edge.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ void print_obs(T& time_ref,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, double acceptance, double dS_g);
+               ofstream& acc_stream, ofstream& ph_stream, double acceptance, double dS_g);
 
 int dice();
 int dice(double move22, double move24);
@@ -181,6 +182,13 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         acc_stream << "# iteration[0] - acceptance[1] - DeltaS_g[2]" << endl << endl;
     
+    string ph_file = "history/phases.txt";
+    ofstream ph_stream(ph_file, ofstream::out | ofstream::app);
+    if (!ph_stream)
+        throw runtime_error("couldn't open 'phases.txt' for writing");
+    if (stod(run_id) == 1.)
+        ph_stream << "# iteration[0] - phases[1:]" << endl << endl;
+    
     // ratios
     
     int profile_ratio = 4;
@@ -274,7 +282,8 @@ int main(int argc, char* argv[]){
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts, acc_stream, acceptance, dS_g);
+                          save_interval, run_id, n_chkpt, chkpts,
+                          acc_stream, ph_stream, acceptance, dS_g);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -286,7 +295,8 @@ int main(int argc, char* argv[]){
                 print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts, acc_stream, acceptance, dS_g);
+                          save_interval, run_id, n_chkpt, chkpts,
+                          acc_stream, ph_stream, acceptance, dS_g);
             }
         }
         
@@ -388,7 +398,7 @@ void print_obs(T& time_ref,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, double acceptance, double dS_g)
+               ofstream& acc_stream, ofstream& ph_stream, double acceptance, double dS_g)
 {
     static int j = 0;
     static int k = 0;
@@ -414,6 +424,18 @@ void print_obs(T& time_ref,
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
         
         acc_stream << iter_from_beginning << " " << acceptance << " " << dS_g << endl;
+    }
+    if(h == 16*gauge_ratio){
+        h = 0;
+        
+        vector<double> phases;
+        for(auto x: universe.list1)
+            phases.push_back(arg(x.dync_edge()->gauge_element()[0][0]));        
+        
+        ph_stream << iter_from_beginning << " ";
+        for(auto x: phases)
+            ph_stream << x << " ";
+        ph_stream << endl;
     }
     if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
