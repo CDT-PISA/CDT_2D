@@ -162,7 +162,7 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         cout << "Given force: " << Force.tr() << endl;
     }
     bool accepted = false;
-    double beta = Force.base()->get_owner()->beta;
+    double beta = Force.base()->get_owner()->beta / 2;
     
     double a;
     double c;
