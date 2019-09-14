@@ -114,7 +114,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     delta_Sg -= ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();
-    double acceptance = exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x);
+    double acceptance = exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x);
     double reject_ratio = min(1.0, acceptance);
     
     
@@ -440,7 +440,7 @@ vector<double> Triangulation::move_22_2(int cell, bool debug_flag)
     delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ( (v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();    
-    double acceptance = exp(delta_Sg) * static_cast<double>(num_t)/(num_t + x);
+    double acceptance = exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x);
     double reject_ratio = min(1.0, acceptance);
     
     if(reject_trial > reject_ratio){
@@ -1265,7 +1265,16 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     GaugeElement Force = e_lab->force(debug_flag);
     Force.set_base(lab_e);
     
-    e_lab->U.heatbath(Force, debug_flag);
+//     e_lab->U.heatbath(Force, debug_flag);
+    GaugeElement U_new = e_lab->U * e_lab->U.rand(0.05);
+    U_new.set_base(lab_e);
+    
+    double delta_Sg = - beta * N * real((Force * (U_new - e_lab->U)).tr());
+    
+    if(r.next() > exp(-delta_Sg))
+        return;
+        
+    e_lab->U = U_new;
 
     //     // overrelaxation step
     //     GaugeElement U_new = Force * e_lab->U * Force;

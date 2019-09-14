@@ -94,7 +94,7 @@ public:
     
     double partition_function();
     
-    GaugeElement rand();
+    GaugeElement rand(double s = 1);
     
     GaugeElement random_element(double a = nan(""));
     

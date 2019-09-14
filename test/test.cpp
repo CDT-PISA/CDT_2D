@@ -1,18 +1,27 @@
 /** @file */
-#include <iostream>
-// #include <vector>
-// #include <memory>
-#include "label.h"
-#include "edge.h"
-#include "vertex.h"
+// #include <iostream>
+// // #include <vector>
+// // #include <memory>
+// #include "label.h"
+// #include "edge.h"
+// #include "vertex.h"
 #include "triangle.h"
-#include "gaugeelement.h"
+// #include "gaugeelement.h"
+// #include "triangulation.h"
+// #include "randomgenerator.h"
+// #include <cmath>
+// #include <complex>
+// // #include <random>
+// // #include <limits>
+#include <iostream>
+#include <cstdio>
+#include <chrono>
+#include <string>
+#include <complex>
+#include <sys/stat.h>
 #include "triangulation.h"
 #include "randomgenerator.h"
-#include <cmath>
-#include <complex>
-// #include <random>
-// #include <limits>
+#include "edge.h"
 
 using namespace std;
 
@@ -42,41 +51,52 @@ int dice()
 }
 
 int main(int argc, char* argv[]){
-    Triangulation uni(3, 0.4, 6.);
+    Triangulation uni(80, 0.4, 6.);
     RandomGen r;
     
+    r.really_rand();
+    
     for(int i=0; i<1000; i++){
+        vector<double> x;
         uni.move_24();
-        uni.move_22_1();
-        uni.move_22_2();
+        x = uni.move_22_1();
+        x = uni.move_22_2();
         for(int i=0; i<10; i++)
             uni.move_gauge();
     }
    
-    uni.move_22_1(true);
-    uni.move_22_2(true);
-    uni.move_24(true);
-    uni.move_42(true);
+//     uni.move_22_1(true);
+//     uni.move_22_2(true);
+//     uni.move_24(true);
+//     uni.move_42(true);
     
-    GaugeElement U;
-    for(int i=0; i < 1000; i++)
-        cout << arg(U.rand()[0][0]) << endl;
+//     GaugeElement U;
+//     for(int i=0; i < 1000; i++)
+//         cout << arg(U.rand()[0][0]) << endl;
     
-    double current = uni.total_gauge_action();
+    vector<complex<double>> current = uni.toleron();
+    vector<complex<double>> initial = current;
     for(int i=0; i<1000; i++){
-        double previous = current;
+        vector<complex<double>> previous = current;
         
         int a = uni.list2.size()*r.next();
         GaugeElement U;
-        U = U.random_element(1.);
+        U = U.rand();
         
         uni.list2[a].dync_triangle()->gauge_transform(U);
-        current = uni.total_gauge_action();
+        current = uni.toleron();
         
-        cout << a << endl << U << endl;
-        
-        if(current - previous > 1e-10){
-            cout << current - previous << endl;
+        for(int j=0; j<current.size(); j++){
+            if(abs(current[j] - previous[j]) > 1e-10){
+                cout << abs(current[j] - previous[j]) << endl;
+                throw runtime_error("not gauge invariant");
+            }
+        }
+    }
+    
+    for(int j=0; j<current.size(); j++){
+        if(abs(current[j] - initial[j]) > 1e-10){
+            cout << abs(current[j] - initial[j]) << endl;
             throw runtime_error("not gauge invariant");
         }
     }
