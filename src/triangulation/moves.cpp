@@ -1,3 +1,10 @@
+// #include<triangulation.h>
+// #include<vertex.h>
+// #include<edge.h>
+// #include<triangle.h>
+// #include<gaugeelement.h>
+// #include<randomgenerator.h>
+
 // ##### MOVES #####
 
 /**
@@ -753,7 +760,12 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
     GaugeElement gt0(e_lab0->gauge_element());
-    tri_lab0->gauge_transform(gt0, debug_flag);
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(gt0, debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(gt0.dagger(), debug_flag);
+    }
     
     if(debug_flag){
         GaugeElement Id(1.);
@@ -953,6 +965,11 @@ void Triangulation::move_24(int cell, bool debug_flag)
      * the triangulation is in a consistent state
      */
     
+    GaugeElement U;
+    tri_lab0->gauge_transform(U.rand(), debug_flag);
+    tri_lab2->gauge_transform(U.rand(), debug_flag);
+    tri_lab3->gauge_transform(U.rand(), debug_flag);
+    
     // ----- END MOVE -----
     
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are inserted on the right, and transitions are represented by right members of the cell) */
@@ -1068,7 +1085,14 @@ void Triangulation::move_42(int cell, bool debug_flag)
         cout << " [vertices' times] v0: " << v_lab0->time() << ", v1: " << v_lab1->time() << ", v4: " << v_lab4->time() << " \t\t[pretending v4] t0:" << tri_lab0->vertices()[1]->position() << " t1:" << tri_lab1->vertices()[1]->position() << " t2:" << tri_lab2->vertices()[0]->position() << " t3:" << tri_lab3->vertices()[0]->position() << endl;
         cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
-    }    
+    }
+    
+    // In order to do a simple prerandomization I make random gauge transform rather than chosing randomly
+    // the link to leave invariant
+    GaugeElement U;
+    tri_lab0->gauge_transform(U.rand(), debug_flag);
+    tri_lab1->gauge_transform(U.rand(), debug_flag);
+    tri_lab2->gauge_transform(U.rand(), debug_flag);
     
     // Gauge transforming on: 
     //  - the left triangle with G.dagger(), G the gauge element on e1
@@ -1230,6 +1254,13 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }
     /* vertex 2 and 3 cannot become of coord. 4, because they have more than one time link toward the same time slice */ 
 
+    if(r.next() < 0.5){
+        tri_lab0->gauge_transform(U.rand(), debug_flag);
+    }
+    else{
+        tri_lab1->gauge_transform(U.rand(), debug_flag);
+    }
+    
     // ----- END MOVE -----
     
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */

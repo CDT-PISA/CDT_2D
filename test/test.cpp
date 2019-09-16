@@ -65,41 +65,41 @@ int main(int argc, char* argv[]){
             uni.move_gauge();
     }
    
-//     uni.move_22_1(true);
-//     uni.move_22_2(true);
-//     uni.move_24(true);
-//     uni.move_42(true);
+    uni.move_22_1(true);
+    uni.move_22_2(true);
+    uni.move_24(true);
+    uni.move_42(true);
     
 //     GaugeElement U;
 //     for(int i=0; i < 1000; i++)
 //         cout << arg(U.rand()[0][0]) << endl;
-    
-    vector<complex<double>> current = uni.toleron();
-    vector<complex<double>> initial = current;
-    for(int i=0; i<1000; i++){
-        vector<complex<double>> previous = current;
-        
-        int a = uni.list2.size()*r.next();
-        GaugeElement U;
-        U = U.rand();
-        
-        uni.list2[a].dync_triangle()->gauge_transform(U);
-        current = uni.toleron();
-        
-        for(int j=0; j<current.size(); j++){
-            if(abs(current[j] - previous[j]) > 1e-10){
-                cout << abs(current[j] - previous[j]) << endl;
-                throw runtime_error("not gauge invariant");
-            }
-        }
-    }
-    
-    for(int j=0; j<current.size(); j++){
-        if(abs(current[j] - initial[j]) > 1e-10){
-            cout << abs(current[j] - initial[j]) << endl;
-            throw runtime_error("not gauge invariant");
-        }
-    }
+//     
+//     vector<complex<double>> current = uni.toleron();
+//     vector<complex<double>> initial = current;
+//     for(int i=0; i<1000; i++){
+//         vector<complex<double>> previous = current;
+//         
+//         int a = uni.list2.size()*r.next();
+//         GaugeElement U;
+//         U = U.rand();
+//         
+//         uni.list2[a].dync_triangle()->gauge_transform(U);
+//         current = uni.toleron();
+//         
+//         for(int j=0; j<current.size(); j++){
+//             if(abs(current[j] - previous[j]) > 1e-10){
+//                 cout << abs(current[j] - previous[j]) << endl;
+//                 throw runtime_error("not gauge invariant");
+//             }
+//         }
+//     }
+//     
+//     for(int j=0; j<current.size(); j++){
+//         if(abs(current[j] - initial[j]) > 1e-10){
+//             cout << abs(current[j] - initial[j]) << endl;
+//             throw runtime_error("not gauge invariant");
+//         }
+//     }
 //     complex<double> prev = exp(1i*4.6);
 //     cout << (imag(prev) > 0) * 2 - 1 << endl;
 //     
@@ -148,4 +148,9 @@ int main(int argc, char* argv[]){
 //            uni.move_gauge();
 //        }
 //     }
+    
+    cout << endl << endl;
+    cout << "╔═══════════════════════╗" << endl;
+    cout << "║     Happy Ending!     ║" << endl;
+    cout << "╚═══════════════════════╝" << endl;
 }
