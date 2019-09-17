@@ -1302,7 +1302,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     Force.set_base(lab_e);
     
 //     e_lab->U.heatbath(Force, debug_flag);
-    GaugeElement U_new = e_lab->U * e_lab->U.rand(0.05);
+    GaugeElement U_new = e_lab->U * e_lab->U.rand(0.1);
     U_new.set_base(lab_e);
     
     double delta_Sg = - beta * N * real((Force * (U_new - e_lab->U)).tr());
