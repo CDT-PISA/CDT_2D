@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <chrono>
 #include <string>
+#include <sstream>
 #include <complex>
 #include <sys/stat.h>
 #include "triangulation.h"
@@ -31,13 +32,16 @@ bool str_to_bool(string str, string error_msg = "");
 */
 void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, long i);
 
+string cx_to_str(complex<double> c){ stringstream s; s << real(c) << (imag(c) >= 0.0 ? "+" : "") 
+                                                       << imag(c) << "i"; return s.str(); }
 template <typename T>
 void print_obs(T& time_ref,
                ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, ofstream& ph_stream, double acceptance, double dS_g);
+               ofstream& acc_stream, ofstream& ph_stream,
+               complex<double> GE_bef, complex<double> GE_aft, complex<double> Force);
 
 int dice();
 int dice(double move22, double move24);
@@ -175,12 +179,12 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         torelons_stream << "# iteration[0] - torelons[1:]" << endl << endl;
     
-    string acc_file = "history/acceptance.txt";
+    string acc_file = "history/glink_update.txt";
     ofstream acc_stream(acc_file, ofstream::out | ofstream::app);
     if (!acc_stream)
-        throw runtime_error("couldn't open 'acceptance.txt' for writing");
+        throw runtime_error("couldn't open 'glink_update.txt' for writing");
     if (stod(run_id) == 1.)
-        acc_stream << "# iteration[0] - acceptance[1] - DeltaS_g[2]" << endl << endl;
+        acc_stream << "# iteration[0] - GaugeElement_bef[1] - GaugeElement_aft[2] - Force[2]" << endl << endl;
     
     string ph_file = "history/phases.txt";
     ofstream ph_stream(ph_file, ofstream::out | ofstream::app);
@@ -225,6 +229,9 @@ int main(int argc, char* argv[]){
     long i = 0;
     double acceptance = 0.;
     double dS_g = 0.;
+    complex<double> GE_bef;
+    complex<double> GE_aft;
+    complex<double> Force;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < max_volume){        
         chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
@@ -266,7 +273,10 @@ int main(int argc, char* argv[]){
             }
             case 5:
             {
-                universe.move_gauge(debug_flag);
+                vector<complex<double>> v = universe.move_gauge(debug_flag);
+                GE_bef = v[0];
+                GE_aft = v[1];
+                Force = v[2];
                 break;
             }
         }
@@ -283,7 +293,7 @@ int main(int argc, char* argv[]){
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts,
-                          acc_stream, ph_stream, acceptance, dS_g);
+                          acc_stream, ph_stream, GE_bef, GE_aft, Force);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -296,7 +306,7 @@ int main(int argc, char* argv[]){
                           iter_from_beginning, i, adj_flag,
                           profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
                           save_interval, run_id, n_chkpt, chkpts,
-                          acc_stream, ph_stream, acceptance, dS_g);
+                          acc_stream, ph_stream, GE_bef, GE_aft, Force);
             }
         }
         
@@ -398,7 +408,8 @@ void print_obs(T& time_ref,
                Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
                int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
                float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, ofstream& ph_stream, double acceptance, double dS_g)
+               ofstream& acc_stream, ofstream& ph_stream,
+               complex<double> GE_bef, complex<double> GE_aft, complex<double> Force)
 {
     static int j = 0;
     static int k = 0;
@@ -411,6 +422,8 @@ void print_obs(T& time_ref,
     h++;
     l++;
     volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
+    acc_stream << iter_from_beginning << " " << cx_to_str(GE_bef) << " " << cx_to_str(GE_aft)
+               << " " << cx_to_str(Force) << endl;
 
     if(j == profile_ratio){
         j = 0;
@@ -422,21 +435,19 @@ void print_obs(T& time_ref,
         vector<double> v = universe.gauge_action_top_charge();
         double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
         gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
-        
-        acc_stream << iter_from_beginning << " " << acceptance << " " << dS_g << endl;
     }
-    if(h == 16*gauge_ratio){
-        h = 0;
-        
-        vector<double> phases;
-        for(auto x: universe.list1)
-            phases.push_back(arg(x.dync_edge()->gauge_element()[0][0]));        
-        
-        ph_stream << iter_from_beginning << " ";
-        for(auto x: phases)
-            ph_stream << x << " ";
-        ph_stream << endl;
-    }
+//     if(h == 16*gauge_ratio){
+//         h = 0;
+//         
+//         vector<double> phases;
+//         for(auto x: universe.list1)
+//             phases.push_back(arg(x.dync_edge()->gauge_element()[0][0]));        
+//         
+//         ph_stream << iter_from_beginning << " ";
+//         for(auto x: phases)
+//             ph_stream << x << " ";
+//         ph_stream << endl;
+//     }
     if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
         universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json",
