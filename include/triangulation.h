@@ -226,8 +226,8 @@ public:
     void move_42(int cell = -1, bool debug_flag = false);
     void move_42(bool debug_flag){ move_42(-1, debug_flag);}
     
-    void move_gauge(int cell = -1, bool debug_flag = false);
-    void move_gauge(bool debug_flag){ move_gauge(-1, debug_flag);}
+    vector<complex<double>> move_gauge(int cell = -1, bool debug_flag = false);
+    vector<complex<double>> move_gauge(bool debug_flag){ return move_gauge(-1, debug_flag);}
     
     // auxiliary functions (for moves)
     

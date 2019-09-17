@@ -1267,7 +1267,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
 }
 
 
-void Triangulation::move_gauge(int cell, bool debug_flag)
+vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 {
     RandomGen r;
     int e_num;
@@ -1289,9 +1289,14 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     }
     else
         e_num = cell;
+    
+    vector<complex<double>> v;
         
     Label lab_e = list1[e_num];
     Edge* e_lab = lab_e.dync_edge();
+    
+    // GE_bef
+    v.push_back(e_lab->U.tr());
     
     GaugeElement Force = e_lab->force(debug_flag);
     Force.set_base(lab_e);
@@ -1302,8 +1307,14 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     
     double delta_Sg = - beta * N * real((Force * (U_new - e_lab->U)).tr());
     
-    if(r.next() > exp(-delta_Sg))
-        return;
+    if(r.next() > exp(-delta_Sg)){
+        // GE_aft
+        v.push_back(e_lab->U.tr());
+        
+        // Force
+        v.push_back(Force.tr());
+        return v;
+    }
         
     e_lab->U = U_new;
 
@@ -1312,6 +1323,12 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
     //     U_new.set_base(lab_e);
     //     e_lab->U = U_new.dagger(); 
     e_lab->U.unitarize();
+    
+    // GE_aft
+    v.push_back(e_lab->U.tr());
+    
+    // Force
+    v.push_back(Force.tr());
 
     
     if(debug_flag){
@@ -1320,6 +1337,8 @@ void Triangulation::move_gauge(int cell, bool debug_flag)
         cout << "│AT THE END OF move_gauge:│ " << endl;
         cout << "└─────────────────────────┘" << endl;;
     }
+    
+    return v;
     // ----- END MOVE -----
 }
 
