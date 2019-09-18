@@ -446,14 +446,14 @@ void print_obs(T& time_ref,
                                                 iter_from_beginning);
         n++;
     }
-//     if(l == torelons_ratio){
-//         l = 0;
-//         torelons_stream << iter_from_beginning << " ";
-//         vector<complex<double>> torelons = universe.toleron();
-//         for(auto x: torelons)
-//             torelons_stream << x << " ";
-//         torelons_stream << endl;
-//     }
+    if(l == torelons_ratio){
+        l = 0;
+        torelons_stream << iter_from_beginning << " ";
+        vector<complex<double>> torelons = universe.toleron();
+        for(auto x: torelons)
+            torelons_stream << x << " ";
+        torelons_stream << endl;
+    }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
         time_ref = chrono::system_clock::now();
