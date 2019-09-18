@@ -244,17 +244,9 @@ int main(int argc, char* argv[]){
         
         switch(dice(move22, move24)){
             case 1:
-            {
-                vector<double> v = universe.move_22_1(debug_flag);
-                if(v.size() == 2){
-                    acceptance = v[0];
-                    dS_g = v[1];
-                }
-                break;
-            }
             case 2:
             {
-                vector<double> v = universe.move_22_2(debug_flag);
+                vector<double> v = universe.move_22(debug_flag);
                 if(v.size() == 2){
                     acceptance = v[0];
                     dS_g = v[1];
