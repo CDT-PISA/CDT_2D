@@ -1,33 +1,38 @@
-// #include<triangulation.h>
-// #include<vertex.h>
-// #include<edge.h>
-// #include<triangle.h>
-// #include<gaugeelement.h>
-// #include<randomgenerator.h>
+#include<triangulation.h>
+#include<vertex.h>
+#include<edge.h>
+#include<triangle.h>
+#include<gaugeelement.h>
+#include<randomgenerator.h>
+#include <vector>
+using namespace std;
 
 // ##### MOVES #####
 
+
 /**
- * Questa sarà la mossa
+ * Questa sarà la mossa se is22_1 == true, altrimenti la figura e' flippata verticalmente
  * \code
- *     v3         v2         v3         v2
- *      * * * * * *           * * * * * *
- *      *        **           **        *
- *      *  1   *  *           *  *   1  *
- *    2 *    *    * 3  -->  2 *    *    * 3
- *      *  *   0  *           *  0   *  *
- *      **        *           *        **
- *      * * * * * *           * * * * * *
- *     v0         v1         v0         v1
+ *     v0         v1            v0         v1 
+ *      * * * * * *             * * * * * *  
+ *      **        *             *        **  
+ *      *  *   0  *             *  0   *  *  
+ *    2 *    *    * 3   -->   2 *    *    * 3
+ *      *  1   *  *             *  *   1  *  
+ *      *        **             **        *  
+ *      * * * * * *             * * * * * *  
+ *     v3         v2            v3         v2 
  * \endcode
- * 
- * @todo allegare anche qualche altro disegno
- * 
- * @test devo fare i test per questa mossa (forse devo trovare un modo semplice di stampare tutta la triangolazione)
  */ 
-vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
-{   
-    long num_t = transition1221.size(); 
+vector<double> Triangulation::move_22(int cell, bool debug_flag)
+{
+
+    RandomGen r;
+    bool is22_1 = r.next()<0.5;
+    vector<Label> *transitionlist = (is22_1)? &transition1221 : &transition2112;
+    vector<Label> *Atransitionlist = (!is22_1)? &transition1221 : &transition2112;
+
+    long num_t = transitionlist->size(); 
     
     // if I don't consider this case separately transition would have an Undefined Behaviour
     if(num_t == 0){
@@ -36,7 +41,6 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
         return v; // if not rejected goes on, otherwise it returns with nothing done
     }
     
-    RandomGen r;
     
     // ___ cell recognition ___
     
@@ -46,8 +50,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     // if it is not specified (cell = -1), as in real runs, the cell is extracted
     if(cell == -1){
         tr  = r.next() * num_t;
-        if(tr == num_t) // this shouldn't happen never
-            tr = num_t - 1;
+        assert(tr < num_t); // this shouldn't happen never
     }
     else{
         tr = cell;
@@ -59,8 +62,8 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
 //     static int tr = 3;
 //     tr++;
     if(debug_flag){
-        cout << "move_22_1 :" << endl;
-        cout << transition2112[tr]->position() << " " << transition1221[tr].dync_triangle()->vertices()[1]->position() << " ";
+        cout << "move_22:" << endl;
+        cout << (*transitionlist)[tr]->position() << " " << (*transitionlist)[tr].dync_triangle()->vertices()[1]->position() << " ";
     }
     
     /**
@@ -69,7 +72,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
      * - o non uso i lab_t e al loro posto metto sempre list2[tri_lab->position()]
      */ 
     // ___ find triangles (they are needed to compute the reject ratio) ___
-    Label lab_t0 = transition1221[tr];
+    Label lab_t0 = (*transitionlist)[tr];
     Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
     Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[1];
     Label lab_t3 = lab_t0.dync_triangle()->adjacent_triangles()[0];
@@ -89,7 +92,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
      */ 
     Label lab_v0 = tri_lab0->vertices()[0];
     Label lab_v1 = tri_lab0->vertices()[1];
-    Label lab_v2 = tri_lab0->vertices()[2];
+    Label lab_v2 = tri_lab1->vertices()[1];
     Label lab_v3 = tri_lab1->vertices()[0];
     Vertex* v_lab0 = lab_v0.dync_vertex();
     Vertex* v_lab1 = lab_v1.dync_vertex();
@@ -99,7 +102,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     if(debug_flag){
         cout << endl;
         cout << "╔═══════════════════════╗" << endl;
-        cout << "║BEGINNING OF move_22_1:║" << endl;
+        cout << "║BEGINNING OF move_22:  ║" << endl;
         cout << "╚═══════════════════════╝" << endl;
         cout << " (time " << v_lab0->time() << ")" << endl;
         cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
@@ -108,22 +111,24 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     }
     
     int x = 1;
-    if(tri_lab2->is21())
+    if(is22_1 == tri_lab2->is21())
         x--;
-    if(tri_lab3->is12())
+    if(is22_1 == tri_lab3->is12())
         x--;
     
     double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg += ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() + 1)*v_lab0->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1)*v_lab2->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() - 1)*v_lab1->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1)*v_lab3->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
+    delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
+    delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
     
     double reject_trial = r.next();
     double acceptance = exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x);
     double reject_ratio = min(1.0, acceptance);
     
+    // 1/num_t : prob selection direct move
+    // 1/(num_t + x) : prob selection inverse move
     
     if(reject_trial > reject_ratio){
         vector<double> v;
@@ -163,9 +168,9 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
         GaugeElement Zero = e_lab0->gauge_element() - Id;
         
         if(Zero.norm() > 1e-10)
-            throw runtime_error("move 22_1: e_lab0 element is not Id after gauge_transform.");
+            throw runtime_error("move 22: e_lab0 element is not Id after gauge_transform.");
         else
-            cout << endl << "move 22_1: gauge_transform check passed!" << endl << endl;
+            cout << endl << "move 22: gauge_transform check passed!" << endl << endl;
     }
         
     // ___ modify triangles' adjacencies ___
@@ -209,41 +214,41 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     
     // ___ modify transitions list ___
     
-    if(tri_lab2->is21()){
+    if(is22_1 == tri_lab2->is21()){
         /** @todo uno potrrebbe anche pensare di impacchettare queste modifiche delle transition list in dei metodi separati in modo da avere più garanzie sul fatto che gli invarianti siano rispettati */
-        if(tri_lab0->transition_id != transition1221.size() - 1){
-            Label lab_end = transition1221[transition1221.size() - 1];
+        if(tri_lab0->transition_id != (int)transitionlist->size() - 1){
+            Label lab_end = (*transitionlist)[transitionlist->size() - 1];
             
             lab_end.dync_triangle()->transition_id = tri_lab0->transition_id;
-            transition1221[tri_lab0->transition_id] = lab_end;
+            (*transitionlist)[tri_lab0->transition_id] = lab_end;
         }
-        transition1221.pop_back();
+        transitionlist->pop_back();
         tri_lab0->transition_id = -1;
     }
     else{
         /* we have to do this only in the case in which t2 is of the type such that a transition between t2 and t1 was not allowed before, indeed otherwise t1 was already a transition-cell right-member, but the transition  doesn't store the value of the left-member, so is not relevant that is changed: t1 was a transition right-member and still is */
-        tri_lab1->transition_id = transition2112.size();
-        transition2112.push_back(lab_t1);
+        tri_lab1->transition_id = Atransitionlist->size();
+        Atransitionlist->push_back(lab_t1);
     }
-    if(tri_lab3->is12()){
-        if(tri_lab3->transition_id != transition2112.size() - 1){
-            Label lab_end = transition2112[transition2112.size() - 1];
+    if(is22_1 == tri_lab3->is12()){
+        if(tri_lab3->transition_id != (int)Atransitionlist->size() - 1){
+            Label lab_end = (*Atransitionlist)[Atransitionlist->size() - 1];
             
             lab_end.dync_triangle()->transition_id = tri_lab3->transition_id;
-            transition2112[tri_lab3->transition_id] = lab_end;
+            (*Atransitionlist)[tri_lab3->transition_id] = lab_end;
         }
-        transition2112.pop_back();
+        Atransitionlist->pop_back();
         tri_lab3->transition_id = -1;
     }
     else{
-        tri_lab3->transition_id = transition1221.size();
-        transition1221.push_back(lab_t3);
+        tri_lab3->transition_id = transitionlist->size();
+        transitionlist->push_back(lab_t3);
     }
     
     /** @todo ripensare a questo errore */
     if(debug_flag){
-        if(transition1221.size() != transition2112.size()){
-            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size();
+        if(transitionlist->size() != Atransitionlist->size()){
+            cout << "transitionlist: " << transitionlist->size() << " Atransition: " << Atransitionlist->size();
             cout.flush();
             throw runtime_error("Not the same number of transitions of the two types");
         }
@@ -319,7 +324,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     if(debug_flag){
         cout << endl;
         cout << "┌────────────────────────┐" << endl;
-        cout << "│AT THE END OF move_22_1:│ " << endl;
+        cout << "│AT THE END OF move_22:  │ " << endl;
         cout << "└────────────────────────┘" << endl;
         cout << " [cell] (vertices) \t\t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
@@ -334,342 +339,7 @@ vector<double> Triangulation::move_22_1(int cell, bool debug_flag)
     // ----- END MOVE -----
 }
 
-/**
- * Questa sarà la mossa
- * \code
- *     v0         v1            v0         v1 
- *      * * * * * *             * * * * * *  
- *      **        *             *        **  
- *      *  *   0  *             *  0   *  *  
- *    2 *    *    * 3   -->   2 *    *    * 3
- *      *  1   *  *             *  *   1  *  
- *      *        **             **        *  
- *      * * * * * *             * * * * * *  
- *     v3         v2            v3         v2 
- * \endcode
- */ 
-vector<double> Triangulation::move_22_2(int cell, bool debug_flag)
-{
-    long num_t = transition2112.size(); 
-    
-    // if I don't consider this case separately transition would have an Undefined Behaviour
-    if(num_t == 0){
-        vector<double> v;
-        v.push_back(0.123456789);
-        return v; // if not rejected goes on, otherwise it returns with nothing done
-    }
-    
-//     random_device rd;
-//     mt19937_64 mt(rd());
-//     uniform_int_distribution<int> transition(0, num_t - 1);
-//     uniform_real_distribution<double> reject_trial(0.0,1.0);
-//     
-//     int tr = transition(mt);
-    
-    RandomGen r;
-    
-    // ___ cell recognition ___
-    
-    int tr;
-    
-    // to make testing easier it is possible to specify the "cell" on which operate
-    // if it is not specified (cell = -1), as in real runs, the cell is extracted
-    if(cell == -1){
-        tr  = r.next() * num_t;
-        if(tr == num_t) // this shouldn't happen never
-            tr = num_t - 1;
-    }
-    else{
-        tr = cell;
-    }
-    
-    if(debug_flag){
-        cout << "move_22_2 :" << endl;
-        cout << transition2112[tr]->position() << " " << transition2112[tr].dync_triangle()->vertices()[1]->position() << " ";
-    }
-        
-    // ___ find triangles (they are needed to compute the reject ratio) ___
-    Label lab_t0 = transition2112[tr];
-    Label lab_t1 = lab_t0.dync_triangle()->adjacent_triangles()[1];
-    Label lab_t2 = lab_t1.dync_triangle()->adjacent_triangles()[1];
-    Label lab_t3 = lab_t0.dync_triangle()->adjacent_triangles()[0];
-    Triangle* tri_lab0 = lab_t0.dync_triangle();
-    Triangle* tri_lab1 = lab_t1.dync_triangle();
-    Triangle* tri_lab2 = lab_t2.dync_triangle();
-    Triangle* tri_lab3 = lab_t3.dync_triangle();
-    
-    
-    // ----- REJECT RATIO -----
-    
-    // ___ find vertices ___
-    /* it's anticipated, because vertices are needed in order to compute the gauge action variation
-     */ 
-    Label lab_v0 = tri_lab0->vertices()[0];
-    Label lab_v1 = tri_lab0->vertices()[1];
-    Label lab_v2 = tri_lab1->vertices()[1];
-    Label lab_v3 = tri_lab1->vertices()[0];
-    Vertex* v_lab0 = lab_v0.dync_vertex();
-    Vertex* v_lab1 = lab_v1.dync_vertex();
-    Vertex* v_lab2 = lab_v2.dync_vertex();
-    Vertex* v_lab3 = lab_v3.dync_vertex();
-    
-    if(debug_flag){
-        cout << endl;
-        cout << "╔═══════════════════════╗" << endl;
-        cout << "║BEGINNING OF move_22_2:║" << endl;
-        cout << "╚═══════════════════════╝" << endl;
-        cout << " (time " << v_lab0->time() << ")" << endl;
-        cout << " [cell] (vertices) \t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
-        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
-        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl << endl;
-        
-        cout << "+----------+" << endl;
-        cout << "|TRIANGLES:|" << endl;
-        cout << "+----------+";
-        cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
-        
-        cout << "+------+" << endl;
-        cout << "|EDGES:|" << endl;
-        cout << "+------+";
-    }
-    
-    int x = 1;
-    if(tri_lab2->is12())
-        x--;
-    if(tri_lab3->is21())
-        x--;
-    
-    double beta_N = beta * N;
-    double delta_Sg = 0;
-    delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ( (v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ( (v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ( (v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ( (v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
-    
-    double reject_trial = r.next();    
-    double acceptance = exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x);
-    double reject_ratio = min(1.0, acceptance);
-    
-    if(reject_trial > reject_ratio){
-        vector<double> v;
-        v.push_back(acceptance);
-        v.push_back(delta_Sg);
-        
-        return v; // if not rejected goes on, otherwise it returns with nothing done
-    }
-    
-    // ----- CELL "EVOLUTION" -----
-    
-    // ___ find edges ___
-    Label lab_e0 = tri_lab0->edges()[1]; //           3    
-    Label lab_e1 = tri_lab1->edges()[1]; //      * * * * * *  
-    Label lab_e2 = tri_lab0->edges()[0]; //      **        *  
-    Label lab_e3 = tri_lab0->edges()[2]; //      *  *   0  *  
-    Label lab_e4 = tri_lab1->edges()[2]; //    1 *    *    * 2
-    Edge* e_lab0 = lab_e0.dync_edge();   //      *      *  *  
-    Edge* e_lab1 = lab_e1.dync_edge();   //      *        **  
-    Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
-    Edge* e_lab3 = lab_e3.dync_edge();   //           4    
-    Edge* e_lab4 = lab_e4.dync_edge();
-    
-    if(debug_flag){
-//         cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << *e_lab4;
-    }
-    
-    // ___ gauge transform on t1 in order to put e0 = 1 ___
-    // I'm gauge transforming on the right triangle, so e0 is its left edge
-    // and left edges (e[1]) are multiplied by G.dagger() in gauge_transform
-    if(r.next() < 0.5){
-        tri_lab0->gauge_transform(e_lab0->gauge_element(), debug_flag);
-    }
-    else{
-        tri_lab1->gauge_transform(e_lab0->gauge_element().dagger(), debug_flag);
-    }
-    
-    if(debug_flag){
-        GaugeElement Id(1.);
-        GaugeElement Zero = e_lab0->gauge_element() - Id;
-        
-        if(Zero.norm() > 1e-10)
-            throw runtime_error("move 22_2: e_lab0 element is not Id after gauge_transform.");
-        else
-            cout << endl << "move 22_2: gauge_transform check passed!" << endl << endl;
-    }
 
-    // ___ modify triangles' adjacencies ___
-    tri_lab0->adjacent_triangles()[0] = lab_t1;
-    tri_lab0->adjacent_triangles()[1] = lab_t2;
-    tri_lab1->adjacent_triangles()[0] = lab_t3;
-    tri_lab1->adjacent_triangles()[1] = lab_t0;
-    tri_lab2->adjacent_triangles()[0] = lab_t0;
-    tri_lab3->adjacent_triangles()[1] = lab_t1;
-    
-    // ___ modify triangles' vertices ___
-    tri_lab0->vertices()[2] = lab_v3;
-    tri_lab1->vertices()[2] = lab_v1;
-    
-    // ___ modify triangles' edges ___
-    tri_lab1->edges()[0] = lab_e2;
-    tri_lab1->edges()[1] = lab_e0;
-    tri_lab0->edges()[0] = lab_e0;
-    tri_lab0->edges()[1] = lab_e1;
-    
-    // ___ modify edges' near_t ___
-    e_lab1->near_t = lab_t0;
-    e_lab2->near_t = lab_t1;
-    
-    // ___ modify edges' vertices ___
-    e_lab0->vertices()[0] = lab_v1;
-    e_lab0->vertices()[1] = lab_v3;
-    
-    // ___ modify vertices' near_t ___
-    /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
-    v_lab0->near_t = lab_t0;
-    v_lab2->near_t = lab_t1;
-    
-    // ___ modify vertices' coord_num ___
-    v_lab1->coord_num++;
-    v_lab3->coord_num++;
-    v_lab0->coord_num--;
-    v_lab2->coord_num--;
-    
-    // ----- AUXILIARY STRUCTURES -----
-    
-    // ___ modify transitions list ___
-    
-    if(tri_lab2->is12()){
-        /** @todo uno potrrebbe anche pensare di impacchettare queste modifiche delle transition list in dei metodi separati in modo da avere più garanzie sul fatto che gli invarianti siano rispettati */
-        if(tri_lab0->transition_id != transition2112.size() - 1){
-            Label lab_end = transition2112[transition2112.size() - 1];
-            
-            lab_end.dync_triangle()->transition_id = tri_lab0->transition_id;
-            transition2112[tri_lab0->transition_id] = lab_end;
-        }
-        transition2112.pop_back();
-        tri_lab0->transition_id = -1;
-    }
-    else{
-        /* see the corresponding comment in move_22_1 */
-        tri_lab1->transition_id = transition1221.size();
-        transition1221.push_back(lab_t1);
-    }
-    if(tri_lab3->is21()){
-        if(tri_lab3->transition_id != transition1221.size() - 1){
-            Label lab_end = transition1221[transition1221.size() - 1];
-            
-            lab_end.dync_triangle()->transition_id = tri_lab3->transition_id;
-            transition1221[tri_lab3->transition_id] = lab_end;
-        }
-        transition1221.pop_back();
-        tri_lab3->transition_id = -1;
-    }
-    else{
-        tri_lab3->transition_id = transition2112.size();
-        transition2112.push_back(lab_t3);
-    }
-    
-    /** @todo ripensare a questo errore */
-    if(debug_flag){
-        if(transition1221.size() != transition2112.size()){
-            cout << "transition1221: " << transition1221.size() << " transition2112: " << transition2112.size() << endl;
-            throw runtime_error("Not the same number of transitions of the two types");
-        }
-    }
-    
-    // ___ find vert. coord. 4 and patologies ___
-    
-    /* vertex 0,2 were not of coord. 4, and they could have become
-     * vertex 1,3 could be of coord. 4, and now they are not
-     */ 
-    
-    vector<Vertex*> vec;
-    vec.push_back(v_lab0);
-    vec.push_back(v_lab2);
-    
-    for(auto x : vec){
-        if(x->coordination() == 4){
-            Label lab = list0[x->position()];
-            
-            list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()]->id = x->position();
-            list0[num40 + num40p] = lab;
-            list0[num40 + num40p]->id = num40 + num40p;
-            
-            if(spatial_profile[x->time()] == 3){
-                num40p++;
-            }
-            else{                
-                list0[x->position()] = list0[num40];
-                list0[x->position()]->id = x->position();
-                list0[num40] = lab;
-                list0[num40]->id = num40;
-                
-                num40++;
-            }
-        }        
-    }
-    
-    vec.clear();
-    vec.push_back(v_lab1);
-    vec.push_back(v_lab3);
-    
-    for(auto x : vec){
-        if(x->coordination() == 5){
-            Label lab = list0[x->position()];
-
-            if(spatial_profile[x->time()] == 3){
-                num40p--;
-            }
-            else{
-                num40--;
-                
-                list0[x->position()] = list0[num40];
-                list0[x->position()]->id = x->position();
-                list0[num40] = lab;
-                list0[num40]->id = num40;
-            }
-            list0[x->position()] = list0[num40 + num40p];
-            list0[x->position()]->id = x->position();
-            list0[num40 + num40p] = lab;
-            list0[num40 + num40p]->id = num40 + num40p;
-        }        
-    }
-    
-    GaugeElement U;
-    if(r.next() < 0.5){
-        tri_lab0->gauge_transform(U.rand(), debug_flag);
-    }
-    else{
-        tri_lab1->gauge_transform(U.rand(), debug_flag);
-    }
-    
-    if(debug_flag){
-        cout << endl;
-        cout << "┌────────────────────────┐" << endl;
-        cout << "│AT THE END OF move_22_2:│ " << endl;
-        cout << "└────────────────────────┘" << endl;
-        cout << " [cell] (vertices) \t\tv0: " << lab_v0->id << ", v1: " << lab_v1->id << ", v2: " << lab_v2->id << ", v3: " << lab_v3->id  << endl;
-        cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
-        cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
-        
-//         cout << "+----------+" << endl;
-//         cout << "|TRIANGLES:|" << endl;
-//         cout << "+----------+";
-//         cout << *tri_lab0 << *tri_lab1 << *tri_lab2 << *tri_lab3 << endl;
-//         
-//         cout << "+------+" << endl;
-//         cout << "|EDGES:|" << endl;
-//         cout << "+------+";
-//         cout << *e_lab0 << *e_lab1 << *e_lab2 << *e_lab3 << *e_lab4;
-    }
-    
-    vector<double> v;
-    v.push_back(acceptance);
-    v.push_back(delta_Sg);
-    
-    return v;
-    // ----- END MOVE -----
-}
 
 /**
  * Questa sarà la mossa

@@ -59,14 +59,14 @@ int main(int argc, char* argv[]){
     for(int i=0; i<1000; i++){
         vector<double> x;
         uni.move_24();
-        x = uni.move_22_1();
-        x = uni.move_22_2();
+        x = uni.move_22();
+        x = uni.move_22();
         for(int i=0; i<10; i++)
             uni.move_gauge();
     }
    
-    uni.move_22_1(true);
-    uni.move_22_2(true);
+    uni.move_22(true);
+    uni.move_22(true);
     uni.move_24(true);
     uni.move_42(true);
     
@@ -114,14 +114,14 @@ int main(int argc, char* argv[]){
 //         switch(dice()){
 //             case 1:
 //             {
-// //                cout<<"mv22_1"<<endl;
-//                 uni.move_22_1();
+// //                cout<<"mv22"<<endl;
+//                 uni.move_22();
 //                 break;
 //             }
 //             case 2:
 //             {
-// //                cout<<"mv22_2"<<endl;
-//                 uni.move_22_2();
+// //                cout<<"mv22"<<endl;
+//                 uni.move_22();
 //                 break;
 //             }
 //             case 3:
