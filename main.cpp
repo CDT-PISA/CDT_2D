@@ -184,7 +184,7 @@ int main(int argc, char* argv[]){
     if (!acc_stream)
         throw runtime_error("couldn't open 'glink_update.txt' for writing");
     if (stod(run_id) == 1.)
-        acc_stream << "# iteration[0] - GaugeElement_bef[1] - GaugeElement_aft[2] - Force[2]" << endl << endl;
+        acc_stream << "# iteration[0] - GaugeElement_bef[1] - GaugeElement_aft[2] - Force_abs[2] - Force_arg[3]" << endl << endl;
     
     string ph_file = "history/phases.txt";
     ofstream ph_stream(ph_file, ofstream::out | ofstream::app);
@@ -422,8 +422,8 @@ void print_obs(T& time_ref,
     h++;
     l++;
     volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
-    acc_stream << iter_from_beginning << " " << cx_to_str(GE_bef) << " " << cx_to_str(GE_aft)
-               << " " << cx_to_str(Force) << endl;
+    acc_stream << iter_from_beginning << " " << arg(GE_bef) << " " << arg(GE_aft)
+               << " " << abs(Force) << " " << arg(Force) << endl;
 
     if(j == profile_ratio){
         j = 0;
