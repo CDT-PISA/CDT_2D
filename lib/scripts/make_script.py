@@ -19,23 +19,27 @@ def main():
     Beta_str = argv[3]
     project_folder = argv[4]
 
-    # Store point folder and find project one
-    point_folder = getcwd()
+    if int(run_num) == 1:
+        # Store point folder and find project one
+        point_folder = getcwd()
 
-    # is necessary to recompile each run
-    # because on the grid the node could be different
-    exe_name = "CDT_2D-Lambda" + Lambda_str + "_Beta" + Beta_str +\
-               "_run" + run_num
+        # is necessary to recompile each run
+        # because on the grid the node could be different
+        exe_name = "CDT_2D-Lambda" + Lambda_str + "_Beta" + Beta_str
+                   #"_run" + run_num
 
-    chdir(project_folder + "/build")
-    system("make install")
+        chdir(project_folder + "/build")
+        system("make install")
 
-    # fetch exe, and change permissions to make it runnable
-    chdir(point_folder)
+        # fetch exe, and change permissions to make it runnable
+        chdir(point_folder)
 
-    print(f'-- Moving: CDT_2D/bin/cdt_2d --> {point_folder}/bin/')
-    move(project_folder + '/bin/cdt_2d', 'bin/' + exe_name)
-    system('chmod 777 bin/' + exe_name)
+        print(f'-- Moving: CDT_2D/bin/cdt_2d --> {point_folder}/bin/')
+        move(project_folder + '/bin/cdt_2d', 'bin/' + exe_name)
+        system('chmod 777 bin/' + exe_name)
+    else:
+        print("\033[96mlaunching:\033[0m Lambda:" + Lambda_str +
+              " Beta:" + Beta_str)
 
 if __name__ == "__main__":
     main()

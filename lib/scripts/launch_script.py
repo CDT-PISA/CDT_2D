@@ -280,11 +280,11 @@ def main(run_num, Lambda, Beta, time_length, end_condition,
                 print('\nUnsuccesful run from the beginning.')
         json.dump(state, state_file, indent=4)
 
-    if stat('nohup.out').st_size == 0:
+    if isfile('nohup.out') and stat('nohup.out').st_size == 0:
         remove('nohup.out')
-    if stat('stdout.txt').st_size == 0:
+    if isfile('stdout.txt') and stat('stdout.txt').st_size == 0:
         remove('stdout.txt')
-    if stat('stderr.txt').st_size == 0:
+    if isfile('stderr.txt') and stat('stderr.txt').st_size == 0:
         remove('stderr.txt')
 
     if stopped:

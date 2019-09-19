@@ -219,7 +219,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
 
         # is necessary to recompile each run because on the grid the launch node
         # could be different from run_node
-        exe_name = "CDT_2D-" + point_str(Point) + "_run" + str(run_num)
+        exe_name = "CDT_2D-" + point_str(Point) #+ "_run" + str(run_num)
 
         arguments = [project_folder(),
                      run_num,
