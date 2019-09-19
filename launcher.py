@@ -353,7 +353,6 @@ def main():
             file_path = realpath(sys.argv[3])
             sys.argv = file_input(file_path, file_commands)
             sys.argv += ['--file', file_path]
-            print(sys.argv)
     except (AssertionError, IndexError):
         # if not file adds support for some special keyword
         sys.argv = ['-' + x if x in ['°', '@'] else x for x in sys.argv]

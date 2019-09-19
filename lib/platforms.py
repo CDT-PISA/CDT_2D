@@ -123,7 +123,7 @@ def is_lsf():
 
 def is_slurm():
     from platform import node
-    if node()[0:4] == 'r000':
+    if node()[0:1] == 'r':
         return True
     else:
         return False
