@@ -214,17 +214,14 @@ public:
     /**
     * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
     */
-    vector<double> move_22(int cell = -1, bool debug_flag = false);
-    vector<double> move_22(bool debug_flag){ return move_22(-1, debug_flag);}
+    void move_22(int cell = -1, bool debug_flag = false);
+    void move_22(bool debug_flag){ move_22(-1, debug_flag);}
     
     void move_24(int cell = -1, bool debug_flag = false);
     void move_24(bool debug_flag){ move_24(-1, debug_flag);}
     
     void move_42(int cell = -1, bool debug_flag = false);
     void move_42(bool debug_flag){ move_42(-1, debug_flag);}
-    
-    vector<complex<double>> move_gauge(int cell = -1, bool debug_flag = false);
-    vector<complex<double>> move_gauge(bool debug_flag){ return move_gauge(-1, debug_flag);}
     
     // auxiliary functions (for moves)
     
@@ -277,24 +274,6 @@ public:
      * - aprire in append e stampare una riga intera alla volta
      */ 
     void print_space_profile(ostream& output);
-    
-    double total_gauge_action(bool debug_flag = false);
-    
-    double average_gauge_action_contribute(bool debug_flag = false);
-    
-    double topological_charge(bool debug_flag = false);
-    
-    GaugeElement space_loop(Triangle* start, bool debug_flag = false);
-    
-    vector<complex<double>> toleron(bool debug_flag = false);
-    
-    /**
-     * @brief [gauge action, topological_charge]
-     * 
-     * the reason to have a further function is that is really more efficient than
-     * calling the other two separately
-     */
-    vector<double> gauge_action_top_charge(bool debug_flag = false);
     
     // ##### FILE I/O #####
     

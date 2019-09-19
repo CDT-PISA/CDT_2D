@@ -35,13 +35,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 string cx_to_str(complex<double> c){ stringstream s; s << real(c) << (imag(c) >= 0.0 ? "+" : "") 
                                                        << imag(c) << "i"; return s.str(); }
 template <typename T>
-void print_obs(T& time_ref,
-               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
-               Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
-               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
-               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, ofstream& ph_stream,
-               complex<double> GE_bef, complex<double> GE_aft, complex<double> Force);
+void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, Triangulation& universe,
+               long iter_from_beginning, long& i, bool adj_flag, int profile_ratio,
+               int adjacencies_ratio, float save_interval, string run_id, int n_chkpt, vector<string>& chkpts);
 
 int dice();
 int dice(double move22, double move24);
@@ -119,24 +115,6 @@ int main(int argc, char* argv[]){
     }
     else
         throw runtime_error("end_condition type not recognized");
-    /*
-    if(last_char == 'h')
-        sim_duration = stoi(end_condition)*60*60; // stoi("10afk") == 10 !
-    else if(last_char == 'm')
-        sim_duration = stoi(end_condition)*60;
-    else if(last_char == 's')
-        sim_duration = stoi(end_condition);
-    else{
-        limited_step = true;
-        last_step = stoi(end_condition);
-        if(last_char == 'k')
-            last_step *= 1e3;
-        else if(last_char == 'M')
-            last_step *= 1e6;
-        else if(last_char == 'G')
-            last_step *= 1e9L;
-    }
-    */
     
     // LINEAR HISTORY
     
@@ -165,40 +143,10 @@ int main(int argc, char* argv[]){
     if (stod(run_id) == 1.)
         volume_stream << "# iteration[0] - volume[1]" << endl << endl;
     
-    string gauge_file = "history/gauge.txt";
-    ofstream gauge_stream(gauge_file, ofstream::out | ofstream::app);
-    if (!gauge_stream)
-        throw runtime_error("couldn't open 'gauge.txt' for writing");
-    if (stod(run_id) == 1.)
-        gauge_stream << "# iteration[0] - action[1] - ch.top.[2] - av.contr.[3]" << endl << endl;
-    
-    string torelons_file = "history/toblerone.txt";
-    ofstream torelons_stream(torelons_file, ofstream::out | ofstream::app);
-    if (!torelons_stream)
-        throw runtime_error("couldn't open 'toblerone.txt' for writing");
-    if (stod(run_id) == 1.)
-        torelons_stream << "# iteration[0] - torelons[1:]" << endl << endl;
-    
-    string acc_file = "history/glink_update.txt";
-    ofstream acc_stream(acc_file, ofstream::out | ofstream::app);
-    if (!acc_stream)
-        throw runtime_error("couldn't open 'glink_update.txt' for writing");
-    if (stod(run_id) == 1.)
-        acc_stream << "# iteration[0] - GaugeElement_bef[1] - GaugeElement_aft[2] - Force_abs[2] - Force_arg[3]" << endl << endl;
-    
-    string ph_file = "history/phases.txt";
-    ofstream ph_stream(ph_file, ofstream::out | ofstream::app);
-    if (!ph_stream)
-        throw runtime_error("couldn't open 'phases.txt' for writing");
-    if (stod(run_id) == 1.)
-        ph_stream << "# iteration[0] - phases[1:]" << endl << endl;
-    
     // ratios
     
     int profile_ratio = 4;
-    int gauge_ratio = 16;
     int adjacencies_ratio = 128;
-    int torelons_ratio = gauge_ratio;
     
     // SETUP THE TRIANGULATION
     // and output parameters
@@ -227,11 +175,6 @@ int main(int argc, char* argv[]){
     /// @todo aggiungere il supporto per riconosciuta termalizzazione
     
     long i = 0;
-    double acceptance = 0.;
-    double dS_g = 0.;
-    complex<double> GE_bef;
-    complex<double> GE_aft;
-    complex<double> Force;
     
     while(((limited_step and i<last_step) or not limited_step) and universe.list2.size() < max_volume){        
         chrono::duration<double> elapsed = chrono::system_clock::now() - start_time;
@@ -244,31 +187,18 @@ int main(int argc, char* argv[]){
         
         switch(dice(move22, move24)){
             case 1:
-            case 2:
             {
-                vector<double> v = universe.move_22(debug_flag);
-                if(v.size() == 2){
-                    acceptance = v[0];
-                    dS_g = v[1];
-                }
+                universe.move_22(debug_flag);
                 break;
             }
-            case 3:
+            case 2:
             {
                 universe.move_24(debug_flag);
                 break;   
             }
-            case 4:
+            case 3:
             {
                 universe.move_42(debug_flag);
-                break;
-            }
-            case 5:
-            {
-                vector<complex<double>> v = universe.move_gauge(debug_flag);
-                GE_bef = v[0];
-                GE_aft = v[1];
-                Force = v[2];
                 break;
             }
         }
@@ -281,11 +211,8 @@ int main(int argc, char* argv[]){
         long iter_from_beginning = universe.iterations_done + i;
         if(linear_history > 0){
             if((iter_from_beginning) % linear_history == 0)
-                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
-                          iter_from_beginning, i, adj_flag,
-                          profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts,
-                          acc_stream, ph_stream, GE_bef, GE_aft, Force);
+                print_obs(time_ref, volume_stream, profile_stream, universe, iter_from_beginning, i, adj_flag,
+                          profile_ratio, adjacencies_ratio, save_interval, run_id, n_chkpt, chkpts);
         }
         else{
             if((iter_from_beginning) % universe.volume_step == 0){
@@ -294,11 +221,8 @@ int main(int argc, char* argv[]){
                         universe.volume_step *= 2;
                         universe.steps_done = 0;
                 }
-                print_obs(time_ref, volume_stream, profile_stream, gauge_stream, torelons_stream, universe,
-                          iter_from_beginning, i, adj_flag,
-                          profile_ratio, gauge_ratio, adjacencies_ratio, torelons_ratio,
-                          save_interval, run_id, n_chkpt, chkpts,
-                          acc_stream, ph_stream, GE_bef, GE_aft, Force);
+                print_obs(time_ref, volume_stream, profile_stream, universe, iter_from_beginning, i, adj_flag,
+                          profile_ratio, adjacencies_ratio, save_interval, run_id, n_chkpt, chkpts);
             }
         }
         
@@ -395,13 +319,9 @@ void save_routine(vector<string> chkpts, int n_chkpt, Triangulation& universe, l
 }
 
 template <typename T>
-void print_obs(T& time_ref,
-               ofstream& volume_stream, ofstream& profile_stream, ofstream& gauge_stream, ofstream& torelons_stream,
-               Triangulation& universe, long iter_from_beginning, long& i, bool adj_flag,
-               int profile_ratio, int gauge_ratio, int adjacencies_ratio, int torelons_ratio,
-               float save_interval, string run_id, int n_chkpt, vector<string>& chkpts,
-               ofstream& acc_stream, ofstream& ph_stream,
-               complex<double> GE_bef, complex<double> GE_aft, complex<double> Force)
+void print_obs(T& time_ref, ofstream& volume_stream, ofstream& profile_stream, Triangulation& universe,
+               long iter_from_beginning, long& i, bool adj_flag, int profile_ratio,
+               int adjacencies_ratio, float save_interval, string run_id, int n_chkpt, vector<string>& chkpts)
 {
     static int j = 0;
     static int k = 0;
@@ -414,45 +334,17 @@ void print_obs(T& time_ref,
     h++;
     l++;
     volume_stream << iter_from_beginning << " " << universe.list2.size() << endl;
-    acc_stream << iter_from_beginning << " " << arg(GE_bef) << " " << arg(GE_aft)
-               << " " << abs(Force) << " " << arg(Force) << endl;
 
     if(j == profile_ratio){
         j = 0;
         profile_stream << iter_from_beginning << " ";
         universe.print_space_profile(profile_stream);
     }
-    if(k == gauge_ratio){
-        k = 0;
-        vector<double> v = universe.gauge_action_top_charge();
-        double av_contr = 6 * v[0] / ((universe.beta * universe.N) * universe.list0.size());
-        gauge_stream << iter_from_beginning << " " << v[0] << " " << v[1] << " " << av_contr << endl;
-    }
-//     if(h == 16*gauge_ratio){
-//         h = 0;
-//         
-//         vector<double> phases;
-//         for(auto x: universe.list1)
-//             phases.push_back(arg(x.dync_edge()->gauge_element()[0][0]));        
-//         
-//         ph_stream << iter_from_beginning << " ";
-//         for(auto x: phases)
-//             ph_stream << x << " ";
-//         ph_stream << endl;
-//     }
     if(adj_flag && (h == adjacencies_ratio)){
         h = 0;
         universe.text_adjacency_and_observables("history/adjacencies/adj" + to_string(n) + "_run" + run_id + ".json",
                                                 iter_from_beginning);
         n++;
-    }
-    if(l == torelons_ratio){
-        l = 0;
-        torelons_stream << iter_from_beginning << " ";
-        vector<complex<double>> torelons = universe.toleron();
-        for(auto x: torelons)
-            torelons_stream << x << " ";
-        torelons_stream << endl;
     }
     chrono::duration<double> from_last = chrono::system_clock::now() - time_ref;
     if(from_last.count()/60 > save_interval){
@@ -477,17 +369,17 @@ int dice(double move22, double move24)
     static RandomGen r;
     int dice = 0;
     
+    double sum = move22 + 2*move24;
+    move22 /= sum;
+    move24 /= sum;
+    
     double extraction = r.next();
     if(extraction < move22)
         dice = 1;
-    else if(extraction < 2*move22)
+    else if(extraction < move22 + move24)
         dice = 2;
-    else if(extraction < move24 + 2*move22)
-        dice = 3;
-    else if(extraction < 2*move24 + 2*move22)
-        dice = 4;
     else
-        dice = 5;
+        dice = 3;
     
     return dice;
 }

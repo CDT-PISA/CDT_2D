@@ -491,12 +491,6 @@ void Triangulation::remove_triangle(Label lab_t)
     }
 }
 
-void Triangulation::unitarize()
-{
-    for(auto e_lab : list1)
-        e_lab.dync_edge()->U.unitarize();
-}
-
 // ##### MOVES #####
 // and their auxiliary functions
 #include "triangulation/moves.cpp"
@@ -550,112 +544,7 @@ void Triangulation::print_space_profile(ostream& output)
     output << endl;
 }
 
-double Triangulation::total_gauge_action(bool debug_flag)
-{
-    double S = 0;
-    for(auto lab_v: list0){
-        if(debug_flag)
-            cout << lab_v->position() << "\n"; cout.flush();
-        
-        double contrib = lab_v.dync_vertex()->gauge_action_contrib(debug_flag);
-        
-        if(debug_flag)
-            cout << lab_v->position() << "ciao\n"; cout.flush();
-        
-        S += - beta * N * contrib;
-    }
-    
-    return S;
-}
-
-double Triangulation::average_gauge_action_contribute(bool debug_flag)
-{
-    double action = total_gauge_action(debug_flag);
-    
-    return 6 * action / ((beta * N) * list0.size());
-}
-
 constexpr double pi() { return atan(1)*4; }
-
-double Triangulation::topological_charge(bool debug_flag)
-{
-    // currently implented only for U(1)
-    double charge = 0;
-    
-    for(auto lab_v: list0){
-        GaugeElement Plaquette = lab_v.dync_vertex()->looparound(debug_flag);
-        
-        charge += arg(Plaquette.tr()) / (2 * pi());
-    }
-    
-    return charge;
-}
-
-GaugeElement Triangulation::space_loop(Triangle* start, bool debug_flag)
-{
-    // if I go to the right I'm following the direction of GaugeElements
-    // and t[0] means going to the right
-    Triangle* current = start->t[0].dync_triangle();
-    GaugeElement Loop;
-    
-    while(current != start){
-        Loop *= current->e[1].dync_edge()->gauge_element();
-        current = current->t[0].dync_triangle();
-    }
-    Loop *= current->e[1].dync_edge()->gauge_element();
-    
-    return Loop;
-}
-
-vector<complex<double>> Triangulation::toleron(bool debug_flag)
-{
-    int TimeLength = spatial_profile.size();
-    vector<Triangle*> starting_triangles(TimeLength, nullptr);
-    
-    int i = 0;
-    for(auto x: list2){
-        int t = x.dync_triangle()->slab_index();
-        if(starting_triangles[t] == nullptr){
-            starting_triangles[t] = x.dync_triangle();
-            i++;
-        }
-        if(i == TimeLength)
-            break;
-    }
-    
-    vector<complex<double>> tolerons(TimeLength, 0.);
-    
-    for(int i=0; i<TimeLength; i++){
-        if( N == 1)
-            tolerons[i] = space_loop(starting_triangles[i], debug_flag).matrix()[0][0];
-        else
-            throw runtime_error("Toleron not implemented for N != 1");
-    }
-    
-    return tolerons;
-}
-
-vector<double> Triangulation::gauge_action_top_charge(bool debug_flag)
-{
-    double S = 0;
-    double charge = 0;
-    
-    for(auto lab_v: list0){
-        if(debug_flag)
-            cout << lab_v->position() << endl;
-        vector<double> v_vert = lab_v.dync_vertex()->gauge_action_top_charge_densities(debug_flag);
-        
-        S += - (beta * N) * v_vert[0];
-        charge += v_vert[1];
-    }
-    
-    vector<double> v;
-    
-    v.push_back(S);
-    v.push_back(charge);
-    
-    return v;
-}
 
 // ##### FILE I/O #####
 
