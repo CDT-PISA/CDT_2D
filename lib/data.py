@@ -252,7 +252,6 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
         launch_run(points, arg_strs, config, queue, arch, file)
 
 
-
 def r_f(string, n):
     return string[:n].rjust(n)
 def l_f(string, n):

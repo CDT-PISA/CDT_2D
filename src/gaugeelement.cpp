@@ -110,7 +110,7 @@ double GaugeElement::partition_function()
         Z = cyl_bessel_i(0, 2*abs(Source.mat[0][0]));
     }
     
-    return Z;
+    return 1;
 }
 
 GaugeElement GaugeElement::rand(){
