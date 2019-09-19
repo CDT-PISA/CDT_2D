@@ -798,9 +798,9 @@ void Triangulation::move_42(int cell, bool debug_flag)
     double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
     
     if(reject_trial > reject_ratio){
-        tri_lab3->gauge_transform(gt3);
+        tri_lab3->gauge_transform(gt3.dagger());
         tri_lab0->gauge_transform(gt0.dagger());
-        tri_lab1->gauge_transform(gt1);
+        tri_lab1->gauge_transform(gt1.dagger());
         if(debug_flag){
             cout << endl;
         }
