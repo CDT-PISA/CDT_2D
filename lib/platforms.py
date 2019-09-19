@@ -38,7 +38,7 @@ def lsf_launch(points, arg_strs):
 #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
 #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
 
-def slurm_launch(points, arg_strs, queue):
+def slurm_launch(points, arg_strs, queue, file):
     from os import system, chdir, chmod
     from os.path import abspath
     from subprocess import Popen
@@ -94,6 +94,9 @@ def slurm_launch(points, arg_strs, queue):
         scripts_dir = project_folder() + '/lib/scripts'
         with open(scripts_dir + '/sbatch.sh', 'r') as sbatch_template:
             chunk_script = eval('f"""' + sbatch_template.read() + '"""')
+            # if queue == 'dbg':
+            chunk_script += (f'\n\npython3 {project_folder()}/launcher.py run '
+                             f'--file {file}')
         with open(jobname + '.sh', 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
         chmod(jobname + '.sh', 0o777)
@@ -125,18 +128,18 @@ def is_slurm():
     else:
         return False
 
-def launch_run(points, arg_strs, config, queue):
+def launch_run(points, arg_strs, config, queue, file):
     from os import chdir, listdir
     from lib.utils import config_dir
     chdir(config_dir(config))
 
     if is_local():
-        # slurm_launch(points, arg_strs, queue)
+        # slurm_launch(points, arg_strs, queue, file)
         local_launch(points, arg_strs)
     elif is_lsf():
         lsf_launch(points, arg_strs)
     elif is_slurm():
-        slurm_launch(points, arg_strs, queue)
+        slurm_launch(points, arg_strs, queue, file)
     else:
         raise NameError('Platform not recognized '
                         '(known platforms in platform.py)')
