@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --partition=skl_usr_{queue}
-#SBATCH --account=INF19_npqcd_0
+#SBATCH --partition={arch}_usr_{queue}
+#SBATCH --account={account}
 #SBATCH --nodes=1
 #SBATCH --time {qtime}:30
 #SBATCH --job-name={jobname}

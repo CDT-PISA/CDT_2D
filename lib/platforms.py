@@ -38,7 +38,7 @@ def lsf_launch(points, arg_strs):
 #            system('bsub -q local -o stdout.txt -e stderr.txt -J ' + \
 #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
 
-def slurm_launch(points, arg_strs, queue, file):
+def slurm_launch(points, arg_strs, queue, arch, file):
     from os import system, chdir, chmod
     from os.path import abspath
     from subprocess import Popen
@@ -57,6 +57,13 @@ def slurm_launch(points, arg_strs, queue, file):
         qtime = '00:29'
     else:
         raise RuntimeError('slurm_launch: queue not recognized')
+
+    if arch == 'skl':
+        account = 'INF19_npqcd_0'
+    elif arch == 'knl':
+        account = 'IscrB_TOPPSI'
+    else:
+        raise RuntimeError('slurm_launch: arch not recognized')
 
     dirs = {Point: abspath(point_dir(Point)) for Point in points}
 
@@ -128,18 +135,18 @@ def is_slurm():
     else:
         return False
 
-def launch_run(points, arg_strs, config, queue, file):
+def launch_run(points, arg_strs, config, queue, arch, file):
     from os import chdir, listdir
     from lib.utils import config_dir
     chdir(config_dir(config))
 
     if is_local():
-        # slurm_launch(points, arg_strs, queue, file)
+        # slurm_launch(points, arg_strs, queue, arch, file)
         local_launch(points, arg_strs)
     elif is_lsf():
         lsf_launch(points, arg_strs)
     elif is_slurm():
-        slurm_launch(points, arg_strs, queue, file)
+        slurm_launch(points, arg_strs, queue, arch, file)
     else:
         raise NameError('Platform not recognized '
                         '(known platforms in platform.py)')
