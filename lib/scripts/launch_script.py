@@ -99,7 +99,7 @@ def remove_from_stopped(Lambda, Beta):
     return
 
 def start_mail(run_num, Lambda, Beta):
-    if(node() == 'gridui3.pi.infn.it' or node()[0:4] == 'r000'):
+    if(node() == 'gridui3.pi.infn.it'): #or node()[0:4] == 'r000'):
         import smtplib
         from email.message import EmailMessage
 
@@ -125,7 +125,8 @@ def start_mail(run_num, Lambda, Beta):
         server.quit()
 
 def end_mail(run_num, Lambda, Beta):
-    if(node() != 'Paperopoli'):
+    # if(node() != 'Paperopoli'):
+    if(node() == 'gridui3.pi.infn.it'): #or node()[0:4] == 'r000'):
         import smtplib
         from email.message import EmailMessage
 
