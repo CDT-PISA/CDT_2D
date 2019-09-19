@@ -190,11 +190,11 @@ def define_parser(launcher_path, version):
     moves_weights = run_sub.add_argument_group("moves' weights",
                                         description=msgs.moves_weights)
     moves_weights.add_argument('--move22', nargs=1, type=non_negative_float,
-                               default=0.1, metavar='W_22', help=msgs.move22)
+                               default=0.04, metavar='W_22', help=msgs.move22)
     moves_weights.add_argument('--move24', nargs=1, type=non_negative_float,
-                               default=0.2, metavar='W_24', help=msgs.move24)
+                               default=0.06, metavar='W_24', help=msgs.move24)
     moves_weights.add_argument('--move-gauge', nargs=1, type=non_negative_float,
-                               default=0.4, metavar='W_g', help=msgs.moveg)
+                               default=0.8, metavar='W_g', help=msgs.moveg)
     run_sub.add_argument('--file', help=msgs.file)
 
     # state command
