@@ -110,7 +110,9 @@ double GaugeElement::partition_function()
         Z = cyl_bessel_i(0, 2*abs(Source.mat[0][0]));
     }
     
-    return 1;
+    double pi = 2 * asin(1);
+    
+    return Z*pi;
 }
 
 GaugeElement GaugeElement::rand(){
