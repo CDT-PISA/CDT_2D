@@ -112,7 +112,7 @@ double GaugeElement::partition_function()
     
     double pi = 2 * asin(1);
     
-    return Z*pi;
+    return Z*pi*2;
 }
 
 GaugeElement GaugeElement::rand(){
