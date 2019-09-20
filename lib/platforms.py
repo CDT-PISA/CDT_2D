@@ -109,6 +109,7 @@ def slurm_launch(points, arg_strs, queue, arch, file):
         file_name = basename(file)
         try:
             makedirs('../' + file_name[:-4])
+            chdir('../' + file_name[:-4])
         except FileExistsError:
             pass
 
