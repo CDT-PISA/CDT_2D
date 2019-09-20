@@ -352,6 +352,17 @@ def main():
             from lib.parser import file_input
             file_path = realpath(sys.argv[3])
             sys.argv = file_input(file_path, file_commands)
+            with open(file_path, 'r') as file:
+                content = file.read()
+            key = 'RESUBMISSION = '
+            beg = content.find(key)+len(key)
+            end = content.find('\n', beg)
+            count = int(content[beg:end]) - 1
+            content = content[:beg] + str(count) + content[end:]
+            with open(file_path, 'w') as file:
+                file.write(content)
+            if count < 1:
+                file_path = '~~~'
             sys.argv += ['--file', file_path]
     except (AssertionError, IndexError):
         # if not file adds support for some special keyword
