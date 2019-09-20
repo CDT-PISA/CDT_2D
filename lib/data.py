@@ -52,7 +52,7 @@ def launch(points_old, points_new, config, linear_history, end_time, end_steps,
     from lib.platforms import launch_run
 
     # set moves' weights
-    move22, move24, move_gauge = moves_weights(move22, move24, move_gauge)
+    move22, move24 = moves_weights(move22, move24)
 
     points_run, _ = find_running()
     points_run = [x[0] for x in points_run if x[1] == config]
