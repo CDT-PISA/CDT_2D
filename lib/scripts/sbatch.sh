@@ -5,8 +5,8 @@
 #SBATCH --time {qtime}:30
 #SBATCH --job-name={jobname}
 
-# #SBATCH --error=stderr{i}_{time}.txt
-# #SBATCH --output=stdout{i}_{time}.txt
+# #SBATCH --error=stderr{i}_{time_}.txt
+# #SBATCH --output=stdout{i}_{time_}.txt
 # module load intel
 # module load mkl
 

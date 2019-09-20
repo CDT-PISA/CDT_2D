@@ -60,15 +60,17 @@ def slurm_launch(points, arg_strs, queue, arch, file):
 
     if arch == 'skl':
         account = 'INF19_npqcd_0'
+        c_sz = 48 # chunk_size
     elif arch == 'knl':
         account = 'IscrB_TOPPSI'
+        c_sz = 68 # chunk_size
     else:
         raise RuntimeError('slurm_launch: arch not recognized')
 
     dirs = {Point: realpath(point_dir(Point)) for Point in points}
 
-    points_chunks = [points[48*i:48*(i+1)]
-                     for i in range(len(points)//48 + 1)]
+    points_chunks = [points[c_sz*i:c_sz*(i+1)]
+                     for i in range(len(points)//c_sz + 1)]
     i = 0
     for chunk in points_chunks:
         i += 1
@@ -99,8 +101,8 @@ def slurm_launch(points, arg_strs, queue, arch, file):
         file_name = basename(file)
         sbatch_dir = file_name[:-4]
 
-        time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y_%H:%M:%S')
-        jobname = f'CDT2D_{time}--{i}'
+        time_ = datetime.fromtimestamp(time()).strftime('%d-%m-%Y_%H:%M:%S')
+        jobname = f'CDT2D_{time_}--{i}'
         scripts_dir = project_folder() + '/lib/scripts'
         with open(scripts_dir + '/sbatch.sh', 'r') as sbatch_template:
             chunk_script = eval('f"""' + sbatch_template.read() + '"""')
