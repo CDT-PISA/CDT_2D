@@ -108,12 +108,13 @@ def slurm_launch(points, arg_strs, queue, arch, file):
 
         file_name = basename(file)
         try:
-            makedirs('../' + file_name[:-4])
-            chdir('../' + file_name[:-4])
+            sbatch_dir = file_name[:-4]
+            makedirs('../' + sbatch_dir)
+            chdir('../' + sbatch_dir)
         except FileExistsError:
             pass
 
-        sbatch_file = realpath('../' + file_name[:-4] + '/' + jobname + '.sh')
+        sbatch_file = realpath(jobname + '.sh')
         with open(sbatch_file, 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
         chmod(sbatch_file, 0o777)
