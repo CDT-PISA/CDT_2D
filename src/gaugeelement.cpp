@@ -208,6 +208,68 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     }
     
     if( N == 1 ){
+        if(r.next() > 0.5)
+            alpha = -alpha;
+        GaugeElement Force_phase = (Force.dagger()/abs(Force.tr()));
+        *this =  Force_phase * exp(- 1i * alpha);
+    }
+}
+
+void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
+{
+    RandomGen r;
+    
+    if(debug_flag){
+        cout << "+--------------+" << endl;
+        cout << "| OVERHEATBATH |" << endl;
+        cout << "+--------------+" << endl;
+        cout << "Given force: " << Force.tr() << endl;
+    }
+    bool accepted = false;
+    double beta = Force.base()->get_owner()->beta / 2;
+    
+    double a;
+    double c;
+    if( N == 1){
+        a = 2 * beta * abs(Force.tr());
+        c = sqrt(a/2);
+    }
+    
+    // double max_rho;
+    // if(N == 1)
+    //     max_rho = exp(abs(Force.tr()) * beta);
+    // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
+    // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
+   
+    GaugeElement ret;
+    double alpha;
+    
+    ret.set_base(this->base_edge); 
+    while(not accepted){
+        ret = random_element(a);
+        
+        if( N == 1){
+            alpha = arg(ret[0][0]);
+            double x = r.next();
+            double eta;
+            if(a >= 0.8)
+                eta = 0.99;
+            else
+                eta = 0.73;
+            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) ); 
+            
+            if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
+                cerr << "heatbath: a = " << a << endl;
+                throw runtime_error("heatbath: invalid numerical value generated");
+            }
+        }
+        else
+            throw runtime_error("heatbath: Not implemented for N!=1");
+        
+        // double rho = exp(real((*this * Force).tr()) * beta);
+    }
+    
+    if( N == 1 ){
         GaugeElement Force_phase = (Force.dagger()/abs(Force.tr()));
         complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
         double sgn = (imag(prev) > 0) * 2 - 1;

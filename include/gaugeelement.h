@@ -100,6 +100,8 @@ public:
     
     void heatbath(GaugeElement Force, bool debug_flag = false);
     
+    void overheatbath(GaugeElement Force, bool debug_flag = false);
+    
     // ##### ALGEBRA #####
     
     GaugeElement operator+(const GaugeElement& V);

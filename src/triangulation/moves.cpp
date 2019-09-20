@@ -612,6 +612,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     }
     // ___ extraction of GaugeElement on link 6 ___
     e_lab6->U.heatbath(Force, debug_flag);
+    e_lab6->U.unitarize();
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
      *  - the new one (5,7) are set to id by default (by create_edge function), and is correct 
@@ -938,7 +939,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     GaugeElement Force = e_lab->force(debug_flag);
     Force.set_base(lab_e);
     
-    e_lab->U.heatbath(Force, debug_flag);
+    e_lab->U.overheatbath(Force, debug_flag);
 
     //     // overrelaxation step
     //     GaugeElement U_new = Force * e_lab->U * Force;
