@@ -10,7 +10,6 @@ __all__ = []
 __version__ = '0.2'
 __author__ = 'Alessandro Candido'
 
-import argparse
 import sys
 from os import chdir, getcwd
 from os.path import dirname, realpath
