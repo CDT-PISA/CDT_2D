@@ -26,6 +26,8 @@ do
     nohup python3 $PWD/$launch &
 done
 
+cd ../{sbatch_dir}
+
 wait
 
 # if [ ! -f /marconi_scratch/userexternal/gclement/CDTRk/cdt4d-r2/grid_V8kS_g2m1.0/data_0/stopfile.txt ]
