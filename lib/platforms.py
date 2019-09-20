@@ -96,6 +96,9 @@ def slurm_launch(points, arg_strs, queue, arch, file):
         points += [')']
         points = '\n'.join(points)
 
+        file_name = basename(file)
+        sbatch_dir = file_name[:-4]
+
         time = datetime.fromtimestamp(time()).strftime('%d-%m-%Y_%H:%M:%S')
         jobname = f'CDT2D_{time}--{i}'
         scripts_dir = project_folder() + '/lib/scripts'
@@ -105,10 +108,7 @@ def slurm_launch(points, arg_strs, queue, arch, file):
             if file[-3:] != '~~~':
                 chunk_script += (f'\n\npython3 {project_folder()}/launcher.py '
                                  f'run --file {file}')
-
-        file_name = basename(file)
         try:
-            sbatch_dir = file_name[:-4]
             makedirs('../' + sbatch_dir)
             chdir('../' + sbatch_dir)
         except FileExistsError:
