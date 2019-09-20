@@ -39,8 +39,8 @@ def lsf_launch(points, arg_strs):
 #                   dir_name + ' $PWD/' + launch_script_name + arg_str)
 
 def slurm_launch(points, arg_strs, queue, arch, file):
-    from os import system, chdir, chmod
-    from os.path import abspath
+    from os import system, chdir, chmod, makedirs
+    from os.path import realpath
     from subprocess import Popen
     from time import time
     from datetime import datetime
@@ -65,7 +65,7 @@ def slurm_launch(points, arg_strs, queue, arch, file):
     else:
         raise RuntimeError('slurm_launch: arch not recognized')
 
-    dirs = {Point: abspath(point_dir(Point)) for Point in points}
+    dirs = {Point: realpath(point_dir(Point)) for Point in points}
 
     points_chunks = [points[48*i:48*(i+1)]
                      for i in range(len(points)//48 + 1)]
@@ -102,14 +102,20 @@ def slurm_launch(points, arg_strs, queue, arch, file):
         with open(scripts_dir + '/sbatch.sh', 'r') as sbatch_template:
             chunk_script = eval('f"""' + sbatch_template.read() + '"""')
             # if queue == 'dbg':
-            if file != '~~~':
+            if file[-3:] != '~~~':
                 chunk_script += (f'\n\npython3 {project_folder()}/launcher.py '
                                  f'run --file {file}')
-        with open(jobname + '.sh', 'w') as sbatch_script:
+        try:
+            makedirs('../' + file[:-4])
+        except FileExistsError:
+            pass
+
+        sbatch_file = realpath('../' + file[:-4] + '/' + jobname + '.sh')
+        with open(sbatch_file, 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
-        chmod(jobname + '.sh', 0o777)
-        system('sbatch ' + jobname + '.sh')
-        # system('./' + jobname + '.sh &')
+        chmod(sbatch_file, 0o777)
+        system('sbatch ' + sbatch_file)
+        # system('./' + sbatch_file + ' &')
 
 local_machines = ['Paperopoli', 'fis-delia.unipi.it']
 lsf = ['gridui3.pi.infn.it']

@@ -362,7 +362,7 @@ def main():
             with open(file_path, 'w') as file:
                 file.write(content)
             if count < 1:
-                file_path = '~~~'
+                file_path = file_path[:-3] + '~~~'
             sys.argv += ['--file', file_path]
     except (AssertionError, IndexError):
         # if not file adds support for some special keyword
