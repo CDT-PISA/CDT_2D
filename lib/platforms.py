@@ -40,7 +40,7 @@ def lsf_launch(points, arg_strs):
 
 def slurm_launch(points, arg_strs, queue, arch, file):
     from os import system, chdir, chmod, makedirs
-    from os.path import realpath
+    from os.path import realpath, basename
     from subprocess import Popen
     from time import time
     from datetime import datetime
@@ -110,12 +110,14 @@ def slurm_launch(points, arg_strs, queue, arch, file):
             if file[-3:] != '~~~':
                 chunk_script += (f'\n\npython3 {project_folder()}/launcher.py '
                                  f'run --file {file}')
+
+        file_name = basename(file)
         try:
-            makedirs('../' + file[:-4])
+            makedirs('../' + file_name[:-4])
         except FileExistsError:
             pass
 
-        sbatch_file = realpath('../' + file[:-4] + '/' + jobname + '.sh')
+        sbatch_file = realpath('../' + file_name[:-4] + '/' + jobname + '.sh')
         with open(sbatch_file, 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
         chmod(sbatch_file, 0o777)
