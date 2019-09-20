@@ -41,23 +41,17 @@ int dice()
     return dice;
 }
 
-int main(){
-    cout << cyl_bessel_i(0., 0.) << endl;
-    
-    return 0;
-}
-
-int mainc(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     Triangulation uni(3, 0.4, 6.);
     RandomGen r;
     
-//     for(int i=0; i<1000; i++){
-//         uni.move_24();
-//         x = uni.move_22();
-//         x = uni.move_22();
-//         for(int i=0; i<10; i++)
-//             uni.move_gauge();
-//     }
+    for(int i=0; i<1000; i++){
+        uni.move_24();
+        x = uni.move_22();
+        x = uni.move_22();
+        for(int i=0; i<10; i++)
+            uni.move_gauge();
+    }
    
     uni.move_22(true);
     uni.move_22(true);
