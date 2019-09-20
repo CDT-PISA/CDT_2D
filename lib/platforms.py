@@ -107,8 +107,9 @@ def slurm_launch(points, arg_strs, queue, arch, file):
         with open(scripts_dir + '/sbatch.sh', 'r') as sbatch_template:
             chunk_script = eval('f"""' + sbatch_template.read() + '"""')
             # if queue == 'dbg':
-            chunk_script += (f'\n\npython3 {project_folder()}/launcher.py run '
-                             f'--file {file}')
+            if file != '~~~':
+                chunk_script += (f'\n\npython3 {project_folder()}/launcher.py '
+                                 f'run --file {file}')
         with open(jobname + '.sh', 'w') as sbatch_script:
             sbatch_script.write(chunk_script)
         chmod(jobname + '.sh', 0o777)
