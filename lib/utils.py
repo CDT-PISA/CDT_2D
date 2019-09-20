@@ -539,7 +539,7 @@ def authorization_request(what_to_do='', Point=None, extra_message=''):
 
     return authorized
 
-def moves_weights(move22, move24, move_gauge):
+def moves_weights(move22, move24, move_gauge=0.):
     """Compute the values of weights in presence of custom ones.
 
     The default values are supposed to be float, while the custom one must be
@@ -569,36 +569,32 @@ def moves_weights(move22, move24, move_gauge):
         exceeds 1
     """
 
-    weights = [move22, move24, move_gauge]
+    weights = [move22, move24]
 
-    for i in range(2):
-        if type(weights[i]) == list:
-            weights[i][0] *= 2
-        else:
-            weights[i] *= 2
+    if type(weights[1]) == list:
+        weights[1][0] *= 2
+    else:
+        weights[1] *= 2
 
     custom_w = [x for x in weights if type(x) == list]
-    if len(custom_w) == 3:
-        raise ValueError('Is possible to choose only two of the weights '
-                         'for the three kinds of moves at the same time')
+    if len(custom_w) == 2:
+        raise ValueError('It is possible to choose only one of the weights')
     elif len(custom_w) != 0:
         sum_ = sum([x[0] for x in custom_w])
+        print(sum_)
         if sum_ > 1.:
             raise ValueError("The overall sum of moves' weights "
                              "must not exceed 1")
-        weights_values = [x[0] if type(x) == list else x for x in weights]
-        sum_defaults = sum(weights_values) - sum_
         for i in range(len(weights)):
             if weights[i] in custom_w:
                 weights[i] = weights[i][0]
             else:
-                weights[i] *= (1. - sum_) / sum_defaults
+                weights[i] = 1. - sum_
 
-    for i in range(2):
-        if type(weights[i]) == list:
-            weights[i] = weights[i][0] / 2
-        else:
-            weights[i] /= 2
+    if type(weights[1]) == list:
+        weights[1] = weights[1][0] / 2
+    else:
+        weights[1] /= 2
     return weights
 
 def end_parser(end_condition):
