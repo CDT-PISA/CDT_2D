@@ -452,15 +452,15 @@ def sim_obs_compute(args):
                 return 'continue'
 
         measures['volume'] = vol if vol else eval_volume(p_dir)
-        measures['action'] = eval_action(p_dir)
-        measures['action-density'] = eval_action_density(p_dir)
-        measures['top-susc'] = eval_top_susc(p_dir, force=force)
-        if not exclude_torelons and not exclude_bootstrap:
-            torelons_output = compute_torelons(p_dir, plot, fit, force=force)
-            if torelons_output:
-                measures['torelon-decay'] = torelons_output[:2]
-                if None not in torelons_output[2].values():
-                    measures['torelon-decay-fit'] = torelons_output[2]
+        # measures['action'] = eval_action(p_dir)
+        # measures['action-density'] = eval_action_density(p_dir)
+        # measures['top-susc'] = eval_top_susc(p_dir, force=force)
+        # if not exclude_torelons and not exclude_bootstrap:
+        #     torelons_output = compute_torelons(p_dir, plot, fit, force=force)
+        #     if torelons_output:
+        #         measures['torelon-decay'] = torelons_output[:2]
+        #         if None not in torelons_output[2].values():
+        #             measures['torelon-decay-fit'] = torelons_output[2]
         if not exclude_bootstrap:
             profiles_output = compute_profiles_corr(p_dir, plot, fit, force=force)
             measures['profiles_corr'] = profiles_output[:2]
