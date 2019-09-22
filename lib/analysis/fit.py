@@ -102,7 +102,7 @@ def select_from_plot(Point, indices, values, i=0, dot=None, proj_axis='x',
 
     return on_click.x, on_click.y
 
-def set_cut(p_dir, i=0):
+def set_cut(p_dir, i=0, force=False):
     from os import chdir
     from os.path import basename
     from math import ceil
@@ -116,7 +116,10 @@ def set_cut(p_dir, i=0):
     vol_file = 'history/volumes.txt'
     indices, volumes = read_csv(vol_file, sep=' ').values[:,:2].transpose()
 
-    index, _ = select_from_plot(Point, indices, volumes, i)
+    if force:
+        index = indices[-1] * 0.2
+    else:
+        index, _ = select_from_plot(Point, indices, volumes, i)
 
     if index:
         return ceil(index)
@@ -143,12 +146,12 @@ def blocked_mean_std(indices, volumes, block_size):
 
     return vol, err
 
-def set_block(p_dir, i=0):
+def set_block(p_dir, i=0, force=False):
     from os import chdir
     from os.path import basename
     from math import log
     import json
-    from numpy import loadtxt
+    import numpy as np
     from pandas import read_csv
     from lib.utils import dir_point
 
@@ -181,14 +184,17 @@ def set_block(p_dir, i=0):
 
     ratio = 1.3
     block_sizes = [ratio**k for k in
-                   range(15, int(log(imax - cut, ratio)) - 10)]
+                   range(15, int(log(imax - cut, ratio)) - 12)]
     stdevs = []
     for bs in block_sizes:
         _, stdev = blocked_mean_std(indices_cut, volumes_cut, bs)
         stdevs += [stdev]
 
-    block, _ = select_from_plot(Point, block_sizes, stdevs, i, proj_axis='xy',
-                                block=True)
+    if force:
+        block = block_sizes[np.array(stdevs).argmax()]
+    else:
+        block, _ = select_from_plot(Point, block_sizes, stdevs, i,
+                                    proj_axis='xy', block=True)
     if block == None or block == -1:
         print('Nothing done.')
         return None
@@ -290,7 +296,7 @@ def eval_action_density(p_dir):
 
     return g_density, err
 
-def eval_top_susc(p_dir, type=1):
+def eval_top_susc(p_dir, type=1, force=False):
     from os import chdir, getcwd
     import json
     import numpy as np
@@ -338,7 +344,8 @@ def eval_top_susc(p_dir, type=1):
                     sample = sample.T
                     sample_top_susc = sample[0] * sample[1]
                     top_susc_l += [sample_top_susc]
-                    bar.update(i)
+                    if not force:
+                        bar.update(i)
                     i += 1
         else:
             for sample in top_2_resampled:
@@ -356,7 +363,7 @@ def eval_top_susc(p_dir, type=1):
 
     return top_susc, err
 
-def compute_torelons(p_dir, plot, fit):
+def compute_torelons(p_dir, plot, fit, force=False):
     from os import chdir, getcwd
     import json
     import numpy as np
@@ -413,7 +420,8 @@ def compute_torelons(p_dir, plot, fit):
             i = 0
             for torelons in torelons_resampled:
                 torelons_decay += [get_time_corr(torelons)]
-                bar.update(i)
+                if not force:
+                    bar.update(i)
                 i += 1
             torelons_decay = np.array(torelons_decay)
     else:
@@ -442,7 +450,8 @@ def compute_torelons(p_dir, plot, fit):
                  label='bootstrap std')
         plt.legend()
         plt.savefig('torelon.pdf')
-        plt.show()
+        if not force:
+            plt.show()
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times
@@ -484,7 +493,7 @@ def compute_torelons(p_dir, plot, fit):
                   'cov': None if cov is None else cov.tolist(),
                   'chi2': χ2[0], 'dof': χ2[1]}])
 
-def compute_profiles_corr(p_dir, plot, fit):
+def compute_profiles_corr(p_dir, plot, fit, force=False):
     import sys
     from os import chdir, getcwd
     import json
@@ -527,7 +536,8 @@ def compute_profiles_corr(p_dir, plot, fit):
             i = 0
             for profiles in profiles_resampled:
                 profiles_corr += [get_time_corr(profiles)]
-                bar.update(i)
+                if not force:
+                    bar.update(i)
                 i += 1
             profiles_corr = np.array(profiles_corr)
     else:
@@ -558,7 +568,8 @@ def compute_profiles_corr(p_dir, plot, fit):
         plt.title(f'PROFILE CORR.:\n Number of points: {len(indices_cut)}')
         plt.legend()
         plt.savefig('profile.pdf')
-        plt.show()
+        if not force:
+            plt.show()
 
     # the sum over 'i' is the sum over the ensemble
     # the sum over 'j' is the sum over times, and it's done after all the other

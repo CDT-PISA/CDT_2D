@@ -717,6 +717,8 @@ def eng_not(num):
     if num < 0:
         num = -num
         sign = True
+    elif num == 0:
+        return str(0)
     else:
         sign = False
 
