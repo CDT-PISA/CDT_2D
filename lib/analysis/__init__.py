@@ -662,7 +662,8 @@ def export_data(name, unpack):
         with open('gauge_action.csv', 'w') as file:
             sep = ' '
             end = '\n'
-            file.write('# Lambda Beta Volume Error Config' + end)
+            file.write('# Lambda Beta Action Error ActionDensity Error Config'
+                       + end)
             g_action_data = sorted(g_action_data)
             for point_g_action in g_action_data:
                 str_point_g_action = []
@@ -870,6 +871,12 @@ def fit_divergence(name, kind='volumes', reload=False):
     elif kind in ['t', 'torelons']:
         kind = 'torelons'
         kind_file = 'torelons_length'
+    elif kind in ['g', 'gauge-action']:
+        kind = 'gauge-action'
+        kind_file = 'gauge_action'
+    elif kind in ['top', 'susc', 'top-susc']:
+        kind = 'topological-susceptibility'
+        kind_file = 'top_susc'
     else:
         raise ValueError(f'{kind} not available for divergence fit.')
 
@@ -954,6 +961,9 @@ def fit_divergence(name, kind='volumes', reload=False):
     else:
         data = genfromtxt(f'{kind_file}.csv', unpack=True)
         lambdas, betas = data[:2]
-        means, errors = data[2:4]
+        if kind == 'gauge-action':
+            means, errors = data[4:6]
+        else:
+            means, errors = data[2:4]
 
     fit_divergence(lambdas, means, errors, betas, kind=kind)

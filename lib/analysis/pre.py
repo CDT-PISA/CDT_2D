@@ -185,6 +185,10 @@ def preplot(fit_name, kind):
     import numpy as np
     import matplotlib.pyplot as plt
     from lib.utils import fit_dir
+    import seaborn as sns
+
+    sns.set_style('whitegrid')
+    sns.set_context('talk')
 
     chdir(fit_dir(fit_name))
 
@@ -199,6 +203,21 @@ def preplot(fit_name, kind):
 
         plt.title('Volumes:\n' + fit_name)
         plt.errorbar(Lambda, vol, err, fmt='none', capsize=5)
+        plt.savefig('pre_volumes.pdf')
+        plt.show()
+
+    elif kind in ['p', 'profiles']:
+        try:
+            data = np.genfromtxt('profiles_length.csv', unpack=True)
+        except (FileNotFoundError, OSError):
+            print(f"No file 'profiles_length.csv' for fit {fit_name}")
+            return
+        Lambda = data[0]
+        pro_xi, err = data[2], data[3]
+
+        plt.title('Profiles Correlation Lengths:\n' + fit_name)
+        plt.errorbar(Lambda, pro_xi, err, fmt='none', capsize=5)
+        plt.savefig('pre_profiles.pdf')
         plt.show()
 
     elif kind in ['g', 'action', 'gauge', 'gauge-action']:
@@ -223,6 +242,7 @@ def preplot(fit_name, kind):
         axs[1].errorbar(Lambda, g_av_plaq, av_plaq_err, fmt='none',
                      capsize=5, label='average plaquette')
         axs[1].legend()
+        plt.savefig('pre_gauge_action.pdf')
         plt.show()
 
     elif kind in ['top', 'susc', 'top-susc']:
@@ -236,4 +256,22 @@ def preplot(fit_name, kind):
 
         plt.title('Topological susceptibilities:\n' + fit_name)
         plt.errorbar(Lambda, top, err, fmt='none', capsize=5)
+        plt.savefig('pre_top_susc.pdf')
+        plt.show()
+
+    elif kind in ['t', 'torelons']:
+        try:
+            data = np.genfromtxt('torelon_length.csv', unpack=True)
+        except (FileNotFoundError, OSError):
+            print(f"No file 'torelon_length.csv' for fit {fit_name}")
+            return
+        Lambda = data[0]
+        tor_xi, err = data[2], data[3]
+
+        plt.title('Torelons Correlation Lengths:\n$\\beta = ' + fit_name[4:] + '$')
+        plt.errorbar(Lambda, tor_xi, err, fmt='none', capsize=5)
+        plt.xlabel('$\\lambda$')
+        plt.ylabel('$\\xi_T$')
+        plt.tight_layout()
+        plt.savefig('pre_torelons.pdf')
         plt.show()
