@@ -203,3 +203,6 @@ def decay(t, t_corr, A, rescale=1.):
 
 def divergence(l, l_c, alpha, A):
     return A * (l - l_c)**(-alpha)
+
+def constant(l, a):
+    return a

@@ -561,7 +561,7 @@ def define_parser(launcher_path, version):
 
     # preliminary plots command
 
-    kinds = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
+    kinds = ['v', 'volumes', 'p', 'profiles',
              'g', 'action', 'gauge', 'gauge-action',
              'top', 'susc', 'top-susc', 't', 'torelons']
 
@@ -686,7 +686,8 @@ def define_parser(launcher_path, version):
 
     # fit command
 
-    kinds = ['v', 'volumes', 'p', 'profiles', 't', 'torelons']
+    kinds = ['v', 'volumes', 'p', 'profiles', 't', 'torelons',
+             'g', 'gauge-action', 'top', 'susc', 'top-susc']
 
     fit_sub = analysis_sub.add_parser('fit', help='fit', description=msgs.fit,
                         formatter_class=argparse.RawDescriptionHelpFormatter)

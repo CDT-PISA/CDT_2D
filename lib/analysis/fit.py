@@ -642,6 +642,8 @@ def fit_decay(profile, errors):
 
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
+    from os import getcwd
+    from os.path import isfile, basename
     from platform import node
     import json
     from pprint import pprint
@@ -649,7 +651,8 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
     from matplotlib import pyplot as plt, colors as clr
-    from lib.analysis.tools import divergence
+    import seaborn as sns
+    from lib.analysis.tools import divergence, constant
 
     if len(set(betas)) > 1:
         print('Volume fit is possible only for fixed β.')
@@ -679,7 +682,9 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     errors = np.array(errors)
 
     kw = {'height_ratios':[3,1]}
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw=kw)
+    with sns.axes_style("whitegrid"):
+        sns.set_context("talk")
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw=kw)
     # ax1 = fig.add_subplot(211)
     # ax2 = fig.add_subplot(212)
 
@@ -692,9 +697,21 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     stderr_save = sys.stderr
     sys.stderr = my_fit_msg
 
-    par, cov = curve_fit(divergence, lambdas, volumes, sigma=errors,
-                         absolute_sigma=True, p0=(min(lambdas)*0.7, 2.4, 61))
+    if kind in ['volumes', 'profiles', 'torelons']:
+        lc_0 = min(lambdas)*0.7 if min(lambdas) > 0 else min(lambdas)*1.3
+        alpha_0 = 2.4 if kind != 'profiles' else 2.
+        A_0 = 61 if kind == 'volumes' else 0.
+        p0=(lc_0, alpha_0, A_0)
+
+        par, cov = curve_fit(divergence, lambdas, volumes, sigma=errors,
+                             absolute_sigma=True, p0=p0)
         # bounds=((min(lambdas), -np.inf, -np.inf), (np.inf, np.inf, np.inf)))
+    elif kind in ['gauge-action', 'topological-susceptibility']:
+        par, cov = curve_fit(constant, lambdas, volumes, sigma=errors,
+                             absolute_sigma=True)
+    else:
+        raise ValueError('kind not recognized')
+
     err = np.sqrt(np.diag(cov))
 
     sys.stderr = stderr_save
@@ -703,8 +720,13 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_fit_msg.write('End fit')
     my_fit_msg.write('\033[0m')
 
-    residuals = ((volumes - np.vectorize(divergence)(lambdas, *par))
-                    /errors)
+    if kind in ['volumes', 'profiles', 'torelons']:
+        residuals = ((volumes - np.vectorize(divergence)(lambdas, *par))
+                        /errors)
+    elif kind in ['gauge-action', 'topological-susceptibility']:
+        residuals = ((volumes - np.vectorize(constant)(lambdas, *par))
+                        /errors)
+
     residuals_sq = residuals**2
     χ2 = residuals_sq.sum()
     dof = len(lambdas) - len(par)
@@ -717,7 +739,10 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write('└──', '─' * len(β), '──┘\033[0m\n', sep='')
 
     my_out.write('\033[94mFunction:\033[0m')
-    my_out.write('\tf(λ) = A*(λ - λ_c)**(-α)')
+    if kind in ['volumes', 'profiles', 'torelons']:
+        my_out.write('\tf(λ) = A*(λ - λ_c)**(-α)')
+    elif kind in ['gauge-action', 'topological-susceptibility']:
+        my_out.write('\tf(λ) = a')
 
     my_out.write('\033[94mFit evaluation:\033[0m')
     my_out.write('\t\033[93mχ²\033[0m =', χ2)
@@ -725,7 +750,10 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
                   '\033[0m')
 
-    names = ['λ_c', 'α', 'A']
+    if kind in ['volumes', 'profiles', 'torelons']:
+        names = ['λ_c', 'α', 'A']
+    elif kind in ['gauge-action', 'topological-susceptibility']:
+        names = ['a']
 
     my_out.write('\033[94mOutput parameters:\033[0m')
     for x in zip(names, zip(par, err)):
@@ -740,17 +768,64 @@ def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     my_out.write('\033[94mCorrelation coefficients:\033[0m')
     my_out.write("\t" + str(corr).replace('\n','\n\t'))
 
+    if not isfile(f'../par_{kind[:3]}.csv'):
+        with open(f'../par_{kind[:3]}.csv', 'a') as f_par:
+            f_par.write('# fit_name[0] ')
+            i = 1
+            for name in names:
+                f_par.write(f'{name}[{i}] err_{name}[{i+1}] ')
+                i += 2
+            f_par.write('\n\n')
+
+    fit_name = str(basename(getcwd()))
+    with open(f'../par_{kind[:3]}.csv', 'r') as f_par:
+        f_cont = f_par.read()
+        pos_ = f_cont.find(fit_name + ' ')
+        expr_ = f'{fit_name} '
+        expr_ += ''.join([f'{x[0]} {x[1]} ' for x in zip(par, err)])
+        if pos_ != -1:
+            end_pos = f_cont[pos_:].find('\n')
+            f_cont = f_cont[:pos_] + expr_ + f_cont[(pos_ + end_pos):]
+        else:
+            expr_ += '\n'
+            f_cont += expr_
+
+    with open(f'../par_{kind[:3]}.csv', 'w') as f_par:
+        f_par.write(f_cont)
+
+    # PLOT
+
+    # sns.set_style('white')
+    # sns.set_style("whitegrid")
+    # plt.style.use('seaborn-paper')
+
     l_inter = np.linspace(min(lambdas), max(lambdas), 1000)
-    ax1.plot(l_inter, divergence(l_inter, *par))
+    if kind in ['volumes', 'profiles', 'torelons']:
+        ax1.plot(l_inter, divergence(l_inter, *par))
+        ax1.set_ylabel('volume')
+    elif kind in ['gauge-action', 'topological-susceptibility']:
+        ax1.plot(l_inter, np.vectorize(constant)(l_inter, *par))
+        ax1.errorbar(l_inter.mean(), par[0], np.sqrt(cov[0][0]),
+                     ecolor='tab:green', capsize=5)
+        print('typ err: ', errors.mean())
+        print('max - min: ', max(volumes) - min(volumes))
+        fig2 = plt.figure()
+        plt.hist(errors)
+        if kind == 'topological-susceptibility':
+            ax1.set_ylabel('$\\chi$')
 
     fc_ = residuals.astype(str)
     fc_[residuals > 0.] = 'tab:green'
     fc_[fc_ != 'tab:green'] = 'w'
     ax2.scatter(lambdas, residuals, c=clr.to_rgba_array(fc_), #s=5,
              edgecolors='k', linewidths=.5)
+    ax2.set_xlabel('λ')
+    ax2.set_ylabel('residuals')
 
-    ax1.set_title(f'Fit {kind}:\n$χ^2$ = {χ2:0.1f}, dof = {dof}')
-    plt.tight_layout(pad=1.5)
+    ax1.set_title(f'β = {betas[0]}:\n$χ^2$ = {χ2:0.1f},  dof = {dof},  '
+                  f'p-value = {p_value:4.2%}')
+    plt.tight_layout(pad=0.5)
     plt.savefig(f'fit_{kind[:3]}.pdf')
     if node() == 'Paperopoli':
         plt.show()
+        # pass
