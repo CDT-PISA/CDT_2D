@@ -659,7 +659,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
     from os.path import basename, dirname, realpath
     import json
     from pprint import pprint
-    from lib.utils import config_dir, dir_point, fit_dir
+    from lib.analysis.tools import config_dir, dir_point, fit_dir
 
     if fit_name:
         f_dir = fit_dir(fit_name)
