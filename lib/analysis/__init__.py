@@ -689,14 +689,14 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
     pprint(points)
     print('\033[0m')
 
-    print('CIAO')
-    args = {'points': points,
-            'config': config,
-            'plot': plot,
-            'exclude_torelons': exclude_torelons,
-            'fit_name': fit_name,
-            'force': force}
-    pprint(args)
+    # print('CIAO')
+    # args = {'points': points,
+    #         'config': config,
+    #         'plot': plot,
+    #         'exclude_torelons': exclude_torelons,
+    #         'fit_name': fit_name,
+    #         'force': force}
+    # pprint(args)
 
     return
 
