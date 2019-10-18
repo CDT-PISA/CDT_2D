@@ -669,6 +669,29 @@ def define_parser(launcher_path, version):
                           dest='exclude_bootstrap', help=msgs.excl_tor)
     sim_obs_sub.add_argument('--force', action='store_true', help=msgs.force)
 
+    # refit corr command
+
+    refit_sub = analysis_sub.add_parser('refit-corr',
+                help='refit correlation lenghts', description=msgs.refit_corr,
+                formatter_class=argparse.RawDescriptionHelpFormatter)
+    refit_sub.add_argument('-l', '--lamda', nargs='+', type=float,
+                        help=msgs.lamda)
+    refit_sub.add_argument('-b', '--beta', nargs='+', type=positive_float,
+                        help=msgs.beta)
+    refit_sub.add_argument('--range', choices=['b', 'l', 'bl', 'lb'],
+                        default='', help=msgs.range)
+    refit_sub.add_argument('-c', '--config', choices=configs, default='test',
+                        metavar=meta_configs, help=msgs.config)
+    refit_sub.add_argument('-°', dest='is_all', action='store_true',
+                        help=msgs.is_all)
+    refit_sub.add_argument('-n', '--fit-name', metavar=meta_fits,
+                        type=fit_pattern, nargs='+', help=msgs.fit_names)
+    refit_sub.add_argument('-p', '--plot', action='store_true',
+                        help=msgs.plot_obs)
+    # refit_sub.add_argument('--et', '--exclude-torelons', action='store_true',
+    #                          dest='exclude_torelons', help=msgs.excl_tor)
+    refit_sub.add_argument('--force', action='store_true', help=msgs.force)
+
 
     # export-data command
 

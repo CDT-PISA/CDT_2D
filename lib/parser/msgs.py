@@ -454,6 +454,17 @@ plot_obs = """Plot observables during setting."""
 fit_obs = """Fit observables, such as corr. lengths."""
 excl_tor = """Exlude torelons from observables calculation."""
 
+# REFIT_CORR
+
+refit_corr = cleandoc("""
+┌──────────────────┐
+│REFIT CORR COMMAND│
+└──────────────────┘
+...
+
+Example:
+    ...""")
+
 # EXPORT_DATA
 
 export_data = cleandoc("""

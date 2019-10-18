@@ -640,6 +640,47 @@ def fit_decay(profile, errors):
 
     return par, cov, [χ2, dof]
 
+def fit_decay2(profile, errors):
+    import numpy as np
+    from scipy.optimize import curve_fit
+    from scipy.stats import chi2
+
+    times = np.arange(len(profile)) - ((len(profile) - 1) / 2)
+    h = max(times)
+    times /= max(times)
+    profile = np.array(profile)
+    errors = np.array(errors)
+
+    try:
+        par, cov = curve_fit(decay, times[1:-1], profile[1:-1],
+                             sigma=errors[1:-1],
+                             absolute_sigma=True, p0=(1., 0.))
+        # err = np.sqrt(np.diag(cov))
+
+        residuals_sq = ((profile[1:-1] - np.vectorize(decay)(times[1:-1], *par))
+                        /errors[1:-1])**2
+        χ2 = residuals_sq.sum()
+        dof = len(times[1:-1]) - len(par)
+        p_value = chi2.sf(χ2, dof)
+        p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
+
+        rescale = np.array([h, 1])
+        par = par * rescale
+        cov = ((cov * rescale).T * rescale).T
+        print(f'\033[93mcorr_length\033[0m = {par[0]} ± {np.sqrt(cov[0][0])}')
+
+        print('\033[94mFit evaluation:\033[0m')
+        print('\t\033[93mχ²\033[0m =', χ2)
+        print('\t\033[93mdof\033[0m =', dof)
+        print(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
+                      '\033[0m')
+    except RuntimeError:
+        print('Fit failed.')
+        par, cov = None, None
+        χ2, dof = None, None
+
+    return par, cov, [χ2, dof]
+
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
     from os import getcwd
