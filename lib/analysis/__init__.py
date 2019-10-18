@@ -730,7 +730,8 @@ def refit_compute(args):
             torelons_decay_mean = np.array(t_mean)
             torelons_decay_std = np.array(t_std)
             print('\nTORELONS:')
-            p_fit, par, cov, χ2 = fit_decay2(torelons_decay_mean, torelons_decay_std)
+            p_fit, par, cov, χ2 = fit_decay2(torelons_decay_mean,
+                                             torelons_decay_std)
             if all([x is not None for x in [p_fit, par]]):
                 x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
                 y = p_fit
@@ -761,7 +762,8 @@ def refit_compute(args):
             profiles_corr_mean = np.array(p_mean)
             profiles_corr_std = np.array(p_std)
             print('\nPROFILES:')
-            p_fit, par, cov, χ2 = fit_decay2(profiles_corr_mean, profiles_corr_std)
+            p_fit, par, cov, χ2 = fit_decay2(profiles_corr_mean,
+                                             profiles_corr_std)
             if all([x is not None for x in [p_fit, par]]):
             # if False and par is not None:
                 x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
