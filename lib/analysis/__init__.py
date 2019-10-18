@@ -690,10 +690,10 @@ def refit_compute(args):
     from time import time
     from datetime import datetime
     import json
+    import numpy as np
     import matplotlib.pyplot as plt
     from lib.utils import point_dir, authorization_request
     from lib.analysis.fit import fit_decay2
-    from lib.analysis.tools import decay
 
     Point, points_configs, c_dir, i, force, plot, exclude_torelons = args
 
@@ -726,23 +726,26 @@ def refit_compute(args):
     if auth == 'yes':
         # Compute torelons lengths
         try:
-            torelons_decay_mean, torelons_decay_std = measures['profiles_corr']
-            par, cov, χ2 = fit_decay2(torelons_decay_mean, torelons_decay_std)
-            if plot and (par is not None):
+            t_mean, t_std = measures['torelon-decay']
+            torelons_decay_mean = np.array(t_mean)
+            torelons_decay_std = np.array(t_std)
+            print('\nTORELONS:')
+            p_fit, par, cov, χ2 = fit_decay2(torelons_decay_mean, torelons_decay_std)
+            if False and par is not None:
                 x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
                 y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
-
                 plt.plot(x, y, 'tab:green', label='fit')
-                plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
-                plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
-                plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
-                         label='bootstrap std')
-                plt.title('TORELON:\n '
-                          f'Number of points: {len(indices_cut)}')
-                plt.legend()
-                plt.savefig('torelon.pdf')
-                if not force:
-                    plt.show()
+
+            plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
+            plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
+            plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
+                     label='bootstrap std')
+            plt.title('TORELON:\n ')
+                      # f'Number of points: {len(indices_cut)}')
+            plt.legend()
+            plt.savefig('torelon.pdf')
+            if plot and not force:
+                plt.show()
 
             torelons_fit = {'par': None if par is None else par.tolist(),
                             'cov': None if cov is None else cov.tolist(),
@@ -750,25 +753,31 @@ def refit_compute(args):
         except KeyError:
             torelons_fit = None
 
+        plt.clf()
+
         # Compute profiles lengths
         try:
-            profiles_corr_mean, profiles_corr_std = measures['profiles_corr']
-            par, cov, χ2 = fit_decay2(profiles_corr_mean, profiles_corr_std)
-            if plot and (par is not None):
+            p_mean, p_std = measures['profiles_corr']
+            profiles_corr_mean = np.array(p_mean)
+            profiles_corr_std = np.array(p_std)
+            print('\nPROFILES:')
+            p_fit, par, cov, χ2 = fit_decay2(profiles_corr_mean, profiles_corr_std)
+            if par is not None:
+            # if False and par is not None:
                 x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
-                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+                y = p_fit
                 plt.plot(x, y, 'tab:green', label='fit')
 
-                plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
-                plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
-                plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
-                         label='bootstrap std')
-                plt.title('PROFILE CORR.:\n '
-                          f'Number of points: {len(indices_cut)}')
-                plt.legend()
-                plt.savefig('profile.pdf')
-                if not force:
-                    plt.show()
+            plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
+            plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
+            plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
+                     label='bootstrap std')
+            plt.title('PROFILE CORR.:\n ')
+                      # f'Number of points: {len(indices_cut)}')
+            plt.legend()
+            plt.savefig('profile.pdf')
+            if plot and not force:
+                plt.show()
 
             profiles_fit = {'par': None if par is None else par.tolist(),
                             'cov': None if cov is None else cov.tolist(),
@@ -828,23 +837,23 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
     pprint(points)
     print('\033[0m')
 
-    print('CIAO')
-    args = {'points': points,
-            'config': config,
-            'plot': plot,
-            'exclude_torelons': exclude_torelons,
-            'fit_name': fit_name,
-            'force': force}
-    pprint(args)
-
-    return
+    # print('CIAO')
+    # args = {'points': points,
+    #         'config': config,
+    #         'plot': plot,
+    #         'exclude_torelons': exclude_torelons,
+    #         'fit_name': fit_name,
+    #         'force': force}
+    # pprint(args)
+    #
+    # return
 
     if not force:
         i = 0
         for Point in points:
             args = (Point, points_configs, c_dir, i, force, plot,
                     exclude_torelons)
-            ret = sim_obs_compute(args)
+            ret = refit_compute(args)
             if ret == 'return':
                 return
             elif ret == 'continue':
@@ -861,7 +870,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
             i += 1
 
         with mp.Pool(mp.cpu_count() - 1) as pool:
-            pool.map(sim_obs_compute, args)
+            pool.map(refit_compute, args)
 
 def export_data(name, unpack):
     from os import chdir
