@@ -645,6 +645,7 @@ def fit_decay2(profile, errors):
     import matplotlib.pyplot as plt
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
+    from lib.utils import exp_decay
 
     times = np.arange(len(profile))
     profile = np.array(profile)
