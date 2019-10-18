@@ -542,6 +542,7 @@ def refit_compute(args):
     from time import time
     from datetime import datetime
     import json
+    import numpy as np
     import matplotlib.pyplot as plt
     from lib.utils import point_dir, authorization_request
     from lib.analysis.fit import fit_decay2
