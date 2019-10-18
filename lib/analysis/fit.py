@@ -689,10 +689,11 @@ def fit_decay2(profile, errors):
             p_fit[-501:] = p_fit[500::-1]
     except RuntimeError:
         print('Fit failed.')
+        p_fit = None
         par, cov = None, None
         χ2, dof = None, None
 
-    return par, cov, [χ2, dof]
+    return p_fit, par, cov, [χ2, dof]
 
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
