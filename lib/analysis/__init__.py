@@ -697,7 +697,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
     #         'fit_name': fit_name,
     #         'force': force}
     # pprint(args)
-    # 
+    #
     # return
 
     if not force:
@@ -705,7 +705,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
         for Point in points:
             args = (Point, points_configs, c_dir, i, force, plot,
                     exclude_torelons)
-            ret = sim_obs_compute(args)
+            ret = refit_compute(args)
             if ret == 'return':
                 return
             elif ret == 'continue':
@@ -722,7 +722,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
             i += 1
 
         with mp.Pool(mp.cpu_count() - 1) as pool:
-            pool.map(sim_obs_compute, args)
+            pool.map(refit_compute, args)
 
 def export_data(name, unpack):
     from os import chdir
