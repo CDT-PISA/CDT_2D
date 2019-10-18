@@ -630,9 +630,13 @@ def fit_decay(profile, errors):
     return par, cov, [χ2, dof]
 
 def fit_decay2(profile, errors):
+    """
+    Fit only exponential decay, on the first points.
+    """
     import numpy as np
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
+    from lib.analysis.tools import exp_decay
 
     times = np.arange(len(profile)) - ((len(profile) - 1) / 2)
     h = max(times)
@@ -640,35 +644,45 @@ def fit_decay2(profile, errors):
     profile = np.array(profile)
     errors = np.array(errors)
 
+    cut = len(profile) * 10 // 100
+    p = profile[1:cut]
+    e = errors[1:cut]
+    t = times[1:cut]
+    print(f'cut: {cut}')
+
     try:
-        par, cov = curve_fit(decay, times[1:-1], profile[1:-1],
-                             sigma=errors[1:-1],
-                             absolute_sigma=True, p0=(1., 0.))
+        par, cov = curve_fit(exp_decay, t, p, sigma=e, absolute_sigma=True,
+                             p0=(0.5))
         # err = np.sqrt(np.diag(cov))
 
-        residuals_sq = ((profile[1:-1] - np.vectorize(decay)(times[1:-1], *par))
-                        /errors[1:-1])**2
+        residuals_sq = ((p - np.vectorize(exp_decay)(t, *par)) / e)**2
         χ2 = residuals_sq.sum()
-        dof = len(times[1:-1]) - len(par)
+        dof = len(t) - len(par)
         p_value = chi2.sf(χ2, dof)
         p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
-        rescale = np.array([h, 1])
-        par = par * rescale
-        cov = ((cov * rescale).T * rescale).T
-        print(f'\033[93mcorr_length\033[0m = {par[0]} ± {np.sqrt(cov[0][0])}')
+        print(f'\033[93mcorr_length\033[0m = {par[0]:g} ± '
+              f'{np.sqrt(cov[0][0]):g}')
 
         print('\033[94mFit evaluation:\033[0m')
         print('\t\033[93mχ²\033[0m =', χ2)
         print('\t\033[93mdof\033[0m =', dof)
         print(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
                       '\033[0m')
+
+        p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), *par)
+        # p_fit = np.zeros(1001)
+        # p_fit[:501] = np.vectorize(exp_decay)(np.linspace(0,len(times),501), *par)
+        # p_fit[-500:] = p_fit[:500:-1]
     except RuntimeError:
         print('Fit failed.')
+        p_fit = None
         par, cov = None, None
         χ2, dof = None, None
 
-    return par, cov, [χ2, dof]
+    # return {'fit-kind': 'lin-exp',
+    #          'par': par, 'cov': cov, 'chi2': [χ2, dof]}
+    return p_fit, par, cov, [χ2, dof]
 
 def fit_divergence(lambdas, volumes, errors, betas, kind='volumes'):
     import sys
