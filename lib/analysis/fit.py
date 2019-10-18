@@ -670,9 +670,9 @@ def fit_decay2(profile, errors):
         p_value = chi2.sf(χ2, dof)
         p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
-        rescale = np.array([h, 1])
-        par = par * rescale
-        cov = ((cov * rescale).T * rescale).T
+        # rescale = np.array([h, 1])
+        # par = par * rescale
+        # cov = ((cov * rescale).T * rescale).T
         print(f'\033[93mcorr_length\033[0m = {par[0]} ± {np.sqrt(cov[0][0])}')
 
         print('\033[94mFit evaluation:\033[0m')
