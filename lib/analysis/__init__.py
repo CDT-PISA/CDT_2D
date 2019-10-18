@@ -594,8 +594,8 @@ def refit_compute(args):
             plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
             plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
                      label='bootstrap std')
-            plt.title('TORELON:\n '
-                      f'Number of points: {len(indices_cut)}')
+            plt.title('TORELON:\n ')
+                      # f'Number of points: {len(indices_cut)}')
             plt.legend()
             plt.savefig('torelon.pdf')
             if not force:
@@ -625,8 +625,8 @@ def refit_compute(args):
             plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
             plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
                      label='bootstrap std')
-            plt.title('PROFILE CORR.:\n '
-                      f'Number of points: {len(indices_cut)}')
+            plt.title('PROFILE CORR.:\n ')
+                      # f'Number of points: {len(indices_cut)}')
             plt.legend()
             plt.savefig('profile.pdf')
             if not force:
