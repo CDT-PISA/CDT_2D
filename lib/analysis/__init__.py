@@ -891,7 +891,7 @@ def export_data(name, unpack):
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'profiles.csv'\033[0m")
 
-    elif unpack in ['pf', 'profiles-fit']:
+    elif unpack in ['pf', 'profiles-fit', 'pf2', 'profiles-fit2']:
         try:
             with open('data.json', 'r') as file:
                 data = json.load(file)
@@ -904,7 +904,10 @@ def export_data(name, unpack):
             Point = (point_data['lambda'], point_data['beta'])
             config = point_data['config']
             try:
-                fit_data = point_data['profiles_corr_fit']
+                if unpack[-1] != '2':
+                    fit_data = point_data['profiles_corr_fit']
+                else:
+                    fit_data = point_data['profiles-corr-fit2']
                 len_corr = fit_data['par'][0]
                 err = np.sqrt(fit_data['cov'][0][0])
             except KeyError:
@@ -912,7 +915,12 @@ def export_data(name, unpack):
 
             profile_fit_data += [[Point[0], Point[1], len_corr, err, config]]
 
-        with open('profiles_length.csv', 'w') as file:
+        if unpack[-1] != '2':
+            file_name = 'profiles_length.csv'
+        else:
+            file_name = 'profiles_length2.csv'
+
+        with open(file_name, 'w') as file:
             sep = ' '
             end = '\n'
             file.write('# Lambda Beta Corr_Length Error Config' + end)
@@ -925,7 +933,7 @@ def export_data(name, unpack):
 
         print(f"\033[38;5;41m({name})\033[0m profiles fit from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
-               "\033[38;5;80m'profiles_length.csv'\033[0m")
+              f"\033[38;5;80m'{file_name}'\033[0m")
 
     elif unpack in ['top', 'susc', 'top-susc']:
         try:
@@ -997,7 +1005,7 @@ def export_data(name, unpack):
                "\033[38;5;80m'data.json'\033[0m unpacked to "
                "\033[38;5;80m'torelons.csv'\033[0m")
 
-    elif unpack in ['tf', 'torelons-fit']:
+    elif unpack in ['tf', 'torelons-fit', 'tf2', 'torelons-fit2']:
         try:
             with open('data.json', 'r') as file:
                 data = json.load(file)
@@ -1010,7 +1018,10 @@ def export_data(name, unpack):
             Point = (point_data['lambda'], point_data['beta'])
             config = point_data['config']
             try:
-                fit_data = point_data['torelon-decay-fit']
+                if unpack[-1] != '2':
+                    fit_data = point_data['torelon-decay-fit']
+                else:
+                    fit_data = point_data['torelon-decay-fit2']
                 len_corr = fit_data['par'][0]
                 err = np.sqrt(fit_data['cov'][0][0])
             except KeyError:
@@ -1018,7 +1029,12 @@ def export_data(name, unpack):
 
             profile_fit_data += [[Point[0], Point[1], len_corr, err, config]]
 
-        with open('torelon_length.csv', 'w') as file:
+        if unpack[-1] != '2':
+            file_name = 'torelon_length.csv'
+        else:
+            file_name = 'torelon_length2.csv'
+
+        with open(file_name, 'w') as file:
             sep = ' '
             end = '\n'
             file.write('# Lambda Beta Corr_Length Error Config' + end)
@@ -1031,7 +1047,7 @@ def export_data(name, unpack):
 
         print(f"\033[38;5;41m({name})\033[0m profiles fit from "
                "\033[38;5;80m'data.json'\033[0m unpacked to "
-               "\033[38;5;80m'torelon_length.csv'\033[0m")
+              f"\033[38;5;80m'{file_name}'\033[0m")
 
 def fit_divergence(name, kind='volumes', reload=False):
     from os import chdir
