@@ -268,6 +268,43 @@ def sim_obs(points, points_new, config, plot, fit, excl_tor, excl_boot,
 
         sim_obs(points, config, plot, fit, excl_tor, excl_boot, fit_name, force)
 
+def refit_corr(points, points_new, config, plot, exclude_torelons, fit_name,
+               force):
+    from lib.analysis import refit_corr
+
+    if len(points_new) > 0:
+        print("Following (λ, β) not found: ", points_new)
+
+    if fit_name:
+        from re import fullmatch
+        from lib.utils import find_fits
+
+        pattern_names = []
+        pure_names = []
+        all_names = list(find_fits().keys())
+        for name in fit_name:
+            if name[0] == '§':
+                pattern_names += [c for c in all_names
+                                    if fullmatch(name[1:], c)]
+            else:
+                pure_names += [name]
+
+        names = sorted(list(set(pure_names + pattern_names)))
+        print(f'Chosen fits are:\n  {names}')
+    else:
+        names = [None]
+
+    for fit_name in names:
+        if fit_name:
+            msg = f"""\033[94m
+            ┌────{'─'*len(fit_name)}──┐
+            │FIT '{fit_name}'│
+            └────{'─'*len(fit_name)}──┘
+            \033[0m"""
+            print(msg)
+
+        refit_corr(points, config, plot, exclude_torelons, fit_name, force)
+
 def export_data(names, unpack):
     from re import fullmatch
     from lib.utils import find_fits
@@ -507,6 +544,10 @@ def main():
             sim_obs(points_old, points_new, args.config, args.plot,
                     args.fit, args.exclude_torelons, args.exclude_bootstrap,
                     args.fit_name, args.force)
+        elif args.analysis == 'refit-corr':
+            args.exclude_torelons = False
+            refit_corr(points_old, points_new, args.config, args.plot,
+                    args.exclude_torelons, args.fit_name, args.force)
         elif args.analysis == 'export-data':
             export_data(args.fit_name, args.unpack)
         elif args.analysis == 'fit':

@@ -364,7 +364,7 @@ def sim_obs_compute(args):
     except FileNotFoundError:
         print(f'\033[1mCRITICAL:\033[0m no state.json file in sim'
               f'\033[38;5;41m(λ, β) = {Point}\033[0m')
-        return 'return'
+        return 'continue'
 
     try:
         with open('measures.json', 'r') as file:
@@ -479,18 +479,10 @@ def sim_obs_compute(args):
 
 def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
             fit_name, force):
-    from os import chdir
-    from os.path import isfile, basename, dirname, realpath
-    from time import time
-    from datetime import datetime
+    from os.path import basename, dirname, realpath
     import json
     from pprint import pprint
-    from lib.utils import (config_dir, point_dir, dir_point, fit_dir,
-                           authorization_request, eng_not)
-    from lib.analysis.fit import (set_cut, set_block,
-                                  eval_volume, eval_top_susc,
-                                  eval_action, eval_action_density,
-                                  compute_torelons, compute_profiles_corr)
+    from lib.utils import config_dir, dir_point, fit_dir
 
     if fit_name:
         f_dir = fit_dir(fit_name)
@@ -539,6 +531,185 @@ def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
         for Point in points:
             args += [(Point, points_configs, c_dir, i, force, plot, fit,
                     exclude_torelons, exclude_bootstrap)]
+            i += 1
+
+        with mp.Pool(mp.cpu_count() - 1) as pool:
+            pool.map(sim_obs_compute, args)
+
+def refit_compute(args):
+    from os import chdir
+    from os.path import isfile
+    from time import time
+    from datetime import datetime
+    import json
+    import matplotlib.pyplot as plt
+    from lib.utils import point_dir, authorization_request
+    from lib.analysis.fit import fit_decay2
+    from lib.analysis.tools import decay
+
+    Point, points_configs, c_dir, i, force, plot, exclude_torelons = args
+
+    if points_configs:
+        c_dir = points_configs[Point]
+    p_dir = c_dir + '/' + point_dir(Point)
+    chdir(p_dir)
+
+    if isfile(p_dir + '/max_volume_reached'):
+        print(f'\033[38;5;41m(λ, β) = {Point}\033[0m skipped because '
+              '\033[38;5;80mmax_volume_reached\033[0m is present.')
+        # print(f"\033[38;5;80m  config: '{config}'\033[0m")
+        return 'continue'
+
+    try:
+        with open('measures.json', 'r') as file:
+            measures = json.load(file)
+    except FileNotFoundError:
+        print(f'\033[1mCRITICAL:\033[0m no measures.json file in sim'
+              f'\033[38;5;41m(λ, β) = {Point}\033[0m')
+        return 'continue'
+
+    if not force:
+        what = 'to refit correlation lengths'
+        auth = authorization_request(what_to_do=what)
+    else:
+        auth = 'yes'
+        # print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")
+
+    if auth == 'yes':
+        # Compute torelons lengths
+        try:
+            torelons_decay_mean, torelons_decay_std = measures['profiles_corr']
+            par, cov, χ2 = fit_decay2(torelons_decay_mean, torelons_decay_std)
+            if plot and (par is not None):
+                x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
+                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+
+                plt.plot(x, y, 'tab:green', label='fit')
+                plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
+                plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
+                plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
+                         label='bootstrap std')
+                plt.title('TORELON:\n '
+                          f'Number of points: {len(indices_cut)}')
+                plt.legend()
+                plt.savefig('torelon.pdf')
+                if not force:
+                    plt.show()
+
+            torelons_fit = {'par': None if par is None else par.tolist(),
+                            'cov': None if cov is None else cov.tolist(),
+                            'chi2': χ2[0], 'dof': χ2[1]}
+        except KeyError:
+            torelons_fit = None
+
+        # Compute profiles lengths
+        try:
+            profiles_corr_mean, profiles_corr_std = measures['profiles_corr']
+            par, cov, χ2 = fit_decay2(profiles_corr_mean, profiles_corr_std)
+            if plot and (par is not None):
+                x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
+                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+                plt.plot(x, y, 'tab:green', label='fit')
+
+                plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
+                plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
+                plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
+                         label='bootstrap std')
+                plt.title('PROFILE CORR.:\n '
+                          f'Number of points: {len(indices_cut)}')
+                plt.legend()
+                plt.savefig('profile.pdf')
+                if not force:
+                    plt.show()
+
+            profiles_fit = {'par': None if par is None else par.tolist(),
+                            'cov': None if cov is None else cov.tolist(),
+                            'chi2': χ2[0], 'dof': χ2[1]}
+        except KeyError:
+            profiles_fit = None
+
+        # Save results
+
+        if torelons_fit and None not in torelons_fit.values():
+            measures['torelon-decay-fit2'] = torelons_fit
+        if profiles_fit and None not in profiles_fit.values():
+            measures['profiles-corr-fit2'] = profiles_fit
+        measures['time2'] = datetime.fromtimestamp(time()
+                                    ).strftime('%d-%m-%Y %H:%M:%S')
+
+        with open('measures.json', 'w') as file:
+            json.dump(measures, file, indent=4)
+    elif auth == 'quit' or auth == 'eof':
+        print('Observables have not been recomputed.')
+        return 'return'
+    else:
+        print('Observables have not been recomputed.')
+
+def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
+    from os.path import basename, dirname, realpath
+    import json
+    from pprint import pprint
+    from lib.utils import config_dir, dir_point, fit_dir
+
+    if fit_name:
+        f_dir = fit_dir(fit_name)
+        try:
+            with open(f_dir + '/sims.json', 'r') as file:
+                sims = json.load(file)
+        except FileNotFoundError:
+            print('No simulation already assigned to this fit.')
+            return
+
+        points = []
+        points_configs = {}
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
+
+            Point = dir_point(basename(s))
+            points += [Point]
+            points_configs = {**points_configs, Point: realpath(dirname(s))}
+        c_dir = None
+    else:
+        points_configs = None
+        c_dir = config_dir(config)
+
+    col = 216 # color
+    print(f'Number of selected points: \033[38;5;{col}m{len(points)}\033[0m')
+    print(f'\033[38;5;{col}m', end='')
+    pprint(points)
+    print('\033[0m')
+
+    print('CIAO')
+    args = {'points': points,
+            'config': config,
+            'plot': plot,
+            'exclude_torelons': exclude_torelons,
+            'fit_name': fit_name,
+            'force': force}
+    pprint(args)
+
+    return
+
+    if not force:
+        i = 0
+        for Point in points:
+            args = (Point, points_configs, c_dir, i, force, plot,
+                    exclude_torelons)
+            ret = sim_obs_compute(args)
+            if ret == 'return':
+                return
+            elif ret == 'continue':
+                continue
+            i += 1
+    else:
+        import multiprocessing as mp
+
+        i = 0
+        args = []
+        for Point in points:
+            args += [(Point, points_configs, c_dir, i, force, plot,
+                    exclude_torelons)]
             i += 1
 
         with mp.Pool(mp.cpu_count() - 1) as pool:
