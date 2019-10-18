@@ -645,6 +645,7 @@ def fit_decay2(profile, errors):
     Fit only exponential decay, on the first points.
     """
     import numpy as np
+    import matplotlib.pyplot as plt
     from scipy.optimize import curve_fit
     from scipy.stats import chi2
     from lib.analysis.tools import exp_decay
@@ -664,10 +665,12 @@ def fit_decay2(profile, errors):
 
     try:
         par, cov = curve_fit(exp_decay, t, p, sigma=e, absolute_sigma=True,
-                             p0=(0.5))
+                             p0=(3.))
         # err = np.sqrt(np.diag(cov))
 
-        residuals_sq = ((p - np.vectorize(exp_decay)(t, *par)) / e)**2
+        exp_decay = np.vectorize(exp_decay)
+
+        residuals_sq = ((p - exp_decay(t, *par)) / e)**2
         χ2 = residuals_sq.sum()
         dof = len(t) - len(par)
         p_value = chi2.sf(χ2, dof)
@@ -682,12 +685,12 @@ def fit_decay2(profile, errors):
         print(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
                       '\033[0m')
 
-        if p_alert:
+        if False:# p_alert:
             p_fit = None
         else:
             # p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), 0.5)
             p_fit = np.zeros(1001)
-            p_fit[:501] = np.vectorize(exp_decay)(np.linspace(0,len(times),501), *par)
+            p_fit[:501] = exp_decay(np.linspace(0,len(times)/2,501), *par)
             p_fit[-501:] = p_fit[500::-1]
     except RuntimeError:
         print('Fit failed.')
