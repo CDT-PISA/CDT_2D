@@ -330,8 +330,7 @@ def info_fit(name, kind='sims'):
     # dato che ogni fit sarà un fit di 1 osservabile basterà un 'obs'
     # 'obs' attualmente è per le sole flag, ne va implementato uno più esteso con i valori opportuni
 
-def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
-            fit_name, force):
+def sim_obs_compute(args):
     from os import chdir
     from os.path import isfile, basename, dirname, realpath
     from time import time
@@ -339,11 +338,151 @@ def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
     import json
     from pprint import pprint
     from lib.utils import (config_dir, point_dir, dir_point, fit_dir,
-                           authorization_request, eng_not)
+                   authorization_request, eng_not)
     from lib.analysis.fit import (set_cut, set_block,
-                                  eval_volume, eval_top_susc,
-                                  eval_action, eval_action_density,
-                                  compute_torelons, compute_profiles_corr)
+                          eval_volume, eval_top_susc,
+                          eval_action, eval_action_density,
+                          compute_torelons, compute_profiles_corr)
+    (Point, points_configs, c_dir, i, force,
+     plot, fit, exclude_torelons, exclude_bootstrap) = args
+
+    if points_configs:
+        c_dir = points_configs[Point]
+    p_dir = c_dir + '/' + point_dir(Point)
+    chdir(p_dir)
+    vol = None
+
+    if isfile(p_dir + '/max_volume_reached'):
+        print(f'\033[38;5;41m(λ, β) = {Point}\033[0m skipped because '
+              '\033[38;5;80mmax_volume_reached\033[0m is present.')
+        # print(f"\033[38;5;80m  config: '{config}'\033[0m")
+        return 'continue'
+
+    try:
+        with open('state.json', 'r') as file:
+            state = json.load(file)
+    except FileNotFoundError:
+        print(f'\033[1mCRITICAL:\033[0m no state.json file in sim'
+              f'\033[38;5;41m(λ, β) = {Point}\033[0m')
+        return 'continue'
+
+    try:
+        with open('measures.json', 'r') as file:
+            measures = json.load(file)
+
+        if 'cut' in measures.keys() and 'block' in measures.keys():
+            cb_exist = True
+        else:
+            cb_exist = False
+    except FileNotFoundError:
+        measures = {}
+        cb_exist = False
+
+    if not force:
+        what = 'to select cut & block'
+        extra = ('\033[92m(existing value present for both)\033[0m'
+                 if cb_exist else None)
+        auth = authorization_request(what_to_do=what, Point=Point,
+                                     extra_message=extra)
+    else:
+        print("\033[38;5;41m(λ, β) = " + str(Point) + "\033[0m ")
+        auth = 'yes'
+
+    if auth == 'quit' or auth == 'eof':
+        print('Nothing done on the last sim.')
+        return 'return'
+    elif auth == 'yes':
+        try:
+            measures['cut'] = state['linear-history-cut']
+            cut = state['linear-history-cut']
+            with open('measures.json', 'w') as file:
+                json.dump(measures, file, indent=4)
+            print("\033[38;5;80m'linear-history-cut'\033[0m "
+                  "has been used as cut")
+        except KeyError:
+            cut = set_cut(p_dir, i, force)
+            if cut:
+                measures['cut'] = cut
+                with open('measures.json', 'w') as file:
+                    json.dump(measures, file, indent=4)
+            try :
+                cut = measures['cut']
+            except KeyError:
+                pass
+        if cut:
+            print(f'cut = {eng_not(cut)} ({cut})', end='   ')
+
+        block = set_block(p_dir, i, force)
+        if block:
+            measures['block'] = block
+            with open('measures.json', 'w') as file:
+                json.dump(measures, file, indent=4)
+        try:
+            block = measures['block']
+        except KeyError:
+            pass
+        print(f'block = {eng_not(block)} ({block})', end='   ')
+
+        if not cut or not block:
+            print('\nNothing modified on last sim.')
+            return 'return'
+
+        vol = eval_volume(p_dir)
+
+    if not force:
+        what = 'to compute/recompute observables'
+        auth = authorization_request(what_to_do=what)
+    else:
+        auth = 'yes'
+        # print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")
+
+    if auth == 'yes':
+        try:
+            with open('measures.json', 'r') as file:
+                measures = json.load(file)
+        except FileNotFoundError:
+            measures = {}
+
+        if force:
+            if not 'cut' in measures.keys():
+                print('cut not set')
+                return 'continue'
+            if not 'block' in measures.keys():
+                print('block not set')
+                return 'continue'
+
+        measures['volume'] = vol if vol else eval_volume(p_dir)
+        # measures['action'] = eval_action(p_dir)
+        # measures['action-density'] = eval_action_density(p_dir)
+        # measures['top-susc'] = eval_top_susc(p_dir, force=force)
+        # if not exclude_torelons and not exclude_bootstrap:
+        #     torelons_output = compute_torelons(p_dir, plot, fit, force=force)
+        #     if torelons_output:
+        #         measures['torelon-decay'] = torelons_output[:2]
+        #         if None not in torelons_output[2].values():
+        #             measures['torelon-decay-fit'] = torelons_output[2]
+        if not exclude_bootstrap:
+            profiles_output = compute_profiles_corr(p_dir, plot, fit, force=force)
+            measures['profiles_corr'] = profiles_output[:2]
+            if None not in profiles_output[2].values():
+                measures['profiles_corr_fit'] = profiles_output[2]
+        measures['time'] = datetime.fromtimestamp(time()
+                                    ).strftime('%d-%m-%Y %H:%M:%S')
+
+        with open('measures.json', 'w') as file:
+            json.dump(measures, file, indent=4)
+    elif auth == 'quit' or auth == 'eof':
+        print('Observables have not been recomputed.')
+        return 'return'
+    else:
+        print('Observables have not been recomputed.')
+
+def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
+            fit_name, force):
+    from os.path import basename, dirname, realpath
+    import json
+    from pprint import pprint
+    from lib.utils import config_dir, dir_point, fit_dir
 
     if fit_name:
         f_dir = fit_dir(fit_name)
@@ -503,6 +642,185 @@ def sim_obs(points, config, plot, fit, exclude_torelons, exclude_bootstrap,
             print('Observables have not been recomputed.')
 
         i += 1
+
+def refit_compute(args):
+    from os import chdir
+    from os.path import isfile
+    from time import time
+    from datetime import datetime
+    import json
+    import matplotlib.pyplot as plt
+    from lib.utils import point_dir, authorization_request
+    from lib.analysis.fit import fit_decay2
+    from lib.analysis.tools import decay
+
+    Point, points_configs, c_dir, i, force, plot, exclude_torelons = args
+
+    if points_configs:
+        c_dir = points_configs[Point]
+    p_dir = c_dir + '/' + point_dir(Point)
+    chdir(p_dir)
+
+    if isfile(p_dir + '/max_volume_reached'):
+        print(f'\033[38;5;41m(λ, β) = {Point}\033[0m skipped because '
+              '\033[38;5;80mmax_volume_reached\033[0m is present.')
+        # print(f"\033[38;5;80m  config: '{config}'\033[0m")
+        return 'continue'
+
+    try:
+        with open('measures.json', 'r') as file:
+            measures = json.load(file)
+    except FileNotFoundError:
+        print(f'\033[1mCRITICAL:\033[0m no measures.json file in sim'
+              f'\033[38;5;41m(λ, β) = {Point}\033[0m')
+        return 'continue'
+
+    if not force:
+        what = 'to refit correlation lengths'
+        auth = authorization_request(what_to_do=what)
+    else:
+        auth = 'yes'
+        # print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")
+
+    if auth == 'yes':
+        # Compute torelons lengths
+        try:
+            torelons_decay_mean, torelons_decay_std = measures['profiles_corr']
+            par, cov, χ2 = fit_decay2(torelons_decay_mean, torelons_decay_std)
+            if plot and (par is not None):
+                x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
+                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+
+                plt.plot(x, y, 'tab:green', label='fit')
+                plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
+                plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
+                plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
+                         label='bootstrap std')
+                plt.title('TORELON:\n '
+                          f'Number of points: {len(indices_cut)}')
+                plt.legend()
+                plt.savefig('torelon.pdf')
+                if not force:
+                    plt.show()
+
+            torelons_fit = {'par': None if par is None else par.tolist(),
+                            'cov': None if cov is None else cov.tolist(),
+                            'chi2': χ2[0], 'dof': χ2[1]}
+        except KeyError:
+            torelons_fit = None
+
+        # Compute profiles lengths
+        try:
+            profiles_corr_mean, profiles_corr_std = measures['profiles_corr']
+            par, cov, χ2 = fit_decay2(profiles_corr_mean, profiles_corr_std)
+            if plot and (par is not None):
+                x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
+                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+                plt.plot(x, y, 'tab:green', label='fit')
+
+                plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
+                plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
+                plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
+                         label='bootstrap std')
+                plt.title('PROFILE CORR.:\n '
+                          f'Number of points: {len(indices_cut)}')
+                plt.legend()
+                plt.savefig('profile.pdf')
+                if not force:
+                    plt.show()
+
+            profiles_fit = {'par': None if par is None else par.tolist(),
+                            'cov': None if cov is None else cov.tolist(),
+                            'chi2': χ2[0], 'dof': χ2[1]}
+        except KeyError:
+            profiles_fit = None
+
+        # Save results
+
+        if torelons_fit and None not in torelons_fit.values():
+            measures['torelon-decay-fit2'] = torelons_fit
+        if profiles_fit and None not in profiles_fit.values():
+            measures['profiles-corr-fit2'] = profiles_fit
+        measures['time2'] = datetime.fromtimestamp(time()
+                                    ).strftime('%d-%m-%Y %H:%M:%S')
+
+        with open('measures.json', 'w') as file:
+            json.dump(measures, file, indent=4)
+    elif auth == 'quit' or auth == 'eof':
+        print('Observables have not been recomputed.')
+        return 'return'
+    else:
+        print('Observables have not been recomputed.')
+
+def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
+    from os.path import basename, dirname, realpath
+    import json
+    from pprint import pprint
+    from lib.utils import config_dir, dir_point, fit_dir
+
+    if fit_name:
+        f_dir = fit_dir(fit_name)
+        try:
+            with open(f_dir + '/sims.json', 'r') as file:
+                sims = json.load(file)
+        except FileNotFoundError:
+            print('No simulation already assigned to this fit.')
+            return
+
+        points = []
+        points_configs = {}
+        for s in sims:
+            if s[-1] == '/':
+                s = s[:-1]
+
+            Point = dir_point(basename(s))
+            points += [Point]
+            points_configs = {**points_configs, Point: realpath(dirname(s))}
+        c_dir = None
+    else:
+        points_configs = None
+        c_dir = config_dir(config)
+
+    col = 216 # color
+    print(f'Number of selected points: \033[38;5;{col}m{len(points)}\033[0m')
+    print(f'\033[38;5;{col}m', end='')
+    pprint(points)
+    print('\033[0m')
+
+    print('CIAO')
+    args = {'points': points,
+            'config': config,
+            'plot': plot,
+            'exclude_torelons': exclude_torelons,
+            'fit_name': fit_name,
+            'force': force}
+    pprint(args)
+
+    return
+
+    if not force:
+        i = 0
+        for Point in points:
+            args = (Point, points_configs, c_dir, i, force, plot,
+                    exclude_torelons)
+            ret = sim_obs_compute(args)
+            if ret == 'return':
+                return
+            elif ret == 'continue':
+                continue
+            i += 1
+    else:
+        import multiprocessing as mp
+
+        i = 0
+        args = []
+        for Point in points:
+            args += [(Point, points_configs, c_dir, i, force, plot,
+                    exclude_torelons)]
+            i += 1
+
+        with mp.Pool(mp.cpu_count() - 1) as pool:
+            pool.map(sim_obs_compute, args)
 
 def export_data(name, unpack):
     from os import chdir
