@@ -587,19 +587,19 @@ def refit_compute(args):
                                              torelons_decay_std)
             if all([x is not None for x in [p_fit, par]]):
                 x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
-                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
-
+                y = p_fit
                 plt.plot(x, y, 'tab:green', label='fit')
-                plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
-                plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
-                plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
-                         label='bootstrap std')
-                plt.title('TORELON:\n '
-                          f'Number of points: {len(indices_cut)}')
-                plt.legend()
-                plt.savefig('torelon.pdf')
-                if not force:
-                    plt.show()
+
+            plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
+            plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
+            plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
+                     label='bootstrap std')
+            plt.title('TORELON:\n '
+                      f'Number of points: {len(indices_cut)}')
+            plt.legend()
+            plt.savefig('torelon.pdf')
+            if not force:
+                plt.show()
 
             torelons_fit = {'par': None if par is None else par.tolist(),
                             'cov': None if cov is None else cov.tolist(),
@@ -621,16 +621,16 @@ def refit_compute(args):
                 y = p_fit
                 plt.plot(x, y, 'tab:green', label='fit')
 
-                plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
-                plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
-                plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
-                         label='bootstrap std')
-                plt.title('PROFILE CORR.:\n '
-                          f'Number of points: {len(indices_cut)}')
-                plt.legend()
-                plt.savefig('profile.pdf')
-                if not force:
-                    plt.show()
+            plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')
+            plt.plot(profiles_corr_mean + profiles_corr_std, 'tab:red')
+            plt.plot(profiles_corr_mean - profiles_corr_std, 'tab:red',
+                     label='bootstrap std')
+            plt.title('PROFILE CORR.:\n '
+                      f'Number of points: {len(indices_cut)}')
+            plt.legend()
+            plt.savefig('profile.pdf')
+            if not force:
+                plt.show()
 
             profiles_fit = {'par': None if par is None else par.tolist(),
                             'cov': None if cov is None else cov.tolist(),
