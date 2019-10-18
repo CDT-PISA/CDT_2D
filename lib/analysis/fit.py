@@ -683,9 +683,8 @@ def fit_decay2(profile, errors):
         if False:# p_alert:
             p_fit = None
         else:
-            # p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), 0.5)
             p_fit = np.zeros(1001)
-            p_fit[:501] = exp_decay(np.linspace(0,len(times)/2,501), *par)
+            p_fit[:501] = exp_decay(np.linspace(0,len(times)/2, 501), *par)
             p_fit[-501:] = p_fit[500::-1]
     except RuntimeError:
         print('Fit failed.')
