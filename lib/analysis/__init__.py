@@ -618,7 +618,7 @@ def refit_compute(args):
             if all([x is not None for x in [p_fit, par]]):
             # if False and par is not None:
                 x = np.linspace(0, len(profiles_corr_mean) - 1, 1001)
-                y = np.vectorize(decay)(x - x.mean(), *par, rescale=x.mean())
+                y = p_fit
                 plt.plot(x, y, 'tab:green', label='fit')
 
                 plt.plot(profiles_corr_mean, 'tab:blue', label='bootstrap mean')

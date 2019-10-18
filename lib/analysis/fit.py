@@ -666,7 +666,7 @@ def fit_decay2(profile, errors):
 
         residuals_sq = ((p - exp_decay(t, *par)) / e)**2
         χ2 = residuals_sq.sum()
-        dof = len(times[1:-1]) - len(par)
+        dof = len(t) - len(par)
         p_value = chi2.sf(χ2, dof)
         p_alert = 31 if 0.99 < p_value or p_value < 0.01 else 0
 
