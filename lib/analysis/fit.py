@@ -670,7 +670,10 @@ def fit_decay2(profile, errors):
         print(f'\t\033[93mp-value\033[0m = \033[{p_alert}m', p_value,
                       '\033[0m')
 
-        p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), *par)
+        if p_alert:
+            p_fit = None
+        else:
+            p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), *par)
         # p_fit = np.zeros(1001)
         # p_fit[:501] = np.vectorize(exp_decay)(np.linspace(0,len(times),501), *par)
         # p_fit[-500:] = p_fit[:500:-1]
