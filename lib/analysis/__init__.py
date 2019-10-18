@@ -718,7 +718,7 @@ def refit_compute(args):
 
     if not force:
         what = 'to refit correlation lengths'
-        auth = authorization_request(what_to_do=what)
+        auth = authorization_request(what_to_do=what, Point=Point)
     else:
         auth = 'yes'
         # print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")

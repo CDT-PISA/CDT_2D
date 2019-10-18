@@ -649,9 +649,7 @@ def fit_decay2(profile, errors):
     from scipy.stats import chi2
     from lib.analysis.tools import exp_decay
 
-    times = np.arange(len(profile)) - ((len(profile) - 1) / 2)
-    h = max(times)
-    times /= max(times)
+    times = np.arange(len(profile))
     profile = np.array(profile)
     errors = np.array(errors)
 
@@ -660,6 +658,9 @@ def fit_decay2(profile, errors):
     e = errors[1:cut]
     t = times[1:cut]
     print(f'cut: {cut}')
+
+    # print(times)
+    # print(p, e, t, sep='\n')
 
     try:
         par, cov = curve_fit(exp_decay, t, p, sigma=e, absolute_sigma=True,
@@ -684,10 +685,10 @@ def fit_decay2(profile, errors):
         if p_alert:
             p_fit = None
         else:
-            p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), *par)
-        # p_fit = np.zeros(1001)
-        # p_fit[:501] = np.vectorize(exp_decay)(np.linspace(0,len(times),501), *par)
-        # p_fit[-500:] = p_fit[:500:-1]
+            # p_fit = np.vectorize(exp_decay)(np.linspace(0,len(times),1001), 0.5)
+            p_fit = np.zeros(1001)
+            p_fit[:501] = np.vectorize(exp_decay)(np.linspace(0,len(times),501), *par)
+            p_fit[-501:] = p_fit[500::-1]
     except RuntimeError:
         print('Fit failed.')
         p_fit = None
