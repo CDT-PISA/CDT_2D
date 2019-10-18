@@ -577,36 +577,6 @@ def refit_compute(args):
         # print("☙ \033[38;5;41m(λ, β) = " + str(Point) + "\033[0m")
 
     if auth == 'yes':
-        # Compute torelons lengths
-        try:
-            t_mean, t_std = measures['torelon-decay']
-            torelons_decay_mean = np.array(t_mean)
-            torelons_decay_std = np.array(t_std)
-            print('\nTORELONS:')
-            p_fit, par, cov, χ2 = fit_decay2(torelons_decay_mean,
-                                             torelons_decay_std)
-            if all([x is not None for x in [p_fit, par]]):
-                x = np.linspace(0, len(torelons_decay_mean) - 1, 1001)
-                y = p_fit
-                plt.plot(x, y, 'tab:green', label='fit')
-
-            plt.plot(torelons_decay_mean, 'tab:blue', label='bootstrap mean')
-            plt.plot(torelons_decay_mean + torelons_decay_std, 'tab:red')
-            plt.plot(torelons_decay_mean - torelons_decay_std, 'tab:red',
-                     label='bootstrap std')
-            plt.title('TORELON:\n ')
-                      # f'Number of points: {len(indices_cut)}')
-            plt.legend()
-            plt.savefig('torelon.pdf')
-            if not force:
-                plt.show()
-
-            torelons_fit = {'par': None if par is None else par.tolist(),
-                            'cov': None if cov is None else cov.tolist(),
-                            'chi2': χ2[0], 'dof': χ2[1]}
-        except KeyError:
-            torelons_fit = None
-
         # Compute profiles lengths
         try:
             p_mean, p_std = measures['profiles_corr']
