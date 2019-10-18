@@ -696,8 +696,9 @@ def define_parser(launcher_path, version):
     # export-data command
 
     data_types = ['v', 'volumes', 'p', 'profiles', 'pf', 'profiles-fit',
+                  'pf2', 'profiles-fit2',
                   'g', 'gauge-action', 'top', 'susc', 'top-susc',
-                  't', 'torelons', 'tf', 'torelons-fit']
+                  't', 'torelons', 'tf', 'torelons-fit', 'tf2', 'torelons-fit2']
 
     export_sub = analysis_sub.add_parser('export-data',
             description=msgs.export_data, help='export data for fit',
