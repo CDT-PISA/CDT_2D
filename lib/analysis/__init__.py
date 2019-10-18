@@ -546,7 +546,7 @@ def refit_compute(args):
     import matplotlib.pyplot as plt
     from lib.utils import point_dir, authorization_request
     from lib.analysis.fit import fit_decay2
-    from lib.analysis.tools import decay
+    from lib.analysis.tools import exp_decay
 
     Point, points_configs, c_dir, i, force, plot, exclude_torelons = args
 
@@ -659,7 +659,7 @@ def refit_corr(points, config, plot, exclude_torelons, fit_name, force):
     from os.path import basename, dirname, realpath
     import json
     from pprint import pprint
-    from lib.analysis.tools import config_dir, dir_point, fit_dir
+    from lib.utils import config_dir, dir_point, fit_dir
 
     if fit_name:
         f_dir = fit_dir(fit_name)
