@@ -201,6 +201,9 @@ def decay(t, t_corr, A, rescale=1.):
     # return (cosh(t / t_corr) - b) / (cosh(1. / t_corr) - b)
     return A*(cosh(t / t_corr) - cosh(rescale / t_corr)) + 1.
 
+def exp_decay(t, t_corr):
+    return exp(- t / t_corr)
+
 def divergence(l, l_c, alpha, A):
     return A * (l - l_c)**(-alpha)
 
