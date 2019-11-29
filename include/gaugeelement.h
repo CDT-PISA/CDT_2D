@@ -10,6 +10,8 @@
 #include <cmath>
 using namespace std;
 
+double lorentzRand(double c);
+
 class Vertex;
 
 class GaugeElement
@@ -95,8 +97,6 @@ public:
     double partition_function();
     
     GaugeElement rand();
-    
-    GaugeElement random_element(double a = nan(""));
     
     void heatbath(GaugeElement Force, bool debug_flag = false);
     

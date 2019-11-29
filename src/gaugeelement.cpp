@@ -1,6 +1,7 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
  * Copyright (C) 2019  Alessandro Candido <email>
+ * Copyright (C) 2019  Federico Rottoli
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,21 @@
 #include <iostream>
 #include <cmath>
 #include <random>
+
+double lorentzRand(double c){
+    //extract a random number in [0, pi[ distributed as a lorentzian
+    RandomGen r;
+    double pi = 2 * asin(1);
+    double k, x, z;
+
+    x = r.next();
+
+    k = atan(c * pi);
+    z = tan(k * x) / c;
+
+    return z; 
+}
+
 
 GaugeElement::GaugeElement(){
     Label lab;
@@ -126,33 +142,6 @@ GaugeElement GaugeElement::rand(){
     return U;
 }
 
-GaugeElement GaugeElement::random_element(double a)
-{
-    RandomGen r;
-    
-    double pi = 2 * asin(1);
-    
-    GaugeElement ret;
-    ret.set_base(this->base_edge);
-   
-    if( N == 1 ){
-        // extracted elements' distribution is lorentzian
-        
-        // double theta = 2 * pi * r.next();
-        // mat[0][0] = exp(1i * theta);
-        double c = sqrt(a/2);
-        double k = atan(c*pi);
-        
-        double x = r.next();
-        double alpha = tan(k * x) / c;
-        
-        ret.mat[0][0] = exp(1i * alpha);
-    }
-    else
-        throw runtime_error("random_element: Not implemented for N!=1");
-    return ret;
-}
-
 void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 {
     RandomGen r;
@@ -163,55 +152,41 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         cout << "+----------+" << endl;
         cout << "Given force: " << Force.tr() << endl;
     }
-    bool accepted = false;
+
+    double pi = 2 * asin(1);
     double beta = Force.base()->get_owner()->beta / 2;
-    
-    double a;
-    double c;
-    if( N == 1){
+    GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
+
+
+    if(N == 1){
+        double a, c, alpha, eta, accept_ratio;
+	
         a = 2 * beta * abs(Force.tr());
-        c = sqrt(a/2);
-    }
-    
-    // double max_rho;
-    // if(N == 1)
-    //     max_rho = exp(abs(Force.tr()) * beta);
-    // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
-    // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
-   
-    GaugeElement ret;
-    double alpha;
-    
-    ret.set_base(this->base_edge); 
-    while(not accepted){
-        ret = random_element(a);
-        
-        if( N == 1){
-            alpha = arg(ret[0][0]);
-            double x = r.next();
-            double eta;
-            if(a >= 0.8)
-                eta = 0.99;
-            else
-                eta = 0.73;
-            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) ); 
-            
-            if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
-                cerr << "heatbath: a = " << a << endl;
-                throw runtime_error("heatbath: invalid numerical value generated");
-            }
-        }
-        else
-            throw runtime_error("heatbath: Not implemented for N!=1");
-        
-        // double rho = exp(real((*this * Force).tr()) * beta);
-    }
-    
-    if( N == 1 ){
+	c = sqrt(a / 2);
+
+	//extract alpha in [0, pi[ distributed as a lorentzian
+	//perform then a von Neumann algorithm to extract the correct distribution: exp(a (cos alpha - 1))
+	//Campostrini et al.
+
+	do{
+	    alpha = lorentzRand(c);
+
+	    if(a >= 0.8)
+	        eta = 0.99;
+	    else
+	        eta = 0.73;
+	    accept_ratio = eta * (1 + (c * c) * (alpha * alpha)) * exp(a * (cos(alpha) - 1));
+	}while(r.next() > accept_ratio);
+
+	//with probability 1/2 we take the angle with negative sign
         if(r.next() > 0.5)
-            alpha = -alpha;
-        GaugeElement Force_phase = (Force.dagger()/abs(Force.tr()));
-        *this =  Force_phase * exp(- 1i * alpha);
+	    alpha = - alpha;
+    
+	//rotate the element in the direction of the force
+	*this = Force_phase * exp(- 1i * alpha);
+    
+    }else{
+	throw runtime_error("heatbath: Not implemented for N!=1");
     }
 }
 
@@ -225,55 +200,39 @@ void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
         cout << "+--------------+" << endl;
         cout << "Given force: " << Force.tr() << endl;
     }
-    bool accepted = false;
+
+    double pi = 2 * asin(1);
     double beta = Force.base()->get_owner()->beta / 2;
-    
-    double a;
-    double c;
-    if( N == 1){
+    GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
+
+    if(N == 1){
+        double a, c, alpha, eta, accept_ratio;
+	
         a = 2 * beta * abs(Force.tr());
-        c = sqrt(a/2);
-    }
-    
-    // double max_rho;
-    // if(N == 1)
-    //     max_rho = exp(abs(Force.tr()) * beta);
-    // in the general case the max_R abs(tr(RZ)) = tr(S), where S is the matrix of singular values of Z
-    // and is also true that re(x) <= abs(x) (so tr(S) is not the maximum for re(tr(RZ)), but is >= of the max)
+	c = sqrt(a / 2);
+
+	//extract alpha in [0, pi[ distributed as a lorentzian
+	//perform then a von Neumann algorithm to extract the correct distribution: exp(a (cos alpha - 1))
+	//Campostrini Rossi Vicari 1992
+
+	do{
+	    alpha = lorentzRand(c);
+
+	    if(a >= 0.8)
+	        eta = 0.99;
+	    else
+	        eta = 0.73;
+	    accept_ratio = eta * (1 + (c * c) * (alpha * alpha)) * exp(a * (cos(alpha) - 1));
+	}while(r.next() > accept_ratio);
+
    
-    GaugeElement ret;
-    double alpha;
-    
-    ret.set_base(this->base_edge); 
-    while(not accepted){
-        ret = random_element(a);
-        
-        if( N == 1){
-            alpha = arg(ret[0][0]);
-            double x = r.next();
-            double eta;
-            if(a >= 0.8)
-                eta = 0.99;
-            else
-                eta = 0.73;
-            accepted = ( x < eta * (1 + pow(c,2) * pow(alpha,2)) * exp(a * (cos(alpha) - 1)) ); 
-            
-            if(isnan(abs(this->tr())) || isinf(abs(this->tr()))){
-                cerr << "heatbath: a = " << a << endl;
-                throw runtime_error("heatbath: invalid numerical value generated");
-            }
-        }
-        else
-            throw runtime_error("heatbath: Not implemented for N!=1");
-        
-        // double rho = exp(real((*this * Force).tr()) * beta);
-    }
-    
-    if( N == 1 ){
-        GaugeElement Force_phase = (Force.dagger()/abs(Force.tr()));
+        //rotate this element
         complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
         double sgn = (imag(prev) > 0) * 2 - 1;
         *this =  Force_phase * exp(- 1i * alpha * sgn);
+    
+    }else{
+	throw runtime_error("heatbath: Not implemented for N!=1");
     }
 }
 
