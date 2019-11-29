@@ -154,14 +154,14 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     }
 
     double pi = 2 * asin(1);
-    double beta = Force.base()->get_owner()->beta / 2;
+    double beta = Force.base()->get_owner()->beta;
     GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
 
 
     if(N == 1){
         double a, c, alpha, eta, accept_ratio;
 	
-        a = 2 * beta * abs(Force.tr());
+        a = beta * abs(Force.tr());
 	c = sqrt(a / 2);
 
 	//extract alpha in [0, pi[ distributed as a lorentzian
@@ -184,8 +184,8 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
     
 	//rotate the element in the direction of the force
 	*this = Force_phase * exp(- 1i * alpha);
-    
-    }else{
+  
+    } else {
 	throw runtime_error("heatbath: Not implemented for N!=1");
     }
 }
@@ -202,13 +202,13 @@ void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
     }
 
     double pi = 2 * asin(1);
-    double beta = Force.base()->get_owner()->beta / 2;
+    double beta = Force.base()->get_owner()->beta;
     GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
 
     if(N == 1){
         double a, c, alpha, eta, accept_ratio;
 	
-        a = 2 * beta * abs(Force.tr());
+        a = beta * abs(Force.tr());
 	c = sqrt(a / 2);
 
 	//extract alpha in [0, pi[ distributed as a lorentzian
