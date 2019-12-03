@@ -10,14 +10,32 @@
 #include <cmath>
 using namespace std;
 
-double lorentzRand(double c);
-
 class Vertex;
+
+/***************************/
+//Pauli matrices
+
+const complex<double> matSigma1[2][2]{
+    {0 , 1  },
+    {1 , 0  }
+};
+
+const complex<double> matSigma2[2][2]{
+    {0 , -1i}, 
+    {1i, 0  }
+};
+
+const complex<double> matSigma3[2][2]{
+    {1 , 0  },
+    {0 , -1 }
+};
+
+/***************************/
 
 class GaugeElement
 {
 public:
-    static const int N=1;
+    static const int N=2;
     
 //private:
     

@@ -25,6 +25,8 @@
 #include <cmath>
 #include <random>
 
+//distributions used in the von Neumann algorithms in the heat bath
+
 double lorentzRand(double c){
     //extract a random number in [0, pi[ distributed as a lorentzian
     RandomGen r;
@@ -39,6 +41,22 @@ double lorentzRand(double c){
     return z; 
 }
 
+double expRand(double gamma){
+    //extract a random variable y in [-1, +1] distributed as exp(gamma * y)
+
+    RandomGen r;
+    double x, x2sinh, y;
+    x = r.next();
+
+    x2sinh = x * (exp(gamma) - exp(- gamma));
+    y = ( log(x2sinh + exp(- gamma)) ) / gamma;
+
+    return y;
+}
+
+/***********************************************************/
+
+//GaugeElement class
 
 GaugeElement::GaugeElement(){
     Label lab;
@@ -155,7 +173,6 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 
     double pi = 2 * asin(1);
     double beta = Force.base()->get_owner()->beta;
-    GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
 
 
     if(N == 1){
@@ -183,10 +200,62 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 	    alpha = - alpha;
     
 	//rotate the element in the direction of the force
+        GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
 	*this = Force_phase * exp(- 1i * alpha);
   
+    } else if (N == 2 ) {
+        double gamma, accept_ratio;
+        complex<double> F;
+
+	double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+
+	//Pauli matrices
+	GaugeElement sigma1(matSigma1);
+	sigma1.set_base(this->base_edge);
+	GaugeElement sigma2(matSigma2);
+	sigma2.set_base(this->base_edge);
+	GaugeElement sigma3(matSigma3);
+	sigma3.set_base(this->base_edge);
+
+	// determinant of the gauge element
+	// TODO: create a proper method of the object
+	// it may be better to save the gauge element in the base
+	// of the identity and the Pauli matrices? (Federico)
+        F = (Force.mat[0][0] * Force.mat[1][1]) - (Force.mat[0][1] * Force.mat[1][0]);
+
+	gamma = beta * abs(F);
+
+	// Creutz algorithm:
+        // Von Neumann algorithm to extract cos alpha in [-1, +1] 
+	// distributed as sqrt(1 - cosAlpha^2) * exp(gamma * cosAlpha)
+        do{
+            cosAlpha = expRand(gamma);
+            accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
+        }while(r.next() > accept_ratio);
+        sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+
+	//cos theta is uniform in [-1, +1]
+	cosTheta = (2 * r.next()) - 1;
+	sinTheta = sqrt(1 - (cosTheta * cosTheta));
+
+	//phi is uniform in [0, 2*pi]
+	phi = r.next() * 2 * pi;
+        
+	GaugeElement U_tilde;
+	U_tilde.set_base(this->base_edge);
+	U_tilde = sigma1 * (sinAlpha * sinTheta * cos(phi))
+		+ sigma2 * (sinAlpha * sinTheta * sin(phi))
+		+ sigma3 * (sinAlpha * cosTheta)
+		+ cosAlpha;
+
+	//rotate in the direction of the force
+	GaugeElement Force_phase = Force / F;
+	Force_phase.set_base(this->base_edge);
+	
+	*this = U_tilde * (Force_phase.dagger());
+
     } else {
-	throw runtime_error("heatbath: Not implemented for N!=1");
+	throw runtime_error("heatbath: Not implemented for N!=1 o N!=2");
     }
 }
 
@@ -203,7 +272,6 @@ void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
 
     double pi = 2 * asin(1);
     double beta = Force.base()->get_owner()->beta;
-    GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
 
     if(N == 1){
         double a, c, alpha, eta, accept_ratio;
@@ -227,6 +295,7 @@ void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
 
    
         //rotate this element
+        GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
         complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
         double sgn = (imag(prev) > 0) * 2 - 1;
         *this =  Force_phase * exp(- 1i * alpha * sgn);
