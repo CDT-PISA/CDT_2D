@@ -116,10 +116,8 @@ public:
     
     GaugeElement rand();
     
-    void heatbath(GaugeElement Force, bool debug_flag = false);
-    
-    void overheatbath(GaugeElement Force, bool debug_flag = false);
-    
+    void heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag = false);
+
     // ##### ALGEBRA #####
     
     GaugeElement operator+(const GaugeElement& V);
@@ -138,6 +136,8 @@ public:
     
     complex<double> trace();
     complex<double> tr();
+
+    complex<double> det();
     
     double norm();
     

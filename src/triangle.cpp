@@ -142,12 +142,12 @@ void Triangle::gauge_transform(GaugeElement G, bool debug_flag)
      * debug_flag=true: se da errore quella giusta è l'altra, altrimenti
      * va bene quella scelta)
      */
-    e[0].dync_edge()->U *= G;
-    e[1].dync_edge()->U *= G.dagger();
+    e[0].dync_edge()->U = e[0].dync_edge()->U * G;
+    e[1].dync_edge()->U = G.dagger() * e[1].dync_edge()->U;
     if(this->is12())
-        e[2].dync_edge()->U *= G;
+        e[2].dync_edge()->U = e[2].dync_edge()->U * G;
     else
-        e[2].dync_edge()->U *= G.dagger();
+        e[2].dync_edge()->U = G.dagger() * e[2].dync_edge()->U;
     
     for(auto &e_lab : e)
         e_lab.dync_edge()->U.unitarize();

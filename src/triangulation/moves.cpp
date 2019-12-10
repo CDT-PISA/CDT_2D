@@ -444,6 +444,9 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
+    if(abs(Staple.det() - 1.0) > 1e-8){
+        throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(real(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    }
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
     
     double reject_trial = r.next();
@@ -611,7 +614,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
     // ___ extraction of GaugeElement on link 6 ___
-    e_lab6->U.heatbath(Force, debug_flag);
+    // There cannot be an overrelaxation,
+    // because there is no previous link!!
+    bool overrelaxation = false;
+    e_lab6->U.heatbath(overrelaxation, Force, debug_flag);
     e_lab6->U.unitarize();
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
@@ -775,6 +781,10 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // to reconstruct it is needed to sum together the two contributes from the external staple of e0 and e2
     // FALSE --> substracting the contributes of the inner loop (the square)
     GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
+    //check unitarity staple
+    if(abs(Staple.det() - 1.0) > 1e-8){
+        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(real(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    }
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
     
     double beta_N = beta * N;
@@ -937,9 +947,16 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     v.push_back(e_lab->U.tr());
     
     GaugeElement Force = e_lab->force(debug_flag);
+    //TODO check force
+    if(abs(Force.det()) > (4./16.)){
+        throw runtime_error("move gauge: force is too big? (> 2./16.): |force| = " + to_string(abs(Force.det())));
+    }
+
     Force.set_base(lab_e);
-    
-    e_lab->U.overheatbath(Force, debug_flag);
+
+    //WHERE IMPLEMENTED we perform an overrelaxation step
+    bool overrelaxation = true;
+    e_lab->U.heatbath(overrelaxation, Force, debug_flag);
 
     //     // overrelaxation step
     //     GaugeElement U_new = Force * e_lab->U * Force;

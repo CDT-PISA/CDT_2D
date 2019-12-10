@@ -83,9 +83,24 @@ GaugeElement Edge::force(bool debug_flag)
     }
     edge_t[1] = near_t.dync_triangle()->adjacent_triangles()[i].dync_triangle();
     
-    for(int i=0; i<2; i++)
+    for(int i=0; i<2; i++){
         Force += v[i].dync_vertex()->looparound(edge_t, debug_flag) / v[i].dync_vertex()->coordination();
-    
+
+//TODO
+//cout<< v[i].dync_vertex()->looparound(edge_t, debug_flag)<<v[i].dync_vertex()->coordination() << endl <<v[i].dync_vertex()->looparound(edge_t, debug_flag)/v[i].dync_vertex()->coordination() << "det" << (v[i].dync_vertex()->looparound(edge_t, debug_flag)/v[i].dync_vertex()->coordination()).det()<<endl;
+
+	//check unitarity
+	if(abs(v[i].dync_vertex()->looparound(edge_t, debug_flag).det() - 1.0) > 1e-8){
+	    throw runtime_error("force: staple is non special unitary :\n\tdet staple - 1 = (" + to_string(real(v[i].dync_vertex()->looparound(edge_t, debug_flag).det()) - 1.0) + ", " + to_string(imag(v[i].dync_vertex()->looparound(edge_t, debug_flag).det())) + ")\n\t|staple| - 1 = " + to_string(abs(v[i].dync_vertex()->looparound(edge_t, debug_flag).det()) - 1));
+	}
+	//check coordination
+	if(v[i].dync_vertex()->coordination() < 4){
+	    throw runtime_error("force: vertex has coordination < 4: coord = " + to_string(v[i].dync_vertex()->coordination()));
+	}
+    }
+
+//TODO
+//cout<<"force"<<Force << "det" << Force.det()<<endl;
     return Force;
 }
 

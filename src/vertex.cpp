@@ -171,6 +171,11 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
         if(orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
+        //check unitarity
+	if(abs(abs(current_previous.det()) - 1) > 1e-8){
+	    throw runtime_error("looparound: link is not unitary: |link| = " + to_string(abs(current_previous.det()) - 1));
+	}
+        
         Plaquette *= current_previous.dagger();
         // to be multiplied correctly the element has to be taken in the direction of travel
         // I took the inverse, therefore I add the dagger
@@ -186,6 +191,11 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     if(debug_flag){
         cout << Plaquette << endl;
         cout << "END PLAQUETTE CALCULATION" << endl << endl;
+    }
+ 
+    //check unitarity
+    if(abs(abs(Plaquette.det()) - 1) > 1e-8){
+        throw runtime_error("looparound: plaquette is not unitary: |plaq| = " + to_string(abs(Plaquette.det()) - 1));
     }
     
     return Plaquette;
@@ -249,6 +259,11 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
         if(orientation_convention(*current, previous_idx))
             current_previous = current_previous.dagger();
         
+        //check unitarity
+	if(abs(current_previous.det() - 1.0) > 1e-8){
+	    throw runtime_error("looparound: link is not special unitary:\n\t det link - 1 = (" + to_string(real(current_previous.det()) - 1.0) + " ," + to_string(imag(current_previous.det())) + ")\n\t|link| = " + to_string(abs(current_previous.det()) - 1));
+	}
+
         Staple *= current_previous.dagger();
             // to be multiplied correctly the element has to be taken in the direction of travel
             // I took the inverse, therefore I add the dagger
@@ -259,6 +274,11 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
         if(debug_flag){
 //             cout << current_previous << endl;
         }
+    }
+ 
+    //check unitarity
+    if(abs(abs(Staple.det()) - 1) > 1e-8){
+        throw runtime_error("looparound: staple is not special unitary:\n\t det Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + " ," + to_string(imag(Staple.det())) + ")\n\t|staple| = " + to_string(abs(Staple.det()) - 1));
     }
     
     if(debug_flag){

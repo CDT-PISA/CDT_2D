@@ -136,12 +136,46 @@ double GaugeElement::partition_function()
     // slightly transform the Force in order to put the integrand in the form
     // exp(tr(Source.dagger * U + U.dagger * Source))
     GaugeElement Force = *this;
-    GaugeElement Source = (Force * (beta / 2)).dagger();
+    //TODO: check beta def
+    GaugeElement Source = (Force * (beta / (2 * N))).dagger();
     double Z = 1.;
     
+//TODO
+//cout<<Force<<" ";
+
     if(N == 1){
         // I_0(2|z|), bib: R.Brower, P.Rossi, C.Tan "The external field problem for QCD"
         Z = cyl_bessel_i(0, 2*abs(Source.mat[0][0]));
+
+    }else if (N==2){
+        complex<double> trProd, detSum;
+       	double K;
+        
+	detSum = (Source + Source.dagger()).det();
+	//check reality
+	if(abs(imag(detSum)) > 1e-8){
+	    throw runtime_error("partition_function: N == 2: det(J + J.dag) is not real: imag = " + to_string(abs(imag(detSum))));
+	}
+
+        trProd = (Source.dagger() * Source).tr();
+	//check reality
+	if(abs(imag(trProd)) > 1e-8){
+	    throw runtime_error("partition_function: N == 2: tr(J.dag * J) is not real: imag = " + to_string(abs(imag(trProd))));
+	}
+
+	//check positivity
+	if(real(trProd + detSum) < 0){
+	    throw runtime_error("partition_function: N == 2: tr(J.dag * J) + det (J + J.dag) is not real positive: real = " + to_string(real(trProd + detSum)));
+	}
+
+        K = abs(trProd + detSum);
+
+        Z = cyl_bessel_i(1, 2.0 * sqrt(K)) / sqrt(K);
+//TODO test
+//cout << Z << " ";
+
+    }else{
+    	throw runtime_error("partition_function: Not implemented fir N != 1 or N != 2");
     }
     
     double pi = 2 * asin(1);
@@ -153,14 +187,23 @@ GaugeElement GaugeElement::rand(){
     RandomGen r;
     
     double pi = 2 * asin(1);
-    double alpha = pi * (2 * r.next() - 1);
-    
-    GaugeElement U(exp(1i * alpha));
-    
-    return U;
+
+    if(N == 1){
+        double alpha = pi * (2 * r.next() - 1);
+        GaugeElement U(exp(1i * alpha));
+
+	return U;
+    }else if(N == 2){
+	//TODO dummy
+	GaugeElement U(1.0);
+
+	return U;
+    }else{
+        throw runtime_error("rand: not implemented for N != 1");
+    }
 }
 
-void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
+void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag)
 {
     RandomGen r;
     
@@ -168,12 +211,17 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         cout << "+----------+" << endl;
         cout << "| HEATBATH |" << endl;
         cout << "+----------+" << endl;
+	cout << "Overrelaxation? "<< overrelaxation <<endl;
         cout << "Given force: " << Force.tr() << endl;
     }
 
     double pi = 2 * asin(1);
     double beta = Force.base()->get_owner()->beta;
 
+//TODO:test
+//cout << "heat " << Force << real(Force.det()) << " , "<< imag(Force.det()) << endl;
+
+    double Force_mod = abs(Force.det());
 
     if(N == 1){
         double a, c, alpha, eta, accept_ratio;
@@ -195,17 +243,21 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 	    accept_ratio = eta * (1 + (c * c) * (alpha * alpha)) * exp(a * (cos(alpha) - 1));
 	}while(r.next() > accept_ratio);
 
-	//with probability 1/2 we take the angle with negative sign
-        if(r.next() > 0.5)
-	    alpha = - alpha;
-    
 	//rotate the element in the direction of the force
         GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
-	*this = Force_phase * exp(- 1i * alpha);
+	if(overrelaxation) {
+            complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
+            double sgn = (imag(prev) > 0) * 2 - 1;
+            *this =  Force_phase * exp(- 1i * alpha * sgn);
+        } else {
+	    //with probability 1/2 we take the angle with negative sign
+            if(r.next() > 0.5)
+	        alpha = - alpha;
+    	    *this = Force_phase * exp(- 1i * alpha);
+	}
   
     } else if (N == 2 ) {
         double gamma, accept_ratio;
-        complex<double> F;
 
 	double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
 
@@ -217,13 +269,9 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 	GaugeElement sigma3(matSigma3);
 	sigma3.set_base(this->base_edge);
 
-	// determinant of the gauge element
-	// TODO: create a proper method of the object
-	// it may be better to save the gauge element in the base
-	// of the identity and the Pauli matrices? (Federico)
-        F = (Force.mat[0][0] * Force.mat[1][1]) - (Force.mat[0][1] * Force.mat[1][0]);
-
-	gamma = beta * abs(F);
+	gamma = beta * Force_mod;
+//TODO
+//cout<<gamma<<endl;
 
 	// Creutz algorithm:
         // Von Neumann algorithm to extract cos alpha in [-1, +1] 
@@ -234,6 +282,7 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
         }while(r.next() > accept_ratio);
         sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
 
+
 	//cos theta is uniform in [-1, +1]
 	cosTheta = (2 * r.next()) - 1;
 	sinTheta = sqrt(1 - (cosTheta * cosTheta));
@@ -241,67 +290,36 @@ void GaugeElement::heatbath(GaugeElement Force, bool debug_flag)
 	//phi is uniform in [0, 2*pi]
 	phi = r.next() * 2 * pi;
         
-	GaugeElement U_tilde;
+	GaugeElement U_tilde, U;
 	U_tilde.set_base(this->base_edge);
-	U_tilde = sigma1 * (sinAlpha * sinTheta * cos(phi))
-		+ sigma2 * (sinAlpha * sinTheta * sin(phi))
-		+ sigma3 * (sinAlpha * cosTheta)
+	U_tilde = sigma1 * (1i * (sinAlpha * sinTheta * cos(phi)))
+		+ sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
+		+ sigma3 * (1i * (sinAlpha * cosTheta))
 		+ cosAlpha;
 
+	//Unitarity check
+	if(abs(U_tilde.det() - 1.0) > 1e-8){
+	    throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
+	}
+
 	//rotate in the direction of the force
-	GaugeElement Force_phase = Force / F;
+	GaugeElement Force_phase = Force / sqrt(Force_mod);
 	Force_phase.set_base(this->base_edge);
+	//Unitarity check
+	if(abs(Force_phase.det() - 1.0) > 1e-8){
+	    throw runtime_error("heatbath: N == 2: Force phase is not special unitary:\n\tdet f - 1 = (" + to_string(real(Force_phase.det()) - 1.0) + ", " + to_string(imag(Force_phase.det())) + ")\n\t|f| - 1 = " + to_string(abs(abs(Force_phase.det()) - 1.0)));
+	}
 	
-	*this = U_tilde * (Force_phase.dagger());
+	U = U_tilde * (Force_phase.dagger());
+	//Unitarity check
+	if(abs(U.det() - 1.0) > 1e-8){
+	    throw runtime_error("heatbath: N == 2: Rotated extracted gauge element is not unitary:\n\tdet U - 1 = (" + to_string(real(U.det()) - 1.0) + ", " + to_string(imag(U.det())) + ")\n\t|U| - 1 = " + to_string(abs(abs(U.det()) - 1.0)));
+	}
+
+	*this = U;
 
     } else {
-	throw runtime_error("heatbath: Not implemented for N!=1 o N!=2");
-    }
-}
-
-void GaugeElement::overheatbath(GaugeElement Force, bool debug_flag)
-{
-    RandomGen r;
-    
-    if(debug_flag){
-        cout << "+--------------+" << endl;
-        cout << "| OVERHEATBATH |" << endl;
-        cout << "+--------------+" << endl;
-        cout << "Given force: " << Force.tr() << endl;
-    }
-
-    double pi = 2 * asin(1);
-    double beta = Force.base()->get_owner()->beta;
-
-    if(N == 1){
-        double a, c, alpha, eta, accept_ratio;
-	
-        a = beta * abs(Force.tr());
-	c = sqrt(a / 2);
-
-	//extract alpha in [0, pi[ distributed as a lorentzian
-	//perform then a von Neumann algorithm to extract the correct distribution: exp(a (cos alpha - 1))
-	//Campostrini Rossi Vicari 1992
-
-	do{
-	    alpha = lorentzRand(c);
-
-	    if(a >= 0.8)
-	        eta = 0.99;
-	    else
-	        eta = 0.73;
-	    accept_ratio = eta * (1 + (c * c) * (alpha * alpha)) * exp(a * (cos(alpha) - 1));
-	}while(r.next() > accept_ratio);
-
-   
-        //rotate this element
-        GaugeElement Force_phase = (Force.dagger() / abs(Force.tr()));
-        complex<double> prev = this->mat[0][0] * conj(Force_phase[0][0]);
-        double sgn = (imag(prev) > 0) * 2 - 1;
-        *this =  Force_phase * exp(- 1i * alpha * sgn);
-    
-    }else{
-	throw runtime_error("heatbath: Not implemented for N!=1");
+	throw runtime_error("heatbath: Not implemented for N!=1 or N!=2");
     }
 }
 
@@ -394,6 +412,20 @@ complex<double> GaugeElement::trace()
 complex<double> GaugeElement::tr()
 {
     return trace();
+}
+
+complex<double> GaugeElement::det()
+{
+    complex<double> det;
+    if(N == 1){
+        det = mat[0][0];
+    } else if(N == 2){
+        det = (mat[0][0] * mat[1][1]) - (mat[0][1] * mat[1][0]);
+    } else {
+        throw runtime_error("det: Not implemented for N != 1 or N != 2");
+    }
+
+    return det;
 }
 
 double GaugeElement::norm()
@@ -509,8 +541,14 @@ GaugeElement GaugeElement::operator/=(const complex<double>& alpha)
 
 void GaugeElement::unitarize()
 {
-    if(N == 1)
+    if(N == 1){
         mat[0][0] /= abs(mat[0][0]);
+    } else if(N == 2){
+	*this /= abs(det());
+    } else {
+        throw runtime_error("unitarize: Not implemented");
+    }
+        
 }
 
 // ##### FILE I/O #####
