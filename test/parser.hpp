@@ -23,6 +23,7 @@ struct arg_list{
     int meas_Vprofile = -1;
     int meas_Qcharge = -1;
     int meas_plaquette = -1;
+    int meas_torelon = -1;
 //    double w_gauge = 0.7;
     
     friend ostream& operator<<(ostream& o, const arg_list& al);
@@ -41,6 +42,7 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"meas_Vprofile: "<<al.meas_Vprofile<<endl;
     o<<"meas_Qcharge: "<<al.meas_Qcharge<<endl;
     o<<"meas_plaquette: "<<al.meas_plaquette<<endl;
+    o<<"meas_torelon: "<<al.meas_torelon<<endl;
 //    o<<"w_gauge: "<<al.w_gauge<<endl;
     return o;
 }
@@ -60,6 +62,7 @@ string args_string(){
   ret += "[--meas_Vprofile =-1] ";
   ret += "[--meas_Qcharge =-1] ";
   ret += "[--meas_plaquette =-1] ";
+  ret += "[--meas_torelon =-1] ";
   return ret;
 }
 
@@ -139,6 +142,9 @@ int parse_arguments(arg_list& args, int argc, char** argv){
 
     // (int) meas_plaquette
     parse_flag_valued_term(args.meas_plaquette, "--meas_plaquette", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) meas_torelon
+    parse_flag_valued_term(args.meas_torelon, "--meas_torelon", argc, fixed_args, argmap, argmap_inv);
 
 
     // argument checking

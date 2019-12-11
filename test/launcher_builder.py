@@ -25,7 +25,7 @@ if partition[-3:]=="dbg":
 
 #  
 #  usage:
-#  ./main  <num slices> <lambda> <beta> [--main_dir =simulation] [--confname =conf] [--w_22 =0.1] [--w_24 =0.2] [--max_iters =-1] [--walltime =-1] [--meas_Vprofile =-1] [--meas_Qcharge =-1] [--meas_plaquette =-1] 
+#  ./main  <num slices> <lambda> <beta> [--main_dir =simulation] [--confname =conf] [--w_22 =0.1] [--w_24 =0.2] [--max_iters =-1] [--walltime =-1] [--meas_Vprofile =-1] [--meas_Qcharge =-1] [--meas_plaquette =-1] [--meas_torelon =-1] 
 #  
 
 with open(fname_launcher,"w") as f:
@@ -39,7 +39,10 @@ with open(fname_launcher,"w") as f:
     f.write('\nmodule load intel\nmodule load mkl\n# opzione per ottimizzare per skl su icc: -xMIC-AVX512\n')
 
     for i in range(len(params)):
-        f.write('./main %d %f %f --main_dir %s --walltime %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,meas_Vprofile,meas_Qcharge,meas_plaquette))
+        f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
+
+    for i in range(len(params)):
+        f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f--meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fname+"/sim_"+str(i)+"/log"))
 	
     f.write('wait')
 

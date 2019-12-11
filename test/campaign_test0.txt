@@ -4,10 +4,14 @@ import numpy as np
 
 Tslices = 4
 
+w_22 = 0.05
+w_24 = 0.1
+
 walltime = 15 # seconds
 meas_Vprofile = 1000
 meas_Qcharge = 2000
 meas_plaquette = 2000
+meas_torelon = 5000
 
 params = np.array([[0.7, 0.01],
                    [0.7,  0.1],
