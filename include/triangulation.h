@@ -277,6 +277,8 @@ public:
      * - aprire in append e stampare una riga intera alla volta
      */ 
     void print_space_profile(ostream& output);
+
+    double average_plaquette(bool debug_flag = false);
     
     double total_gauge_action(bool debug_flag = false);
     

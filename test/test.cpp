@@ -1,7 +1,4 @@
-/** @file */
 #include <iostream>
-// #include <vector>
-// #include <memory>
 #include "label.h"
 #include "edge.h"
 #include "vertex.h"
@@ -11,29 +8,29 @@
 #include "randomgenerator.h"
 #include <cmath>
 #include <complex>
-// #include <random>
-// #include <limits>
+#include "parser.hpp"
+#include <chrono>
+
 
 using namespace std;
 
 
+double move22;
+double move24;
 
-int dice()
-{
+int dice(){
     static RandomGen r;
     int dice = 0;
     
-    double move22 = 0.1;
-    double move24 = 0.2;
     
     double extraction = r.next();
-    if(extraction < move22)
+    if(extraction < move22/2.)
         dice = 1;
-    else if(extraction < 2*move22)
+    else if(extraction < move22)
         dice = 2;
-    else if(extraction < move24 + 2*move22)
+    else if(extraction < move24/2. + move22)
         dice = 3;
-    else if(extraction < 2*move24 + 2*move22)
+    else if(extraction < move24 + move22)
         dice = 4;
     else
         dice = 5;
@@ -41,93 +38,112 @@ int dice()
     return dice;
 }
 
+arg_list args;
+
 int main(int argc, char* argv[]){
-    Triangulation uni(3, 0.4, 6.);
+
+    int ret = parse_arguments(args, argc, argv);
+    if(ret==1){
+      exit(1);
+    }
+
+    cout<<"arguments:\n"<<args<<endl;
+    int T = args.T;
+    double lambda = args.lambda;
+    double beta = args.beta;
+    string main_dir = args.main_dir;
+    string confname = args.confname;
+    move22 = args.w_22;
+    move24 = args.w_24;
+    int max_iters = args.max_iters;
+    int walltime_seconds = args.walltime;
+    int meas_Vprofile = args.meas_Vprofile;
+    int meas_Qcharge = args.meas_Qcharge;
+    int meas_plaquette = args.meas_plaquette;
+
+
+    Triangulation uni(T, lambda, beta);
     RandomGen r;
-    
-    for(int i=0; i<1000; i++){
-        uni.move_24();
-        x = uni.move_22();
-        x = uni.move_22();
-        for(int i=0; i<10; i++)
-            uni.move_gauge();
-    }
-   
-    uni.move_22(true);
-    uni.move_22(true);
-    uni.move_24(true);
-    uni.move_42(true);
-    
-    GaugeElement U;
-    for(int i=0; i < 1000; i++)
-        cout << arg(U.rand()[0][0]) << endl;
-    
-    double current = uni.total_gauge_action();
-    for(int i=0; i<1000; i++){
-        double previous = current;
-        
-        int a = uni.list2.size()*r.next();
-        GaugeElement U;
-        U = U.random_element(1.);
-        
-        uni.list2[a].dync_triangle()->gauge_transform(U);
-        current = uni.total_gauge_action();
-        
-        cout << a << endl << U << endl;
-        
-        if(current - previous > 1e-10){
-            cout << current - previous << endl;
-            throw runtime_error("not gauge invariant");
-        }
-    }
-//     complex<double> prev = exp(1i*4.6);
-//     cout << (imag(prev) > 0) * 2 - 1 << endl;
-//     
-//     U[0][0] = 3i;
-//     V[0][0] = 1. + 7i;
-//     
-//     cout << U << endl << V << endl << 2 * V << endl;
+
+    string measure_folder = main_dir + "/measures";
+    string Vprofile_fname = measure_folder + "/Vprofile";
+    string Qcharge_fname = measure_folder + "/Qcharge";
+    string plaquette_fname = measure_folder + "/plaquette";
+    FILE * meas_file;
+
+    system(("mkdir -p "+measure_folder).c_str());
     
 
-//     for(int i=0; i<1000; ++i){
-// 
-//         switch(dice()){
-//             case 1:
-//             {
-// //                cout<<"mv22"<<endl;
-//                 uni.move_22();
-//                 break;
-//             }
-//             case 2:
-//             {
-// //                cout<<"mv22"<<endl;
-//                 uni.move_22();
-//                 break;
-//             }
-//             case 3:
-//             {
-// //                cout<<"mv24"<<endl;
-//                 uni.move_24();
-//                 break;   
-//             }
-//             case 4:
-//             {
-// //                cout<<"mv42"<<endl;
-//                 uni.move_42();
-//                 break;
-//             }
-//             case 5:
-//             {
-//                 uni.move_gauge();
-//                 break;
-//             }
-//         }
+    auto t_start = std::chrono::high_resolution_clock::now();
+    auto t_end = t_start;
+    double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
+    bool hit_walltime = false;
+    for(int i=1; (max_iters<0 | i<max_iters) & !hit_walltime; ++i){
+ 
+         switch(dice()){
+             case 1:{
+                 uni.move_22();
+                 break;
+             }
+             case 2:{
+                 uni.move_22();
+                 break;
+             }
+             case 3:{
+                 uni.move_24();
+                 break;   
+             }
+             case 4:{
+                 uni.move_42();
+                 break;
+             }
+             case 5:{
+                 uni.move_gauge();
+                 break;
+             }
+        }
 //         cout<<i<<" "<<uni.topological_charge()<<endl;     
 //        for(int s = 0; s < 10; ++s){
 // //        cout<<10*i+s<<" "<<uni.topological_charge()<<endl;     
 //            uni.move_gauge();
 //        }
-//     }
+        
+         //FIXME: magic number
+        if(i%100==0){
+            t_end = std::chrono::high_resolution_clock::now();
+            secs_passed = std::chrono::duration<double>(t_end-t_start).count();
+            hit_walltime = secs_passed>walltime_seconds;
+        }
+
+        // check and perform measures
+        // TODO: optimizable
+        if(i%meas_Vprofile==0 and meas_Vprofile>0){
+            meas_file = fopen(Vprofile_fname.c_str(),"a");
+            
+            fprintf(meas_file, "%ld %zu ", uni.iterations_done, uni.spatial_profile.size());
+            for(const auto& sl_vol : uni.spatial_profile){
+                fprintf(meas_file, "%ld ", sl_vol);
+            }
+            fprintf(meas_file, "\n");
+
+            fclose(meas_file);
+        }
+        if(i%meas_Qcharge==0 and meas_Qcharge>0){
+            meas_file = fopen(Qcharge_fname.c_str(),"a");
+
+            fprintf(meas_file, "%ld %lg\n", uni.iterations_done, uni.topological_charge());
+
+            fclose(meas_file);
+        }
+        if(i%meas_plaquette==0 and meas_plaquette>0){
+            meas_file = fopen(plaquette_fname.c_str(),"a");
+
+            fprintf(meas_file, "%ld %lg\n", uni.iterations_done, uni.average_plaquette());
+
+            fclose(meas_file);
+        }
+     }
+
 
     return 0;
 }

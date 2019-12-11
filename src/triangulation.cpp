@@ -550,6 +550,24 @@ void Triangulation::print_space_profile(ostream& output)
     output << endl;
 }
 
+double Triangulation::average_plaquette(bool debug_flag)
+{
+    double S=0.0;
+    for(auto lab_v: list0){
+        if(debug_flag)
+            cout << lab_v->position() << "\n"; cout.flush();
+        
+        double contrib = lab_v.dync_vertex()->ReTr_plaquette(debug_flag);
+        
+        if(debug_flag)
+            cout << lab_v->position() << "ciao\n"; cout.flush();
+        
+        S += contrib;
+    }
+    
+    return S/(double)list0.size();
+}
+
 double Triangulation::total_gauge_action(bool debug_flag)
 {
     double S = 0;

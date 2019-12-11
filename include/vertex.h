@@ -118,6 +118,11 @@ public:
      * @brief return a Staple
      */
     GaugeElement looparound(Triangle* edge_t[2], bool debug_flag = false);
+
+    /**
+     * @brief correspond to Re Tr[Plaquette]
+     */
+    double ReTr_plaquette(bool debug_flag = false);
     
     /**
      * @brief correspond to \tilde{\Pi} in the original document
