@@ -4,8 +4,8 @@ LDFLAGS  := -L /usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
-TARGET   := test
-INCLUDE  := -I../include/
+TARGET   := main
+INCLUDE  := -I../include/ -I.
 SRC      := 					   \
 	$(wildcard ../src/*.cpp)       \
 	$(wildcard ./*.cpp)		       \
@@ -13,7 +13,7 @@ SRC      := 					   \
 OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
 all: build $(APP_DIR)/$(TARGET)
-	@rm -f ./test
+	@rm -f ./main
 	@cp $(APP_DIR)/$(TARGET) $(TARGET)	
 
 $(OBJ_DIR)/%.o: %.cpp
@@ -37,7 +37,7 @@ release: CXXFLAGS += -O3
 release: all
 
 #install:
-#	@rm ./test
+#	@rm ./main
 #	@cp $(APP_DIR)/$(TARGET) $(TARGET)
 #
 #ready: all install

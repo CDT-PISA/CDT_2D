@@ -131,7 +131,10 @@ public:
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 
+    Triangulation() = default;
     
+    void initialize(int TimeLength, double Lambda, double Beta, bool debug_flag = false);
+
     /**
      * @brief default constructor: setup default configuration
      * 
