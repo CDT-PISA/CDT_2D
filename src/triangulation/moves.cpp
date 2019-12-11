@@ -444,8 +444,8 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
-    if(abs(Staple.det() - 1.0) > 1e-8){
-        throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(real(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    if(abs(Staple.det() - 1.0) > 1e-6){
+        throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
     }
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
     
@@ -782,8 +782,8 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // FALSE --> substracting the contributes of the inner loop (the square)
     GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
     //check unitarity staple
-    if(abs(Staple.det() - 1.0) > 1e-8){
-        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(real(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    if(abs(Staple.det() - 1.0) > 1e-6){
+        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
     }
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
     

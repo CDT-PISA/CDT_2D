@@ -542,9 +542,13 @@ GaugeElement GaugeElement::operator/=(const complex<double>& alpha)
 void GaugeElement::unitarize()
 {
     if(N == 1){
+
         mat[0][0] /= abs(mat[0][0]);
+
     } else if(N == 2){
-	*this /= abs(det());
+
+	*this /= sqrt(abs(det()));
+
     } else {
         throw runtime_error("unitarize: Not implemented");
     }
