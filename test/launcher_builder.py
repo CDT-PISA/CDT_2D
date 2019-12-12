@@ -1,5 +1,5 @@
 from sys import argv, exit
-from os import system
+from os import system, popen
 
 if(len(argv)<2):
     print("usage: python3 ",argv[0], " <input file>")
@@ -38,6 +38,11 @@ with open(fname_launcher,"w") as f:
               "#SBATCH --output=log_%s.out\n" % (partition,account,timestring,fname,fname))
     f.write('\nmodule load intel\nmodule load mkl\n# opzione per ottimizzare per skl su icc: -xMIC-AVX512\n')
 
+    f.write("\nif [ -t %s ];then exit 1;fi\n" % (fname+"/diverging_points"))
+    f.write("\nrm -f %s %s\n" % (fname+"/all_fine",fname+"/stop"))
+
+    f.write('\nnparams=%d\n'% len(params))
+
     for i in range(len(params)):
         f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
@@ -47,7 +52,9 @@ with open(fname_launcher,"w") as f:
     f.write('wait\n')
 
     if resub:
-        f.write("if [ -f %s ];then sbatch $0;fi" % (fname+"/all_fine"))
+        f.write("var=$(ls %s/*/all_fine | wc -l)\n"%(fname))
+        f.write("stp=$(ls %s/*/stop | wc -l)\n"%(fname))
+        f.write("if [ $var -gt $((($nparams*2)/3)) ];then touch %s; if [ $stp -eq $nparams ];then sbatch $0;fi ;else echo $var > %s ;fi" % (fname+"/all_fine", fname+"/diverging_points"))
     
 
 system('chmod +x %s' % fname_launcher)

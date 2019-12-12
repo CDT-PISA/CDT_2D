@@ -130,10 +130,13 @@ int main(int argc, char* argv[]){
 
         uni.iterations_done++;
 
-        if(i%100==0){ //FIXME: magic number
+        if(i%1000==0){ //FIXME: magic number
             t_end = std::chrono::high_resolution_clock::now();
             secs_passed = std::chrono::duration<double>(t_end-t_start).count();
             hit_walltime = secs_passed>walltime_seconds;
+            if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
+                hit_walltime = true;
+            }
         }
 
         // check and perform measures
