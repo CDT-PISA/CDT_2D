@@ -42,9 +42,9 @@ with open(fname_launcher,"w") as f:
         f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
     for i in range(len(params)):
-        f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f--meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fname+"/sim_"+str(i)+"/log"))
+        f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fname+"/sim_"+str(i)+"/log"))
 	
-    f.write('wait')
+    f.write('wait\n')
 
     if resub:
         f.write("if [ -f %s ];then sbatch $0;fi" % (fname+"/all_fine"))

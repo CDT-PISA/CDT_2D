@@ -56,8 +56,10 @@ int main(int argc, char* argv[]){
     string confname = args.confname;
     move22 = args.w_22;
     move24 = args.w_24;
+    int max_V = args.max_V;
     int max_iters = args.max_iters;
     int walltime_seconds = args.walltime;
+    int meas_V = args.meas_V;
     int meas_Vprofile = args.meas_Vprofile;
     int meas_Qcharge = args.meas_Qcharge;
     int meas_plaquette = args.meas_plaquette;
@@ -68,14 +70,20 @@ int main(int argc, char* argv[]){
     string confbkp_filename = confs_folder+ "/"+confname+"_bkp";
 
     string measure_folder = main_dir + "/measures";
+    string V_fname = measure_folder + "/Volume";
     string Vprofile_fname = measure_folder + "/Vprofile";
     string Qcharge_fname = measure_folder + "/Qcharge";
     string plaquette_fname = measure_folder + "/plaquette";
     string torelon_fname = measure_folder + "/torelon";
     FILE * meas_file;
 
+
     system(("mkdir -p "+measure_folder).c_str());
     system(("mkdir -p "+confs_folder).c_str());
+
+    system(("rm -rf "+(main_dir + "/max_V_reached")).c_str());
+    system(("rm -rf "+(main_dir + "/all_fine")).c_str());
+
     
     Triangulation uni;
 
@@ -95,7 +103,7 @@ int main(int argc, char* argv[]){
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
     int i=1;
-    for(i=1; (max_iters<0 | i<max_iters) & !hit_walltime; ++i){
+    for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<max_V); ++i){
  
          switch(dice()){
              case 1:{
@@ -130,6 +138,11 @@ int main(int argc, char* argv[]){
 
         // check and perform measures
         // TODO: optimizable
+        if(i%meas_V==0 and meas_V>0){
+            meas_file = fopen(V_fname.c_str(),"a");
+            fprintf(meas_file, "%ld %zu\n", uni.iterations_done, uni.list2.size());
+            fclose(meas_file);
+        }
         if(i%meas_Vprofile==0 and meas_Vprofile>0){
             meas_file = fopen(Vprofile_fname.c_str(),"a");
             
@@ -172,6 +185,17 @@ int main(int argc, char* argv[]){
     
     cout<<"saving configuration in "<<conf_filename<<endl;
     uni.save(conf_filename);
+
+    if(uni.list2.size()>=max_V){
+        cout<<"Max volume threshold saturated!!"<<endl;
+        meas_file = fopen((main_dir + "/max_V_reached").c_str(),"w");
+        fprintf(meas_file, "MAX V REACHED: %zu\n", uni.list2.size());
+        fclose(meas_file);
+    }else{
+        meas_file = fopen((main_dir + "/all_fine").c_str(),"w");
+        fprintf(meas_file, "ciao");
+        fclose(meas_file);
+    }
 
     t_end = std::chrono::high_resolution_clock::now();
     secs_passed = (1./1000)*std::chrono::duration<double, std::milli>(t_end-t_start).count();

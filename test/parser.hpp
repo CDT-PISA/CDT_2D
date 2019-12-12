@@ -18,8 +18,10 @@ struct arg_list{
     string confname = "conf";
     double w_22 = 0.1;
     double w_24 = 0.2;
+    int max_V = -1;
     int max_iters = -1;
     int walltime = -1;
+    int meas_V= -1;
     int meas_Vprofile = -1;
     int meas_Qcharge = -1;
     int meas_plaquette = -1;
@@ -37,8 +39,10 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"confname: "<<al.confname<<endl;
     o<<"w_22: "<<al.w_22<<endl;
     o<<"w_24: "<<al.w_24<<endl;
+    o<<"max_V: "<<al.max_V<<endl;
     o<<"max_iters: "<<al.max_iters<<endl;
     o<<"walltime: "<<al.walltime<<endl;
+    o<<"meas_V: "<<al.meas_V<<endl;
     o<<"meas_Vprofile: "<<al.meas_Vprofile<<endl;
     o<<"meas_Qcharge: "<<al.meas_Qcharge<<endl;
     o<<"meas_plaquette: "<<al.meas_plaquette<<endl;
@@ -57,8 +61,10 @@ string args_string(){
   ret += "[--confname =conf] ";
   ret += "[--w_22 =0.1] ";
   ret += "[--w_24 =0.2] ";
+  ret += "[--max_V =-1] ";
   ret += "[--max_iters =-1] ";
   ret += "[--walltime =-1] ";
+  ret += "[--meas_V =-1] ";
   ret += "[--meas_Vprofile =-1] ";
   ret += "[--meas_Qcharge =-1] ";
   ret += "[--meas_plaquette =-1] ";
@@ -128,11 +134,17 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     // (double) w_24
     parse_flag_valued_term(args.w_24, "--w_24", argc, fixed_args, argmap, argmap_inv);
 
+    // (int) max_V
+    parse_flag_valued_term(args.max_V, "--max_V", argc, fixed_args, argmap, argmap_inv);
+
     // (int) max_iters
     parse_flag_valued_term(args.max_iters, "--max_iters", argc, fixed_args, argmap, argmap_inv);
 
     // (int) walltime
     parse_flag_valued_term(args.walltime, "--walltime", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) meas_V
+    parse_flag_valued_term(args.meas_V, "--meas_V", argc, fixed_args, argmap, argmap_inv);
 
     // (int) meas_Vprofile
     parse_flag_valued_term(args.meas_Vprofile, "--meas_Vprofile", argc, fixed_args, argmap, argmap_inv);

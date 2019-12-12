@@ -7,7 +7,10 @@ Tslices = 4
 w_22 = 0.05
 w_24 = 0.1
 
+max_V = 50000
+
 walltime = 15 # seconds
+meas_V = 1000
 meas_Vprofile = 1000
 meas_Qcharge = 2000
 meas_plaquette = 2000
