@@ -54,7 +54,7 @@ with open(fname_launcher,"w") as f:
     if resub:
         f.write("var=$(ls %s/*/all_fine | wc -l)\n"%(fname))
         f.write("stp=$(ls %s/*/stop | wc -l)\n"%(fname))
-        f.write("if [ $var -gt $((($nparams*2)/3)) ];then touch %s; if [ $stp -eq $nparams ];then sbatch $0;fi ;else echo $var > %s ;fi" % (fname+"/all_fine", fname+"/diverging_points"))
+        f.write("if [ $var -gt $((($nparams*2)/3)) ];then touch %s; if [ $stp -ne $nparams ];then sbatch $0;fi ;else echo $var > %s ;fi" % (fname+"/all_fine", fname+"/diverging_points"))
     
 
 system('chmod +x %s' % fname_launcher)
