@@ -284,9 +284,9 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
         
 	GaugeElement U_tilde, U;
 	U_tilde.set_base(this->base_edge);
-	U_tilde = sigma1 * (1i * (sinAlpha * sinTheta * cos(phi)))
+	U_tilde = sigma3 * (1i * (sinAlpha * sinTheta * cos(phi)))
 		+ sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
-		+ sigma3 * (1i * (sinAlpha * cosTheta))
+		+ sigma1 * (1i * (sinAlpha * cosTheta))
 		+ cosAlpha;
 
 	//Unitarity check
