@@ -137,42 +137,35 @@ double GaugeElement::partition_function()
     // exp(tr(Source.dagger * U + U.dagger * Source))
     GaugeElement Force = *this;
     //TODO: check beta def
-    GaugeElement Source = (Force * (beta / (2 * N))).dagger();
+    GaugeElement Source;
+    Source = (Force * (beta / 2.)).dagger();
+
     double Z = 1.;
     
 //TODO
-//cout<<Force<<" ";
+//cout<<Force<<"\n";
 
     if(N == 1){
         // I_0(2|z|), bib: R.Brower, P.Rossi, C.Tan "The external field problem for QCD"
         Z = cyl_bessel_i(0, 2*abs(Source.mat[0][0]));
 
     }else if (N==2){
-        complex<double> trProd, detSum;
+        complex<double> trProd;
        	double K;
         
-	detSum = (Source + Source.dagger()).det();
-	//check reality
-	if(abs(imag(detSum)) > 1e-8){
-	    throw runtime_error("partition_function: N == 2: det(J + J.dag) is not real: imag = " + to_string(abs(imag(detSum))));
-	}
-
         trProd = (Source.dagger() * Source).tr();
 	//check reality
 	if(abs(imag(trProd)) > 1e-8){
 	    throw runtime_error("partition_function: N == 2: tr(J.dag * J) is not real: imag = " + to_string(abs(imag(trProd))));
 	}
 
-	//check positivity
-	if(real(trProd + detSum) < 0){
-	    throw runtime_error("partition_function: N == 2: tr(J.dag * J) + det (J + J.dag) is not real positive: real = " + to_string(real(trProd + detSum)));
-	}
+	//TODO check positivity
 
-        K = abs(trProd + detSum);
+        K = abs(trProd + Source.det() + (Source.dagger()).det());
 
         Z = cyl_bessel_i(1, 2.0 * sqrt(K)) / sqrt(K);
 //TODO test
-//cout << Z << " ";
+cout <<2. * beta * sqrt(abs(Force.det()))  << " "<<K << " "<< Z << "\n";
 
     }else{
     	throw runtime_error("partition_function: Not implemented fir N != 1 or N != 2");
@@ -219,9 +212,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
     double beta = Force.base()->get_owner()->beta;
 
 //TODO:test
-//cout << "heat " << Force << real(Force.det()) << " , "<< imag(Force.det()) << endl;
-
-    double Force_mod = abs(Force.det());
+//cout << "heat " << Force << endl;
 
     if(N == 1){
         double a, c, alpha, eta, accept_ratio;
@@ -257,7 +248,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	}
   
     } else if (N == 2 ) {
-        double gamma, accept_ratio;
+        double Force_mod, gamma, accept_ratio;
 
 	double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
 
@@ -269,9 +260,10 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	GaugeElement sigma3(matSigma3);
 	sigma3.set_base(this->base_edge);
 
-	gamma = beta * Force_mod;
+        Force_mod = sqrt(abs(Force.det()));
+	gamma = 2 * beta * Force_mod;
 //TODO
-//cout<<gamma<<endl;
+//cout << gamma <<" "<< Force.partition_function() << endl;
 
 	// Creutz algorithm:
         // Von Neumann algorithm to extract cos alpha in [-1, +1] 
@@ -303,7 +295,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	}
 
 	//rotate in the direction of the force
-	GaugeElement Force_phase = Force / sqrt(Force_mod);
+	GaugeElement Force_phase = Force / Force_mod;
 	Force_phase.set_base(this->base_edge);
 	//Unitarity check
 	if(abs(Force_phase.det() - 1.0) > 1e-8){
