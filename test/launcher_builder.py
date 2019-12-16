@@ -5,7 +5,7 @@ if(len(argv)<2):
     print("usage: python3 ",argv[0], " <input file>")
     exit(1)
 
-fname = argv[1]
+fname = argv[1].replace(".txt","")
 fname_launcher = fname+"_launcher.sh"
 try:
     inputfile = open(fname+".txt","r")
@@ -39,7 +39,7 @@ with open(fname_launcher,"w") as f:
     f.write('\nmodule load intel\nmodule load mkl\n# opzione per ottimizzare per skl su icc: -xMIC-AVX512\n')
 
     f.write("\nif [ -t %s ];then exit 1;fi\n" % (fname+"/diverging_points"))
-    f.write("\nrm -f %s %s\n" % (fname+"/all_fine",fname+"/stop"))
+    f.write("\nrm -f %s/all_fine %s/*/stop\n" % (fname,fname))
 
     f.write('\nnparams=%d\n'% len(params))
 
