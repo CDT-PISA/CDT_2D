@@ -162,7 +162,7 @@ int main(int argc, char* argv[]){
 
             double qval = uni.topological_charge();
             if(abs(qval)<1e-10) qval=0;
-            fprintf(meas_file, "%ld %lg\n", uni.iterations_done, qval);
+            fprintf(meas_file, "%ld %ld %lg\n", uni.iterations_done, uni.list2.size(), qval);
 
             fclose(meas_file);
         }
@@ -176,9 +176,11 @@ int main(int argc, char* argv[]){
         if(i%meas_torelon==0 and meas_torelon>0){
             meas_file = fopen(torelon_fname.c_str(),"a");
 
-            fprintf(meas_file, "%ld %zu ", uni.iterations_done, uni.spatial_profile.size());
-            for(const auto& torel : uni.toleron()){
-                fprintf(meas_file, "%lg %lg ", real(torel), imag(torel));
+            auto profile = uni.spatial_profile;
+            auto torelon = uni.toleron();
+            fprintf(meas_file, "%ld %ld %zu ", uni.iterations_done, uni.list2.size(), profile.size());
+            for(uint ei=0; ei<profile.size(); ++ei){
+                fprintf(meas_file, "%ld %lg %lg ", profile[ei], real(torelon[ei]), imag(torelon[ei]));
             }
             fprintf(meas_file, "\n");
 
