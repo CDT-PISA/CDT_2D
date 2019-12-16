@@ -49,11 +49,14 @@ with open(fname_launcher,"w") as f:
     for i in range(len(params)):
         f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fname+"/sim_"+str(i)+"/log"))
 	
-    f.write('wait\n')
+    f.write('wait\n\n')
 
     if resub:
         f.write("var=$(ls %s/*/all_fine | wc -l)\n"%(fname))
         f.write("stp=$(ls %s/*/stop | wc -l)\n"%(fname))
+
+        f.write("date\n")
+        f.write("echo all fine: $var, stop files: $stp, nparams: $nparams\n")
         f.write("if [ $var -gt $((($nparams*2)/3)) ];then touch %s; if [ $stp -ne $nparams ];then sbatch $0;fi ;else echo $var > %s ;fi" % (fname+"/all_fine", fname+"/diverging_points"))
     
 
