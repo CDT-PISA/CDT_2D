@@ -28,7 +28,7 @@ if partition[-3:]=="dbg":
 #  ./main  <num slices> <lambda> <beta> [--main_dir =simulation] [--confname =conf] [--w_22 =0.1] [--w_24 =0.2] [--max_iters =-1] [--walltime =-1] [--meas_Vprofile =-1] [--meas_Qcharge =-1] [--meas_plaquette =-1] [--meas_torelon =-1] 
 #  
 system("mkdir -p %s" % fname)
-np.loadtxt("%s/params.txt" % fname, params)
+np.savetxt("%s/params.txt" % fname, params)
 
 with open(fname_launcher,"w") as f:
     f.write("#!/bin/bash\n"
