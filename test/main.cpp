@@ -64,12 +64,18 @@ int main(int argc, char* argv[]){
     int meas_Qcharge = args.meas_Qcharge;
     int meas_plaquette = args.meas_plaquette;
     int meas_torelon = args.meas_torelon;
+    int fix_V = args.fix_V;
+    double fix_V_rate = args.fix_V_rate;
+    uint mean_V_items = args.fix_V_each;
+    vector<uint> aver_V;
+    uint idx_last_V=0;
 
     string confs_folder = main_dir + "/confs";
     string conf_filename = confs_folder+ "/"+confname;
     string confbkp_filename = confs_folder+ "/"+confname+"_bkp";
 
     string measure_folder = main_dir + "/measures";
+    string lambda_fname = measure_folder + "/lambda";
     string V_fname = measure_folder + "/Volume";
     string Vprofile_fname = measure_folder + "/Vprofile";
     string Qcharge_fname = measure_folder + "/Qcharge";
@@ -103,7 +109,7 @@ int main(int argc, char* argv[]){
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
     int i=1;
-    for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<max_V); ++i){
+    for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
          switch(dice()){
              case 1:{
@@ -142,9 +148,32 @@ int main(int argc, char* argv[]){
         // check and perform measures
         // TODO: optimizable
         if(i%meas_V==0 and meas_V>0){
+            uint vol_meas = uni.list2.size();
             meas_file = fopen(V_fname.c_str(),"a");
-            fprintf(meas_file, "%ld %zu\n", uni.iterations_done, uni.list2.size());
+            fprintf(meas_file, "%ld %u\n", uni.iterations_done, vol_meas);
             fclose(meas_file);
+
+            if(aver_V.size()<mean_V_items){
+                aver_V.push_back(vol_meas);
+            }else{
+                aver_V[idx_last_V]=vol_meas;
+                idx_last_V = (idx_last_V +1)%mean_V_items;
+            }
+            if(fix_V>0 and aver_V.size()==mean_V_items){
+                double mean_V = 0.0;
+                for(uint jj=0U; jj<mean_V_items; ++jj){
+                    mean_V+=aver_V[jj];
+                }
+                mean_V/=(double)mean_V_items;
+                if(mean_V > fix_V*1.3){
+                    uni.lambda += fix_V_rate*pow(abs(mean_V-fix_V),1.5);
+                }else if(mean_V < fix_V/1.3){
+                    uni.lambda -= fix_V_rate*pow(abs(mean_V-fix_V),1.5);
+                }
+                meas_file = fopen(lambda_fname.c_str(),"a");
+                fprintf(meas_file, "%ld %u %lg\n", uni.iterations_done, vol_meas, uni.lambda);
+                fclose(meas_file);
+            }
         }
         if(i%meas_Vprofile==0 and meas_Vprofile>0){
             meas_file = fopen(Vprofile_fname.c_str(),"a");
@@ -191,7 +220,7 @@ int main(int argc, char* argv[]){
     cout<<"saving configuration in "<<conf_filename<<endl;
     uni.save(conf_filename);
 
-    if(uni.list2.size()>=max_V){
+    if(uni.list2.size()>=(uint)max_V){
         cout<<"Max volume threshold saturated!!"<<endl;
         meas_file = fopen((main_dir + "/max_V_reached").c_str(),"w");
         fprintf(meas_file, "MAX V REACHED: %zu\n", uni.list2.size());

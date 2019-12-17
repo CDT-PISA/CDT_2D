@@ -26,6 +26,9 @@ struct arg_list{
     int meas_Qcharge = -1;
     int meas_plaquette = -1;
     int meas_torelon = -1;
+    int fix_V = -1;
+    double fix_V_rate = 1e-5;
+    int fix_V_each = 10;
 //    double w_gauge = 0.7;
     
     friend ostream& operator<<(ostream& o, const arg_list& al);
@@ -47,6 +50,9 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"meas_Qcharge: "<<al.meas_Qcharge<<endl;
     o<<"meas_plaquette: "<<al.meas_plaquette<<endl;
     o<<"meas_torelon: "<<al.meas_torelon<<endl;
+    o<<"fix_V: "<<al.fix_V<<endl;
+    o<<"fix_V_rate: "<<al.fix_V_rate<<endl;
+    o<<"fix_V_each: "<<al.fix_V_each<<endl;
 //    o<<"w_gauge: "<<al.w_gauge<<endl;
     return o;
 }
@@ -69,6 +75,9 @@ string args_string(){
   ret += "[--meas_Qcharge =-1] ";
   ret += "[--meas_plaquette =-1] ";
   ret += "[--meas_torelon =-1] ";
+  ret += "[--fix_V =-1] ";
+  ret += "[--fix_V_rate =1e-5] ";
+  ret += "[--fix_V_each =10] ";
   return ret;
 }
 
@@ -157,6 +166,15 @@ int parse_arguments(arg_list& args, int argc, char** argv){
 
     // (int) meas_torelon
     parse_flag_valued_term(args.meas_torelon, "--meas_torelon", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) fix_V
+    parse_flag_valued_term(args.fix_V, "--fix_V", argc, fixed_args, argmap, argmap_inv);
+
+    // (double) fix_V_rate
+    parse_flag_valued_term(args.fix_V_rate, "--fix_V_rate", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) fix_V_each
+    parse_flag_valued_term(args.fix_V_each, "--fix_V_each", argc, fixed_args, argmap, argmap_inv);
 
 
     // argument checking
