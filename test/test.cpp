@@ -1,4 +1,7 @@
 /** @file */
+
+#define NC 2
+
 #include <iostream>
 // #include <vector>
 // #include <memory>
@@ -14,9 +17,8 @@
 // #include <random>
 // #include <limits>
 
+
 using namespace std;
-
-
 
 int dice()
 {
@@ -42,7 +44,7 @@ int dice()
 }
 
 int main(int argc, char* argv[]){
-    Triangulation uni(3, 0.4, 6.);
+    Triangulation uni(3, 0.4, 6., true);
     RandomGen r;
 
     ofstream fout;
@@ -92,61 +94,69 @@ int main(int argc, char* argv[]){
 //     
 //     cout << U << endl << V << endl << 2 * V << endl;
     
-    double top;
-    double avgtop = 0, avgtop2 = 0, vartop = 0;
+//    double top;
+//    double avgtop = 0, avgtop2 = 0, vartop = 0;
+
+    vector<complex<double>> tor;
 
     int i;
-     for(i=0; i<1000; ++i){
- 
+     for(i=0; i<100000; ++i){
+//cout << i << " ";
          switch(dice()){
              case 1:
              {
- //                cout<<"mv22"<<endl;
+//                 cout<<"mv22"<<endl;
                  uni.move_22();
                  break;
              }
              case 2:
              {
- //                cout<<"mv22"<<endl;
+//                 cout<<"mv22"<<endl;
                  uni.move_22();
                  break;
              }
              case 3:
              {
- //                cout<<"mv24"<<endl;
+//                 cout<<"mv24"<<endl;
                  uni.move_24();
                  break;   
              }
              case 4:
              {
- //                cout<<"mv42"<<endl;
+//                 cout<<"mv42"<<endl;
                  uni.move_42();
                  break;
              }
              case 5:
              {
-                 uni.move_gauge();
+//		 cout<<"mvgauge"<<endl;
+    //             uni.move_gauge();
                  break;
              }
          }
-
-	top = uni.topological_charge();
-	avgtop += top;
-	avgtop2 += top*top;
-        cout<<i<<" "<<top<<endl; 	
+	
+//	top = uni.topological_charge();
+//	avgtop += top;
+//	avgtop2 += top*top;
+//        cout<<i<<" "<<top<<endl; 	
         for(int s = 0; s < 20; ++s){
- //        cout<<10*i+s<<" "<<uni.topological_charge()<<endl;     
-            uni.move_gauge();
+//        cout<<10*i+s<<" "<<uni.topological_charge()<<endl;    
+     //     cout<<"mvgauge"<<endl; 
+          uni.move_gauge();
         }
 	if(i%200==0){
-		
+            tor = uni.toleron();
+	    for(int j = 0; j < 3; j++){
+	        cout<<"a"<<real(tor[j])<<"\t";
+	    }
+	    cout<<"\n";
 	}
      }
 
-     avgtop /= i;
-     avgtop2 /= i;
-     vartop = avgtop2 - (avgtop * avgtop);
-    cout << "avg top = " << avgtop << endl;
-    cout << "var top = " << vartop ;
+//     avgtop /= i;
+//     avgtop2 /= i;
+//     vartop = avgtop2 - (avgtop * avgtop);
+//    cout << "avg top = " << avgtop << endl;
+//    cout << "var top = " << vartop ;
     return 0;
 }
