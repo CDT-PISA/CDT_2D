@@ -145,11 +145,11 @@ double GaugeElement::partition_function()
 //TODO
 //cout<<Force<<"\n";
 
-    if(N == 1){
+#if NC == 1
         // I_0(2|z|), bib: R.Brower, P.Rossi, C.Tan "The external field problem for QCD"
         Z = cyl_bessel_i(0, 2*abs(Source.mat[0][0]));
 
-    }else if (N==2){
+#elif NC == 2
         complex<double> trProd;
        	double K;
         
@@ -167,7 +167,9 @@ double GaugeElement::partition_function()
 //TODO test
 //cout <<2. * beta * sqrt(abs(Force.det()))  << " "<<K << " "<< Z << "\n";
 
-    }else{
+#endif 
+    
+    if(N != 1 && N != 2){
     	throw runtime_error("partition_function: Not implemented fir N != 1 or N != 2");
     }
     
@@ -181,19 +183,23 @@ GaugeElement GaugeElement::rand(){
     
     double pi = 2 * asin(1);
 
-    if(N == 1){
-        double alpha = pi * (2 * r.next() - 1);
-        GaugeElement U(exp(1i * alpha));
-
-	return U;
-    }else if(N == 2){
-	//TODO dummy
-	GaugeElement U(1.0);
-
-	return U;
-    }else{
+    if(N != 1 && N != 2){
         throw runtime_error("rand: not implemented for N != 1");
     }
+
+#if NC == 1
+    double alpha = pi * (2 * r.next() - 1);
+    GaugeElement U(exp(1i * alpha));
+
+    return U;
+
+#elif NC == 2
+    //TODO dummy
+    GaugeElement U(1.0);
+
+    return U;
+#endif
+
 }
 
 void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag)
@@ -214,8 +220,8 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 //TODO:test
 //cout << "heat " << Force << endl;
 
-    if(N == 1){
-        double a, c, alpha, eta, accept_ratio;
+#if NC == 1 
+       double a, c, alpha, eta, accept_ratio;
 	
         a = beta * abs(Force.tr());
 	c = sqrt(a / 2);
@@ -246,8 +252,8 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	        alpha = - alpha;
     	    *this = Force_phase * exp(- 1i * alpha);
 	}
-  
-    } else if (N == 2 ) {
+
+#elif NC == 2
         double Force_mod, gamma, accept_ratio;
 
 	double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
@@ -309,8 +315,9 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	}
 
 	*this = U;
+#endif
 
-    } else {
+    if(N != 1 && N != 2){
 	throw runtime_error("heatbath: Not implemented for N!=1 or N!=2");
     }
 }

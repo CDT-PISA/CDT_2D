@@ -8,10 +8,16 @@
 #include <fstream>
 #include <complex>
 #include <cmath>
+
+#ifndef NC
+#define NC 1
+#endif
+
 using namespace std;
 
 class Vertex;
 
+#if NC == 2
 /***************************/
 //Pauli matrices
 
@@ -31,11 +37,12 @@ const complex<double> matSigma3[2][2]{
 };
 
 /***************************/
+#endif
 
 class GaugeElement
 {
 public:
-    static const int N=2;
+    static const int N=NC;
     
 //private:
     
