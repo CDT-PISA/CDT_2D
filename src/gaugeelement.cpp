@@ -165,7 +165,7 @@ double GaugeElement::partition_function()
 
         Z = cyl_bessel_i(1, 2.0 * sqrt(K)) / sqrt(K);
 //TODO test
-cout <<2. * beta * sqrt(abs(Force.det()))  << " "<<K << " "<< Z << "\n";
+//cout <<2. * beta * sqrt(abs(Force.det()))  << " "<<K << " "<< Z << "\n";
 
     }else{
     	throw runtime_error("partition_function: Not implemented fir N != 1 or N != 2");
