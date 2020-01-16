@@ -29,6 +29,7 @@
 using namespace std;
 
 // ##### STARTING TRIANGULATION INITIALIZATION #####
+//
 
 /**
  * @todo comment: describe the structure at which is initialized and the way chosen to construct it (sotto @usage)
@@ -36,7 +37,7 @@ using namespace std;
  * @note the whole function could be "extended" to reproduce the same configuration (time and translational invariant) for arbirtary values of the space volume at fixed time (instead of 3)\n
  * but there is no real reason to do it, because 3 is the minimal space volume for a given slice, but the other values are all the same --> so, at least for now, it remains fixed only to 3
  */
-Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag)
+void Triangulation::initialize(int TimeLength, double Lambda, double Beta, bool debug_flag)
 {
     volume_step = 16;
     steps_done = -512;
@@ -267,6 +268,10 @@ Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool de
         t.dync_triangle()->owner = this;
     
     N = list1[0].dync_edge()->gauge_element().N;
+}
+
+Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag){
+    initialize(TimeLength, Lambda, Beta, debug_flag);
 }
 
 /// @todo I NOMI alle variabili
@@ -548,6 +553,24 @@ void Triangulation::print_space_profile(ostream& output)
     for(auto x : spatial_profile)
         output << x << " ";
     output << endl;
+}
+
+double Triangulation::average_plaquette(bool debug_flag)
+{
+    double S=0.0;
+    for(auto lab_v: list0){
+        if(debug_flag)
+            cout << lab_v->position() << "\n"; cout.flush();
+        
+        double contrib = lab_v.dync_vertex()->ReTr_plaquette(debug_flag);
+        
+        if(debug_flag)
+            cout << lab_v->position() << "ciao\n"; cout.flush();
+        
+        S += contrib;
+    }
+    
+    return S/(double)list0.size();
 }
 
 double Triangulation::total_gauge_action(bool debug_flag)

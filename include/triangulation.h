@@ -131,7 +131,10 @@ public:
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 
+    Triangulation() = default;
     
+    void initialize(int TimeLength, double Lambda, double Beta, bool debug_flag = false);
+
     /**
      * @brief default constructor: setup default configuration
      * 
@@ -277,6 +280,8 @@ public:
      * - aprire in append e stampare una riga intera alla volta
      */ 
     void print_space_profile(ostream& output);
+
+    double average_plaquette(bool debug_flag = false);
     
     double total_gauge_action(bool debug_flag = false);
     

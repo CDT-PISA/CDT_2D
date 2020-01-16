@@ -289,6 +289,12 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
     return Staple;
 }
 
+double Vertex::ReTr_plaquette(bool debug_flag)
+{
+    GaugeElement Plaquette = this->looparound(debug_flag);
+    return real(Plaquette.tr());
+}
+
 double Vertex::Pi_tilde(bool debug_flag)
 {
     GaugeElement Plaquette = this->looparound(debug_flag);
