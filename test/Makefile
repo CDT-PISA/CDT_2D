@@ -36,6 +36,12 @@ debug: all
 release: CXXFLAGS += -O3
 release: all
 
+release_U1: CXXFLAGS = -std=c++17 -O3 -DNC=1
+release_U1: all
+
+release_SU2: CXXFLAGS = -std=c++17 -O3 -DNC=2
+release_SU2: all
+
 #install:
 #	@rm ./main
 #	@cp $(APP_DIR)/$(TARGET) $(TARGET)
