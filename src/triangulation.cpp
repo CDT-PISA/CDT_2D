@@ -593,6 +593,7 @@ double Triangulation::topological_charge(bool debug_flag)
 
 GaugeElement Triangulation::space_loop(Triangle* start, bool debug_flag)
 {
+    //loop around a spatial slice
     // if I go to the right I'm following the direction of GaugeElements
     // and t[0] means going to the right
     Triangle* current = start->t[0].dync_triangle();
@@ -626,10 +627,10 @@ vector<complex<double>> Triangulation::toleron(bool debug_flag)
     vector<complex<double>> tolerons(TimeLength, 0.);
     
     for(int i=0; i<TimeLength; i++){
-        if( N == 1)
-            tolerons[i] = space_loop(starting_triangles[i], debug_flag).matrix()[0][0];
+        if( N == 1 || N == 2)
+            tolerons[i] = space_loop(starting_triangles[i], debug_flag).tr();
         else
-            throw runtime_error("Toleron not implemented for N != 1");
+            throw runtime_error("Toleron not implemented");
     }
     
     return tolerons;
