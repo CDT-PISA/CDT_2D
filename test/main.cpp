@@ -56,6 +56,7 @@ int main(int argc, char* argv[]){
     string confname = args.confname;
     move22 = args.w_22;
     move24 = args.w_24;
+    int init_waist = args.init_waist;
     int max_V = args.max_V;
     int max_iters = args.max_iters;
     int walltime_seconds = args.walltime;
@@ -97,7 +98,7 @@ int main(int argc, char* argv[]){
         uni.load(conf_filename);
         uni.save(confbkp_filename);
     }else{
-        uni.initialize(T, lambda, beta);
+        uni.initialize(T, lambda, beta, init_waist);
         uni.save(conf_filename);
         uni.save(confbkp_filename);
     }
@@ -165,10 +166,10 @@ int main(int argc, char* argv[]){
                     mean_V+=aver_V[jj];
                 }
                 mean_V/=(double)mean_V_items;
-                if(mean_V > fix_V*1.3){
-                    uni.lambda += fix_V_rate*pow(abs(mean_V-fix_V),1.5);
-                }else if(mean_V < fix_V/1.3){
-                    uni.lambda -= fix_V_rate*pow(abs(mean_V-fix_V),1.5);
+                if(mean_V > fix_V*1.2){
+                    uni.lambda += fix_V_rate*pow(abs(mean_V-fix_V),1.3);
+                }else if(mean_V < fix_V/1.2){
+                    uni.lambda -= fix_V_rate*pow(abs(mean_V-fix_V),1.8);
                 }
                 meas_file = fopen(lambda_fname.c_str(),"a");
                 fprintf(meas_file, "%ld %u %lg\n", uni.iterations_done, vol_meas, uni.lambda);
