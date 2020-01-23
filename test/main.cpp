@@ -102,8 +102,7 @@ int main(int argc, char* argv[]){
         uni.save(conf_filename);
         uni.save(confbkp_filename);
     }
-    cout<<uni<<endl;
-    exit(0);
+//    cout<<uni<<endl;
     
     RandomGen r;
 
