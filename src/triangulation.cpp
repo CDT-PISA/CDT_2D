@@ -40,263 +40,78 @@ using namespace std;
 void Triangulation::initialize(int TimeLength, double Lambda, double Beta, int waist, bool debug_flag)
 {
     (void)debug_flag; // since it is unused here
-    if(waist==MINIMAL_WAIST){
-        volume_step = 16;
-        steps_done = -512;
-        iterations_done = 0;
+    volume_step = 16;
+    steps_done = -512;
+    iterations_done = 0;
+
+    if(TimeLength%2!=0){
+        throw std::runtime_error("ERROR: incompatible zero twist with odd number of slices");
+    }
+    int twist = TimeLength/2;
+    
+    if(TimeLength < 1)
+        throw out_of_range("only positive time length are accepted for a triangulation");
+ 
+    lambda = Lambda;
+    beta = Beta;
+    
+    num40 = 0;
+    num40p = 0;
+    list0.clear();
+    list1.clear();
+    list2.clear();
+    spatial_profile.clear();
+    transition1221.clear();
+    transition2112.clear();
+    
+    // ----- FIRST STRIP -----
+    spatial_profile.push_back(waist);
         
-        if(TimeLength < 1)
-            throw out_of_range("only positive time length are accepted for a triangulation");
-     
-        lambda = Lambda;
-        beta = Beta;
+    for(int j=0;j<2*waist;j++){   // initialize the 2*waist triangles in the first(zeroth) strip
+        Label lab(new Triangle(list2.size())); // list2.size() has to be equal to j
+        list2.push_back(lab);
         
-        num40 = 0;
-        num40p = 0;
-        list0.clear();
-        list1.clear();
-        list2.clear();
-        spatial_profile.clear();
-        transition1221.clear();
-        transition2112.clear();
-        
-        // ----- FIRST STRIP -----
-        
-        spatial_profile.push_back(3);
-            
-        for(int j=0;j<6;j++){   // initialize the 6 triangles in the first(zeroth) strip
-            Label lab(new Triangle(list2.size())); // list2.size() has to be equal to j
-            list2.push_back(lab);
-            
-            if(j<3){     // set transitions vectors
-                lab.dync_triangle()->transition_id = transition1221.size();
-                transition1221.push_back(lab);
-            }
-            else{
-                lab.dync_triangle()->transition_id = transition2112.size();
-                transition2112.push_back(lab);
-            }
+        if(j<waist){     // set transitions vectors
+            lab.dync_triangle()->transition_id = transition1221.size();
+            transition1221.push_back(lab);
+        }else{
+            lab.dync_triangle()->transition_id = transition2112.size();
+            transition2112.push_back(lab);
         }
+    }
+    
+    for(int j=0;j<waist;j++){   // initialize the 'waist' vertices at time 1
+        Label lab(new Vertex(list0.size(),1,6,list2[j]));    // list2.size() has to be equal to j
+        list0.push_back(lab);
+        list2[j].dync_triangle()->vertices()[2] = lab;
         
-        for(int j=0;j<3;j++){   // initialize the 3 vertices at time 1
-            Label lab(new Vertex(list0.size(),1,6,list2[j]));    // list2.size() has to be equal to j
-            list0.push_back(lab);
-            list2[j].dync_triangle()->vertices()[2] = lab;
-            
-            int tri_id1 = j + 3;
-            int tri_id2 = (j + 1)%3 + 3;
-            list2[tri_id1].dync_triangle()->vertices()[1] = lab; /** @todo allegare disegni */
-            list2[tri_id2].dync_triangle()->vertices()[0] = lab;
-        }
+        int tri_id1 = j + waist;
+        int tri_id2 = (j + 1)%waist + waist;
+        list2[tri_id1].dync_triangle()->vertices()[1] = lab; /** @todo allegare disegni */
+        list2[tri_id2].dync_triangle()->vertices()[0] = lab;
+    }
+    for(int j=0;j<waist;j++){   // initialize the waist edges at time 1
+        Label vertices[] = {list0[(j + waist-1)%waist], list0[j]};
+        Label lab(new Edge(list1.size(), vertices, list2[j+waist], EdgeType::_space));
+        list1.push_back(lab);
         
-        for(int j=0;j<3;j++){   // initialize the 3 edges at time 1
-            Label vertices[] = {list0[(j + 2)%3], list0[j]};
-            Label lab(new Edge(list1.size(), vertices, list2[j+3], EdgeType::_space));
-            list1.push_back(lab);
-            
-            list2[j+3].dync_triangle()->e[2] = lab;
-        }
-        
-        /* at the end of these first steps the only things missed are:\n
-         * - related to the vertices at time 0, that will be initialize in the next section (Triangle::vertices)
-         * - or the adjacency relations among triangles, that will be fixed in the final section (Triangle::adjacents_t)
-         */
-        
-        // ----- INTERMEDIATE STRIPS -----
-        
-        for(int i=1;i<TimeLength;i++){
-            spatial_profile.push_back(3);
-            
-            // STRIP TRIANGLES
-            
-            for(int j=0;j<6;j++){ // initialize the 6 triangles in the ith strip
-                Label lab(new Triangle(list2.size())); // list2.size() has to be equal to (6*i + j)
-                list2.push_back(lab);
-                
-                if(j<3){     // set transitions vectors
-                    lab.dync_triangle()->transition_id = transition1221.size();
-                    transition1221.push_back(lab);
-                }
-                else{
-                    lab.dync_triangle()->transition_id = transition2112.size();
-                    transition2112.push_back(lab);
-                }
-            }
-            
-            // VERTICES
-                
-            for(int j=0;j<3;j++){
-                // Initialize the 3 vertices at time i+1
-                
-                int time = (i+1) % TimeLength;
-                Label lab(new Vertex(list0.size(),time,6,list2[6*i+j]));    // list0.size() has to be equal to (3*i + j)
-                list0.push_back(lab);
-                
-                // Now complete the vertices of the corresponding (2,1)-triangle (and fix his type)
-                
-                Triangle* tri_lab0 = list2[j + 6*i].dync_triangle();
-                tri_lab0->type = TriangleType::_21;
-                
-                tri_lab0->vertices()[2] = lab;    // attach the current vertex to the triangle below it
-                /* the vertices at time i (ones below the strip) are [3*(i-1),3*i) so for the triangle = 0 (mod 6) in the strip above:
-                 * - the down-left corner is the vertex = 2 (mod 3);
-                 * - the down-right corner is the vertex = 0 (mod 3)
-                 *
-                 * and so on for the other (2,1)-triangles in the strip
-                 */
-                tri_lab0->vertices()[1] = list0[3*(i - 1) + j];   // attach the remaining two vertices
-                tri_lab0->vertices()[0] = list0[3*(i - 1) + (j + 2)%3];
-                 
-                
-                // And now add the current vertex to the adjacent (1,2)-triangles in the strip
-                
-                Triangle* tri_lab3 = list2[j + 3 + 6*i].dync_triangle(); /** @todo allegare disegni */
-                Triangle* tri_lab4 = list2[(j + 1)%3 + 3 + 6*i].dync_triangle();
-                tri_lab3->vertices()[1] = lab;
-                tri_lab4->vertices()[0] = lab;
-                
-                // Finally attach to the (1,2)-triangles vertices at the time i (the lower boundary of the strip")
-                // and fix the type
-                tri_lab3->type = TriangleType::_12;
-                tri_lab4->vertices()[2] = list0[3*(i - 1) + j];
-            }
-            
-            // EDGES
-            
-            for(int j=0;j<3;j++){
-                // time-like ones
-                Label vertices_s1[] = {list0[(j + 2)%3 + 3*(i-1)], list0[j + 3*i]};
-                Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + 3 + 6*i], EdgeType::_time));
-                list1.push_back(lab_s1);
-                
-                list2[j + 3 + 6*i].dync_triangle()->e[0] = lab_s1;
-                list2[j + 6*i].dync_triangle()->e[1] = lab_s1;
-                
-                Label vertices_s2[] = {list0[j + 3*(i-1)], list0[j + 3*i]};
-                Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 6*i], EdgeType::_time));
-                list1.push_back(lab_s2);
-                
-                list2[j + 6*i].dync_triangle()->e[0] = lab_s2;
-                list2[(j + 1)%3 + 3 + 6*i].dync_triangle()->e[1] = lab_s2;
-            }
-            for(int j=0;j<3;j++){
-                // space-like ones
-                Label vertices_t[] = {list0[(j + 2)%3 + 3*i], list0[j + 3*i]};
-                Label lab_t(new Edge(list1.size(), vertices_t, list2[j + 3 + 6*i], EdgeType::_space));
-                list1.push_back(lab_t);
-                
-                list2[j + 3 + 6*i].dync_triangle()->e[2] = lab_t;
-                list2[j + 6*i].dync_triangle()->e[2] = list1[j + 9*(i - 1)]; // initialized on the previous slice
-            }
-            
-            // TRIANGLE ADJACENCIES
-            for(int j=0;j<3;j++){ /** @todo allegare disegni */
-                Triangle* tri_labp = list2[j - 3 + 6*i].dync_triangle();    // triangle (1,2) in the previous strip
-                Triangle* tri_lab0 = list2[j + 6*i].dync_triangle();    // triangle (2,1)
-                Triangle* tri_lab3 = list2[j + 3 + 6*i].dync_triangle();    // triangle (1,2)
-                
-                tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%3 + 3 + 6*i];
-                tri_lab0->adjacent_triangles()[1] = list2[j + 3 + 6*i];
-                tri_lab0->adjacent_triangles()[2] = list2[j - 3 + 6*i];
-                
-                tri_lab3->adjacent_triangles()[0] = list2[j + 6*i];
-                tri_lab3->adjacent_triangles()[1] = list2[(j + 2)%3 + 6*i];
-                
-                tri_labp->adjacent_triangles()[2] = list2[j + 6*i];
-            }
-        }
-        
-        // ----- FINAL STEPS -----
-        
-        // Still have to fix the adjacencies in the first(zeroth) strip...
-        for(int j=0;j<3;j++){ /** @todo allegare disegni */
-            Triangle* tri_labp = list2[j - 3 + 6*TimeLength].dync_triangle();   // triangle (1,2) in the previous strip
-            Triangle* tri_lab0 = list2[j].dync_triangle();    // triangle (2,1)
-            Triangle* tri_lab3 = list2[j + 3].dync_triangle();    // triangle (1,2)
-            
-            tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%3 + 3];
-            tri_lab0->adjacent_triangles()[1] = list2[j + 3];
-            tri_lab0->adjacent_triangles()[2] = list2[j - 3 + 6*TimeLength];
-            
-            tri_lab3->adjacent_triangles()[0] = list2[j];
-            tri_lab3->adjacent_triangles()[1] = list2[(j + 2)%3];
-            
-            tri_labp->adjacent_triangles()[2] = list2[j];
-            
-            // ... and the types...
-            tri_lab0->type = TriangleType::_21;
-            tri_lab3->type = TriangleType::_12;
-        }
-        
-        // ... and some edges and their adjacencies ...
-        for(int j=0;j<3;j++){
-            // missing time-like edges
-            Label vertices_t1[] = {list0[(j + 2)%3 + 3*(TimeLength-1)], list0[j]};
-            Label lab_t1(new Edge(list1.size(), vertices_t1, list2[j + 3], EdgeType::_time));
-            list1.push_back(lab_t1);
-            
-            list2[j + 3].dync_triangle()->e[0] = lab_t1;
-            list2[j].dync_triangle()->e[1] = lab_t1;
-            
-            Label vertices_t2[] = {list0[j + 3*(TimeLength-1)], list0[j]};
-            Label lab_t2(new Edge(list1.size(), vertices_t2, list2[j], EdgeType::_time));
-            list1.push_back(lab_t2);
-            
-            list2[j].dync_triangle()->e[0] = lab_t2;
-            list2[(j + 1)%3 + 3].dync_triangle()->e[1] = lab_t2;
-            
-            // missing time-like adjacencies (space-like edges)
-            list2[j].dync_triangle()->e[2] = list1[j + 9*(TimeLength-1)];
-        }
-        
-        // ... and vertices of (2,1)-triangles (ones at time 0)
-        for(int j=0;j<3;j++){
-            Triangle* tri_lab0 = list2[j].dync_triangle();
-            Triangle* tri_lab3 = list2[j+3].dync_triangle();
-            
-            tri_lab0->vertices()[0] = list0[(TimeLength - 1)*3 + (j + 2)%3];
-            tri_lab0->vertices()[1] = list0[(TimeLength - 1)*3 + j];
-            
-            tri_lab3->vertices()[2] = list0[(TimeLength - 1)*3 + (j + 2)%3];
-        }
-        
-        for(auto v: list0)
-            v.dync_vertex()->owner = this;
-        for(auto e: list1){
-            e.dync_edge()->owner = this;
-            e.dync_edge()->U.base_edge = list1[e->id];
-        }
-        for(auto t: list2)
-            t.dync_triangle()->owner = this;
-        
-        N = list1[0].dync_edge()->gauge_element().N;
-    }else{
-        //TODO: implement generic waists
-//        volume_step = 16;
-//        steps_done = -512;
-//        iterations_done = 0;
-        
-        if(TimeLength < 1)
-            throw out_of_range("only positive time length are accepted for a triangulation");
-     
-        lambda = Lambda;
-        beta = Beta;
-        
-        num40 = 0;
-        num40p = 0;
-        list0.clear();
-        list1.clear();
-        list2.clear();
-        spatial_profile.clear();
-        transition1221.clear();
-        transition2112.clear();
-        
-        // ----- FIRST STRIP -----
-        
+        list2[j+waist].dync_triangle()->e[2] = lab;
+    }
+    
+    /* at the end of these first steps the only things missed are:\n
+     * - related to the vertices at time 0, that will be initialize in the next section (Triangle::vertices)
+     * - or the adjacency relations among triangles, that will be fixed in the final section (Triangle::adjacents_t)
+     */
+    
+    // ----- INTERMEDIATE STRIPS -----
+    
+    for(int i=1;i<TimeLength;i++){
         spatial_profile.push_back(waist);
-            
-        for(int j=0;j<2*waist;j++){   // initialize the 2*waist triangles in the first(zeroth) strip
-            Label lab(new Triangle(list2.size())); // list2.size() has to be equal to j
+        
+        // STRIP TRIANGLES
+        
+        for(int j=0;j<2*waist;j++){ // initialize the 2*waist triangles in the ith strip
+            Label lab(new Triangle(list2.size())); // list2.size() has to be equal to (2*waist*i + j)
             list2.push_back(lab);
             
             if(j<waist){     // set transitions vectors
@@ -308,197 +123,153 @@ void Triangulation::initialize(int TimeLength, double Lambda, double Beta, int w
             }
         }
         
-        for(int j=0;j<waist;j++){   // initialize the 'waist' vertices at time 1
-            Label lab(new Vertex(list0.size(),1,6,list2[j]));    // list2.size() has to be equal to j
+        // VERTICES
+            
+        for(int j=0;j<waist;j++){
+            // Initialize the waist vertices at time i+1
+            
+            int time = (i+1) % TimeLength;
+            Label lab(new Vertex(list0.size(),time,6,list2[2*waist*i+j]));    // list0.size() has to be equal to (waist*i + j)
             list0.push_back(lab);
-            list2[j].dync_triangle()->vertices()[2] = lab;
             
-            int tri_id1 = j + waist;
-            int tri_id2 = (j + 1)%waist + waist;
-            list2[tri_id1].dync_triangle()->vertices()[1] = lab; /** @todo allegare disegni */
-            list2[tri_id2].dync_triangle()->vertices()[0] = lab;
-        }
-        for(int j=0;j<waist;j++){   // initialize the waist edges at time 1
-            Label vertices[] = {list0[(j + waist-1)%waist], list0[j]};
-            Label lab(new Edge(list1.size(), vertices, list2[j+waist], EdgeType::_space));
-            list1.push_back(lab);
+            // Now complete the vertices of the corresponding (2,1)-triangle (and fix his type)
             
-            list2[j+waist].dync_triangle()->e[2] = lab;
-        }
-        
-        /* at the end of these first steps the only things missed are:\n
-         * - related to the vertices at time 0, that will be initialize in the next section (Triangle::vertices)
-         * - or the adjacency relations among triangles, that will be fixed in the final section (Triangle::adjacents_t)
-         */
-        
-        // ----- INTERMEDIATE STRIPS -----
-        
-        for(int i=1;i<TimeLength;i++){
-            spatial_profile.push_back(waist);
-            
-            // STRIP TRIANGLES
-            
-            for(int j=0;j<2*waist;j++){ // initialize the 2*waist triangles in the ith strip
-                Label lab(new Triangle(list2.size())); // list2.size() has to be equal to (2*waist*i + j)
-                list2.push_back(lab);
-                
-                if(j<waist){     // set transitions vectors
-                    lab.dync_triangle()->transition_id = transition1221.size();
-                    transition1221.push_back(lab);
-                }else{
-                    lab.dync_triangle()->transition_id = transition2112.size();
-                    transition2112.push_back(lab);
-                }
-            }
-            
-            // VERTICES
-                
-            for(int j=0;j<waist;j++){
-                // Initialize the waist vertices at time i+1
-                
-                int time = (i+1) % TimeLength;
-                Label lab(new Vertex(list0.size(),time,6,list2[2*waist*i+j]));    // list0.size() has to be equal to (waist*i + j)
-                list0.push_back(lab);
-                
-                // Now complete the vertices of the corresponding (2,1)-triangle (and fix his type)
-                
-                Triangle* tri_lab0 = list2[j + 2*waist*i].dync_triangle();
-                tri_lab0->type = TriangleType::_21;
-                
-                tri_lab0->vertices()[2] = lab;    // attach the current vertex to the triangle below it
-                /* the vertices at time i (ones below the strip) are [waist*(i-1),waist*i) so for the triangle = 0 (mod 2*waist) in the strip above:
-                 * - the down-left corner is the vertex = 2 (mod waist);
-                 * - the down-right corner is the vertex = 0 (mod waist)
-                 *
-                 * and so on for the other (2,1)-triangles in the strip
-                 */
-                tri_lab0->vertices()[1] = list0[waist*(i - 1) + j];   // attach the remaining two vertices
-                tri_lab0->vertices()[0] = list0[waist*(i - 1) + (j + waist-1)%waist];
-                 
-                
-                // And now add the current vertex to the adjacent (1,2)-triangles in the strip
-                
-                Triangle* tri_lab3 = list2[j + waist + 2*waist*i].dync_triangle(); /** @todo allegare disegni */
-                Triangle* tri_lab4 = list2[(j + 1)%waist + waist + 2*waist*i].dync_triangle();
-                tri_lab3->vertices()[1] = lab;
-                tri_lab4->vertices()[0] = lab;
-                
-                // Finally attach to the (1,2)-triangles vertices at the time i (the lower boundary of the strip")
-                // and fix the type
-                tri_lab3->type = TriangleType::_12;
-                tri_lab4->vertices()[2] = list0[waist*(i - 1) + j];
-            }
-            
-            // EDGES
-            
-            for(int j=0;j<waist;j++){
-                // time-like ones
-                Label vertices_s1[] = {list0[(j + waist-1)%waist + waist*(i-1)], list0[j + waist*i]};
-                Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + waist + 2*waist*i], EdgeType::_time));
-                list1.push_back(lab_s1);
-                
-                list2[j + waist + 2*waist*i].dync_triangle()->e[0] = lab_s1;
-                list2[j + 2*waist*i].dync_triangle()->e[1] = lab_s1;
-                
-                Label vertices_s2[] = {list0[j + waist*(i-1)], list0[j + waist*i]};
-                Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 2*waist*i], EdgeType::_time));
-                list1.push_back(lab_s2);
-                
-                list2[j + 2*waist*i].dync_triangle()->e[0] = lab_s2;
-                list2[(j + 1)%waist + waist + 2*waist*i].dync_triangle()->e[1] = lab_s2;
-            }
-            for(int j=0;j<waist;j++){
-                // space-like ones
-                Label vertices_t[] = {list0[(j + waist-1)%waist + waist*i], list0[j + waist*i]};
-                Label lab_t(new Edge(list1.size(), vertices_t, list2[j + waist + 2*waist*i], EdgeType::_space));
-                list1.push_back(lab_t);
-                
-                list2[j + waist + 2*waist*i].dync_triangle()->e[2] = lab_t;
-                list2[j + 2*waist*i].dync_triangle()->e[2] = list1[j + 3*waist*(i - 1)]; // initialized on the previous slice
-            }
-            
-            // TRIANGLE ADJACENCIES
-            for(int j=0;j<waist;j++){ /** @todo allegare disegni */
-                Triangle* tri_labp = list2[j - waist + 2*waist*i].dync_triangle();    // triangle (1,2) in the previous strip
-                Triangle* tri_lab0 = list2[j + 2*waist*i].dync_triangle();    // triangle (2,1)
-                Triangle* tri_lab3 = list2[j + waist + 2*waist*i].dync_triangle();    // triangle (1,2)
-                
-                tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%waist + waist + 2*waist*i];
-                tri_lab0->adjacent_triangles()[1] = list2[j + waist + 2*waist*i];
-                tri_lab0->adjacent_triangles()[2] = list2[j - waist + 2*waist*i];
-                
-                tri_lab3->adjacent_triangles()[0] = list2[j + 2*waist*i];
-                tri_lab3->adjacent_triangles()[1] = list2[(j + waist-1)%waist + 2*waist*i];
-                
-                tri_labp->adjacent_triangles()[2] = list2[j + 2*waist*i];
-            }
-        }
-        
-        // ----- FINAL STEPS -----
-        
-        // Still have to fix the adjacencies in the first(zeroth) strip...
-        for(int j=0;j<waist;j++){ /** @todo allegare disegni */
-            Triangle* tri_labp = list2[j - waist + 2*waist*TimeLength].dync_triangle();   // triangle (1,2) in the previous strip
-            Triangle* tri_lab0 = list2[j].dync_triangle();    // triangle (2,1)
-            Triangle* tri_lab3 = list2[j + waist].dync_triangle();    // triangle (1,2)
-            
-            tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%waist + waist];
-            tri_lab0->adjacent_triangles()[1] = list2[j + waist];
-            tri_lab0->adjacent_triangles()[2] = list2[j - waist + 2*waist*TimeLength];
-            
-            tri_lab3->adjacent_triangles()[0] = list2[j];
-            tri_lab3->adjacent_triangles()[1] = list2[(j + waist-1)%waist];
-            
-            tri_labp->adjacent_triangles()[2] = list2[j];
-            
-            // ... and the types...
+            Triangle* tri_lab0 = list2[j + 2*waist*i].dync_triangle();
             tri_lab0->type = TriangleType::_21;
+            
+            tri_lab0->vertices()[2] = lab;    // attach the current vertex to the triangle below it
+            /* the vertices at time i (ones below the strip) are [waist*(i-1),waist*i) so for the triangle = 0 (mod 2*waist) in the strip above:
+             * - the down-left corner is the vertex = 2 (mod waist);
+             * - the down-right corner is the vertex = 0 (mod waist)
+             *
+             * and so on for the other (2,1)-triangles in the strip
+             */
+            tri_lab0->vertices()[1] = list0[waist*(i - 1) + j];   // attach the remaining two vertices
+            tri_lab0->vertices()[0] = list0[waist*(i - 1) + (j + waist-1)%waist];
+             
+            
+            // And now add the current vertex to the adjacent (1,2)-triangles in the strip
+            
+            Triangle* tri_lab3 = list2[j + waist + 2*waist*i].dync_triangle(); /** @todo allegare disegni */
+            Triangle* tri_lab4 = list2[(j + 1)%waist + waist + 2*waist*i].dync_triangle();
+            tri_lab3->vertices()[1] = lab;
+            tri_lab4->vertices()[0] = lab;
+            
+            // Finally attach to the (1,2)-triangles vertices at the time i (the lower boundary of the strip")
+            // and fix the type
             tri_lab3->type = TriangleType::_12;
+            tri_lab4->vertices()[2] = list0[waist*(i - 1) + j];
         }
         
-        // ... and some edges and their adjacencies ...
+        // EDGES
+        
         for(int j=0;j<waist;j++){
-            // missing time-like edges
-            Label vertices_t1[] = {list0[(j + waist-1)%waist + waist*(TimeLength-1)], list0[j]};
-            Label lab_t1(new Edge(list1.size(), vertices_t1, list2[j + waist], EdgeType::_time));
-            list1.push_back(lab_t1);
+            // time-like ones
+            Label vertices_s1[] = {list0[(j + waist-1)%waist + waist*(i-1)], list0[j + waist*i]};
+            Label lab_s1(new Edge(list1.size(), vertices_s1, list2[j + waist + 2*waist*i], EdgeType::_time));
+            list1.push_back(lab_s1);
             
-            list2[j + waist].dync_triangle()->e[0] = lab_t1;
-            list2[j].dync_triangle()->e[1] = lab_t1;
+            list2[j + waist + 2*waist*i].dync_triangle()->e[0] = lab_s1;
+            list2[j + 2*waist*i].dync_triangle()->e[1] = lab_s1;
             
-            Label vertices_t2[] = {list0[j + waist*(TimeLength-1)], list0[j]};
-            Label lab_t2(new Edge(list1.size(), vertices_t2, list2[j], EdgeType::_time));
-            list1.push_back(lab_t2);
+            Label vertices_s2[] = {list0[j + waist*(i-1)], list0[j + waist*i]};
+            Label lab_s2(new Edge(list1.size(), vertices_s2, list2[j + 2*waist*i], EdgeType::_time));
+            list1.push_back(lab_s2);
             
-            list2[j].dync_triangle()->e[0] = lab_t2;
-            list2[(j + 1)%waist + waist].dync_triangle()->e[1] = lab_t2;
-            
-            // missing time-like adjacencies (space-like edges)
-            list2[j].dync_triangle()->e[2] = list1[j + 3*waist*(TimeLength-1)];
+            list2[j + 2*waist*i].dync_triangle()->e[0] = lab_s2;
+            list2[(j + 1)%waist + waist + 2*waist*i].dync_triangle()->e[1] = lab_s2;
         }
-        
-        // ... and vertices of (2,1)-triangles (ones at time 0)
         for(int j=0;j<waist;j++){
-            Triangle* tri_lab0 = list2[j].dync_triangle();
-            Triangle* tri_lab3 = list2[j+waist].dync_triangle();
+            // space-like ones
+            Label vertices_t[] = {list0[(j + waist-1)%waist + waist*i], list0[j + waist*i]};
+            Label lab_t(new Edge(list1.size(), vertices_t, list2[j + waist + 2*waist*i], EdgeType::_space));
+            list1.push_back(lab_t);
             
-            tri_lab0->vertices()[0] = list0[(TimeLength - 1)*waist + (j + waist-1)%waist];
-            tri_lab0->vertices()[1] = list0[(TimeLength - 1)*waist + j];
-            
-            tri_lab3->vertices()[2] = list0[(TimeLength - 1)*waist + (j + waist-1)%waist];
+            list2[j + waist + 2*waist*i].dync_triangle()->e[2] = lab_t;
+            list2[j + 2*waist*i].dync_triangle()->e[2] = list1[j + 3*waist*(i - 1)]; // initialized on the previous slice
         }
         
-        for(auto v: list0)
-            v.dync_vertex()->owner = this;
-        for(auto e: list1){
-            e.dync_edge()->owner = this;
-            e.dync_edge()->U.base_edge = list1[e->id];
+        // TRIANGLE ADJACENCIES
+        for(int j=0;j<waist;j++){ /** @todo allegare disegni */
+            Triangle* tri_labp = list2[j - waist + 2*waist*i].dync_triangle();    // triangle (1,2) in the previous strip
+            Triangle* tri_lab0 = list2[j + 2*waist*i].dync_triangle();    // triangle (2,1)
+            Triangle* tri_lab3 = list2[j + waist + 2*waist*i].dync_triangle();    // triangle (1,2)
+            
+            tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%waist + waist + 2*waist*i];
+            tri_lab0->adjacent_triangles()[1] = list2[j + waist + 2*waist*i];
+            tri_lab0->adjacent_triangles()[2] = list2[j - waist + 2*waist*i];
+            
+            tri_lab3->adjacent_triangles()[0] = list2[j + 2*waist*i];
+            tri_lab3->adjacent_triangles()[1] = list2[(j + waist-1)%waist + 2*waist*i];
+            
+            tri_labp->adjacent_triangles()[2] = list2[j + 2*waist*i];
         }
-        for(auto t: list2)
-            t.dync_triangle()->owner = this;
-        
-        N = list1[0].dync_edge()->gauge_element().N;
     }
+    
+    // ----- FINAL STEPS -----
+    
+    // Still have to fix the adjacencies in the first(zeroth) strip...
+    for(int j=0;j<waist;j++){ /** @todo allegare disegni */
+        Triangle* tri_labp = list2[(j+twist)%waist - waist + 2*waist*TimeLength].dync_triangle();   // triangle (1,2) in the previous strip
+        Triangle* tri_lab0 = list2[j].dync_triangle();    // triangle (2,1)
+        Triangle* tri_lab3 = list2[j + waist].dync_triangle();    // triangle (1,2)
+        
+        tri_lab0->adjacent_triangles()[0] = list2[(j + 1)%waist + waist];
+        tri_lab0->adjacent_triangles()[1] = list2[j + waist];
+        tri_lab0->adjacent_triangles()[2] = list2[(j+twist)%waist - waist + 2*waist*TimeLength];
+        
+        tri_lab3->adjacent_triangles()[0] = list2[j];
+        tri_lab3->adjacent_triangles()[1] = list2[(j + waist-1)%waist];
+        
+        tri_labp->adjacent_triangles()[2] = list2[j];
+        
+        // ... and the types...
+        tri_lab0->type = TriangleType::_21;
+        tri_lab3->type = TriangleType::_12;
+    }
+    
+    // ... and some edges and their adjacencies ...
+    for(int j=0;j<waist;j++){
+        // missing time-like edges
+        Label vertices_t1[] = {list0[(j + twist + waist-1)%waist + waist*(TimeLength-1)], list0[j]};
+        Label lab_t1(new Edge(list1.size(), vertices_t1, list2[j + waist], EdgeType::_time));
+        list1.push_back(lab_t1);
+        
+        list2[j + waist].dync_triangle()->e[0] = lab_t1;
+        list2[j].dync_triangle()->e[1] = lab_t1;
+        
+        Label vertices_t2[] = {list0[(j + twist)%waist + waist*(TimeLength-1)], list0[j]};
+        Label lab_t2(new Edge(list1.size(), vertices_t2, list2[j], EdgeType::_time));
+        list1.push_back(lab_t2);
+        
+        list2[j].dync_triangle()->e[0] = lab_t2;
+        list2[(j + 1)%waist + waist].dync_triangle()->e[1] = lab_t2;
+        
+        // missing time-like adjacencies (space-like edges)
+        list2[j].dync_triangle()->e[2] = list1[(j + twist)%waist + 3*waist*(TimeLength-1)];
+    }
+    
+    // ... and vertices of (2,1)-triangles (ones at time 0)
+    for(int j=0;j<waist;j++){
+        Triangle* tri_lab0 = list2[j].dync_triangle();
+        Triangle* tri_lab3 = list2[j+waist].dync_triangle();
+        
+        tri_lab0->vertices()[0] = list0[(TimeLength - 1)*waist + (j + twist + waist-1)%waist];
+        tri_lab0->vertices()[1] = list0[(TimeLength - 1)*waist + (j + twist)%waist];
+        
+        tri_lab3->vertices()[2] = list0[(TimeLength - 1)*waist + (j + twist + waist-1)%waist];
+    }
+
+    for(auto v: list0)
+        v.dync_vertex()->owner = this;
+    for(auto e: list1){
+        e.dync_edge()->owner = this;
+        e.dync_edge()->U.base_edge = list1[e->id];
+    }
+    for(auto t: list2)
+        t.dync_triangle()->owner = this;
+    
+    N = list1[0].dync_edge()->gauge_element().N;
 }
 
 Triangulation::Triangulation(int TimeLength, double Lambda, double Beta, int waist, bool debug_flag){

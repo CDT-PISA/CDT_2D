@@ -475,9 +475,22 @@ ostream& operator<<(ostream& os, Triangulation& T){
     os << "space_profile: " << endl;
     T.print_space_profile(os);
     
-//     os << endl << "  checking triangulation consistency... " << endl;
-//     T.is_consistent(false);
-//     os << "  triangulation is consistent!" << endl;
+    os << endl << "  checking triangulation consistency... " << endl;
+    T.is_consistent(false);
+    os << "  triangulation is consistent!" << endl;
     
+    os << "vertices:"<<endl;
+    for(auto& v : T.list0){
+        v.dync_vertex()->print_elements(os);
+    }
+    os << endl << "edges:"<<endl;
+    for(auto& e : T.list1){
+        e.dync_edge()->print_elements(os);
+    }
+    os << endl << "triangles:"<<endl;
+    for(auto& tt : T.list2){
+        tt.dync_triangle()->print_elements(os);
+    }
+
     return os;
 }
