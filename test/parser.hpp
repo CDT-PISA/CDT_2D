@@ -18,6 +18,7 @@ struct arg_list{
     string confname = "conf";
     double w_22 = 0.1;
     double w_24 = 0.2;
+    int init_waist = 3;
     int max_V = -1;
     int max_iters = -1;
     int walltime = -1;
@@ -42,6 +43,7 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"confname: "<<al.confname<<endl;
     o<<"w_22: "<<al.w_22<<endl;
     o<<"w_24: "<<al.w_24<<endl;
+    o<<"init_waist: "<<al.init_waist<<endl;
     o<<"max_V: "<<al.max_V<<endl;
     o<<"max_iters: "<<al.max_iters<<endl;
     o<<"walltime: "<<al.walltime<<endl;
@@ -63,21 +65,23 @@ string args_string(){
   ret += "<num slices> ";
   ret += "<lambda> ";
   ret += "<beta> ";
-  ret += "[--main_dir =simulation] ";
-  ret += "[--confname =conf] ";
-  ret += "[--w_22 =0.1] ";
-  ret += "[--w_24 =0.2] ";
-  ret += "[--max_V =-1] ";
-  ret += "[--max_iters =-1] ";
-  ret += "[--walltime =-1] ";
-  ret += "[--meas_V =-1] ";
-  ret += "[--meas_Vprofile =-1] ";
-  ret += "[--meas_Qcharge =-1] ";
-  ret += "[--meas_plaquette =-1] ";
-  ret += "[--meas_torelon =-1] ";
-  ret += "[--fix_V =-1] ";
-  ret += "[--fix_V_rate =1e-5] ";
-  ret += "[--fix_V_each =10] ";
+  ret += "\n";
+  ret += "[--main_dir (simulation)] \n";
+  ret += "[--confname (conf)] \n";
+  ret += "[--w_22 (0.1)] \n";
+  ret += "[--w_24 (0.2)] \n";
+  ret += "[--init_waist (3)] \n";
+  ret += "[--max_V (-1)] \n";
+  ret += "[--max_iters (-1)] \n";
+  ret += "[--walltime (-1)] \n";
+  ret += "[--meas_V (-1)] \n";
+  ret += "[--meas_Vprofile (-1)] \n";
+  ret += "[--meas_Qcharge (-1)] \n";
+  ret += "[--meas_plaquette (-1)] \n";
+  ret += "[--meas_torelon (-1)] \n";
+  ret += "[--fix_V (-1)] \n";
+  ret += "[--fix_V_rate (1e-5)] \n";
+  ret += "[--fix_V_each (10)] \n";
   return ret;
 }
 
@@ -123,13 +127,17 @@ int parse_arguments(arg_list& args, int argc, char** argv){
         argmap[argv[i]]=i;
         argmap_inv[i]=argv[i];
     }
-
-    // flagged arguments without value
 //
-//    // flagged arguments without value
+////
+////// flagged arguments without value
+////
 //
 
-    // flagged arguments with value
+//
+////
+////// flagged arguments with value
+////
+//
     
     // (string) main_dir
     parse_flag_valued_term(args.main_dir, "--main_dir", argc, fixed_args, argmap, argmap_inv);
@@ -142,6 +150,9 @@ int parse_arguments(arg_list& args, int argc, char** argv){
         
     // (double) w_24
     parse_flag_valued_term(args.w_24, "--w_24", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) init_waist
+    parse_flag_valued_term(args.init_waist, "--init_waist", argc, fixed_args, argmap, argmap_inv);
 
     // (int) max_V
     parse_flag_valued_term(args.max_V, "--max_V", argc, fixed_args, argmap, argmap_inv);
@@ -182,10 +193,12 @@ int parse_arguments(arg_list& args, int argc, char** argv){
         throw "ERROR: argument <T> invalid";
     }
 
-    // no conditions on lambda
-
     if(args.beta <= 0.0){
         throw "ERROR: argument <beta> invalid";
+    }
+
+    if(args.init_waist <= 2){
+        throw "ERROR: argument <init_waist> invalid";
     }
     return 0;
 }

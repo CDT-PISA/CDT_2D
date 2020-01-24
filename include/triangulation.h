@@ -19,6 +19,8 @@ enum class TriangleType;
 
 class GaugeElement;
 
+#define MINIMAL_WAIST 3
+
 /**
  * @todo write docs
  * @todo function create_vertex, create_triangle (e create_empty_triangle, che può essere una funzione indipendente o la stessa funzione create_triangle overloadata senza argomenti): le funzioni ritornano id
@@ -133,14 +135,14 @@ public:
     /** @todo initialization from file */ 
     Triangulation() = default;
     
-    void initialize(int TimeLength, double Lambda, double Beta, bool debug_flag = false);
+    void initialize(int TimeLength, double Lambda, double Beta, int waist = MINIMAL_WAIST, bool debug_flag = false);
 
     /**
      * @brief default constructor: setup default configuration
      * 
      * @param TimeLength the number of time slices
      */
-    Triangulation(int TimeLength, double Lambda, double Beta, bool debug_flag = false);
+    Triangulation(int TimeLength, double Lambda, double Beta, int waist = MINIMAL_WAIST, bool debug_flag = false);
     
     /**
      * @brief load a stored configuration

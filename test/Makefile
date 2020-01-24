@@ -1,5 +1,5 @@
 CXX      := g++
-CXXFLAGS := -pedantic-errors -Werror -std=c++17
+CXXFLAGS := -Werror -std=c++17 # -pedantic-errors 
 LDFLAGS  := -L /usr/lib -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
@@ -42,6 +42,10 @@ release_U1: all
 release_SU2: CXXFLAGS = -std=c++17 -O3 -DNC=2
 release_SU2: all
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/peppe_branch
 #install:
 #	@rm ./main
 #	@cp $(APP_DIR)/$(TARGET) $(TARGET)

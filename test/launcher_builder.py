@@ -7,6 +7,7 @@ if(len(argv)<2):
 
 fname = argv[1].replace(".txt","")
 fname_launcher = fname+"_launcher.sh"
+fname_stopper = fname+"_stopper.sh"
 try:
     inputfile = open(fname+".txt","r")
     exec(inputfile.read())
@@ -46,7 +47,11 @@ if machine == "marco":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
+<<<<<<< HEAD
             f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
+=======
+            f.write('./main %d %f %f --main_dir %s --walltime %d --max_iters %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,max_iters,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
+>>>>>>> origin/peppe_branch
             
         f.write('wait\n\n')
 
@@ -77,7 +82,11 @@ elif machine == "local":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
+<<<<<<< HEAD
             f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
+=======
+            f.write('./main %d %f %f --main_dir %s --walltime %d --max_iters %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,max_iters,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
+>>>>>>> origin/peppe_branch
             
         f.write('wait\n\n')
 
@@ -92,3 +101,9 @@ elif machine == "local":
 
     system('chmod +x %s' % fname_launcher)
     #    os.system('chmod +x %s/sub_%s.sh'%(dname,runflag))  
+
+with open(fname_stopper,"w") as f:
+    f.write("#!/bin/bash\n")
+    
+    f.write("if [ $# -lt 1 ]\nthen\n\tfor i in $(seq 0 1 %d)\n\tdo\n\t\ttouch %s/sim_\"$i\"/stop\n\tdone\nelse\n\tfor i in $@\n\tdo\n\t\ttouch %s/sim_\"$i\"/stop\n\tdone\nfi\n" % (len(params)-1,fname,fname))
+system('chmod +x %s' % fname_stopper)

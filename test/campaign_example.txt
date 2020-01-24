@@ -17,7 +17,7 @@ max_iters = -1
 
 meas_V = 10000
 meas_Vprofile = 10000
-meas_Qcharge = -1
+meas_Qcharge = 20000
 meas_plaquette = 20000
 meas_torelon = 50000
 
