@@ -2,19 +2,24 @@ import numpy as np
 
 # parameters:       lambda beta
 
-Tslices = 4
+Tslices = 40
 
 w_22 = 0.05
 w_24 = 0.1
 
-max_V = 50000
+max_V = 10000
+fix_V = -1
+fix_V_rate = "1e-10"
+fix_V_each = 200
 
-walltime = 15 # seconds
-meas_V = 1000
-meas_Vprofile = 1000
-meas_Qcharge = 2000
-meas_plaquette = 2000
-meas_torelon = 5000
+walltime = 2*60*60 # seconds
+max_iters = -1
+
+meas_V = 10000
+meas_Vprofile = 10000
+meas_Qcharge = -1
+meas_plaquette = 20000
+meas_torelon = 50000
 
 params = np.array([[0.7, 0.01],
                    [0.7,  0.1],
@@ -22,3 +27,4 @@ params = np.array([[0.7, 0.01],
 
 
 resub = False
+machine = "local"
