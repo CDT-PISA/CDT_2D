@@ -46,7 +46,7 @@ if machine == "marco":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
-            f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %f > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
+            f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
             
         f.write('wait\n\n')
 
@@ -77,7 +77,7 @@ elif machine == "local":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
-            f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %f > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
+            f.write('./main %d %f %f --main_dir %s --walltime %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fname+"/sim_"+str(i)+"/log"))
             
         f.write('wait\n\n')
 
