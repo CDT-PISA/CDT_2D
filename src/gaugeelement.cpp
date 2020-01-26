@@ -188,6 +188,7 @@ GaugeElement GaugeElement::rand(){
     }
 
 #if NC == 1
+    //the angle is uniform on the circle
     double alpha = pi * (2 * r.next() - 1);
     GaugeElement U(exp(1i * alpha));
 
@@ -195,7 +196,38 @@ GaugeElement GaugeElement::rand(){
 
 #elif NC == 2
     //TODO dummy
-    GaugeElement U(1.0);
+    
+    //the angles are uniform on the sphere S^3, with measure
+    //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
+    
+    double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+
+    //Pauli matrices
+    GaugeElement sigma1(matSigma1);
+    GaugeElement sigma2(matSigma2);
+    GaugeElement sigma3(matSigma3);
+
+    // Von Neumann algorithm to extract cos alpha in [-1, +1] 
+    // distributed as sqrt(1 - cosAlpha^2)
+    do{
+        cosAlpha = (2 * r.next()) - 1;
+        accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
+    }while(r.next() > accept_ratio);
+    sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+
+
+    //cos theta is uniform in [-1, +1]
+    cosTheta = (2 * r.next()) - 1;
+    sinTheta = sqrt(1 - (cosTheta * cosTheta));
+
+    //phi is uniform in [0, 2*pi]
+    phi = r.next() * 2 * pi;
+
+    GaugeElement U;
+    U = sigma3 * (1i * (sinAlpha * sinTheta * cos(phi)))
+      + sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
+      + sigma1 * (1i * (sinAlpha * cosTheta))
+      + cosAlpha;
 
     return U;
 #endif
