@@ -195,8 +195,6 @@ GaugeElement GaugeElement::rand(){
     return U;
 
 #elif NC == 2
-    //TODO dummy
-    
     //the angles are uniform on the sphere S^3, with measure
     //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
     
