@@ -198,6 +198,7 @@ GaugeElement GaugeElement::rand(){
     //the angles are uniform on the sphere S^3, with measure
     //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
     
+    double accept_ratio;
     double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
 
     //Pauli matrices
