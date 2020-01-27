@@ -199,6 +199,7 @@ GaugeElement GaugeElement::rand(){
     //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
     
     double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+    double accept_ratio = 0;
 
     //Pauli matrices
     GaugeElement sigma1(matSigma1);
