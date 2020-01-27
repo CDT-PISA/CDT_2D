@@ -439,7 +439,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     delta_Sg_hat += (v_lab1->Pi_tilde(debug_flag) / v_lab1->coordination()) * beta_N;
     delta_Sg_hat += (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
     delta_Sg_hat += (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
-    delta_Sg_hat += beta_N * (1./4+1./v_lab1->coordination());
+    delta_Sg_hat += beta_N * (1./4 + 1./v_lab1->coordination());
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
@@ -449,11 +449,20 @@ void Triangulation::move_24(int cell, bool debug_flag)
         throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
     }
 #endif
+
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
+
+    //Metropolis algorithm:
+    //a proposed gauge element Uprop is extracted uniformly
+    //and its contribution enter the acceptance probability
+    GaugeElement Uprop;
+    Uprop = Uprop.rand();
+    Uprop.unitarize();
+
+    double delta_Sg_tilde = - beta_N * real((Uprop * Force).tr()) / N;
     
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(volume) / (2*(num40+1)) ));
-    
+    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat - delta_Sg_tilde) * (static_cast<double>(volume) / (2*(num40+1)) ));  
     
     if(reject_trial > reject_ratio){
         tri_lab0->gauge_transform(gt0.dagger());
@@ -616,18 +625,14 @@ void Triangulation::move_24(int cell, bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
     // ___ extraction of GaugeElement on link 6 ___
-    // There cannot be an overrelaxation,
-    // because there is no previous link!!
-    bool overrelaxation = false;
-    e_lab6->U.heatbath(overrelaxation, Force, debug_flag);
+    // With Metropolis algorithm the gauge element on link 6
+    // is the proposed element Uprop previously considered
+    Uprop.set_base(e_lab6);
+    e_lab6->U = Uprop;
     e_lab6->U.unitarize();
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
      *  - the new one (5,7) are set to id by default (by create_edge function), and is correct 
-     * 
-     * Moreover is needed to do this at the end of the cell manipulation because
-     * in order to calculate the heatbath is necessary to ensure that
-     * the triangulation is in a consistent state
      */
     
     // ----- END MOVE -----
