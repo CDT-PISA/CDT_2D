@@ -924,7 +924,6 @@ void Triangulation::move_42(int cell, bool debug_flag)
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
-
 vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 {
     RandomGen r;
@@ -977,7 +976,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     delta_Sg = - beta * real( ((Uprop - e_lab->U) * Force).tr() );
 
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(- delta_Sg)); 
+    double reject_ratio = min(1.0, exp(- delta_Sg));
 
     if(reject_trial > reject_ratio){
         // if not accepted return    
@@ -1011,6 +1010,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     return v;
     // ----- END MOVE -----
 }
+
 
 // +++++ auxiliary functions (for moves) +++++
 
