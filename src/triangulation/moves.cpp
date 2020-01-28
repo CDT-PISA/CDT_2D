@@ -628,8 +628,9 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // ___ extraction of GaugeElement on link 6 ___
     // With Metropolis algorithm the gauge element on link 6
     // is the proposed element Uprop previously considered
-    Uprop.set_base(e_lab6);
     e_lab6->U = Uprop;
+    // the base must be setted to the Label, not the pointer!!!
+    e_lab6->U.set_base(lab_e6);
     e_lab6->U.unitarize();
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
@@ -764,8 +765,8 @@ void Triangulation::move_42(int cell, bool debug_flag)
     tri_lab0->gauge_transform(gt0, debug_flag);
     GaugeElement gt3(e_lab3->gauge_element());
     tri_lab3->gauge_transform(gt3, debug_flag);
-    
-    
+
+
     if(debug_flag){
         GaugeElement Id(1.);
         GaugeElement Zero1 = e_lab1->gauge_element() - Id;
@@ -796,7 +797,6 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }
 #endif
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
-    
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     delta_Sg_hat -= (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
