@@ -36,11 +36,11 @@ debug: all
 release: CXXFLAGS += -O3
 release: all
 
-release_U1: CXXFLAGS = -std=c++17 -O3 -DNC=1
-release_U1: all
+metro_U1: CXXFLAGS = -std=c++17 -O3 -DNC=1
+metro_U1: all
 
-release_SU2: CXXFLAGS = -std=c++17 -O3 -DNC=2
-release_SU2: all
+metro_SU2: CXXFLAGS = -std=c++17 -O3 -DNC=2
+metro_SU2: all
 
 #install:
 #	@rm ./main
