@@ -12,6 +12,11 @@
 #include <chrono>
 #include <unistd.h>
 
+#define CHECK_ERROR(fzcall) \
+    {int erri;\
+     if((erri = (fzcall))) \
+        fprintf(stderr,"ERROR no. %d on call %s, %s:%d\n",erri, #fzcall,__FILE__,__LINE__); \
+    }
 
 using namespace std;
 
@@ -60,6 +65,7 @@ int main(int argc, char* argv[]){
     int max_V = args.max_V;
     int max_iters = args.max_iters;
     int walltime_seconds = args.walltime;
+    int seed = args.seed;
     int meas_V = args.meas_V;
     int meas_Vprofile = args.meas_Vprofile;
     int meas_Qcharge = args.meas_Qcharge;
@@ -85,11 +91,11 @@ int main(int argc, char* argv[]){
     FILE * meas_file;
 
 
-    system(("mkdir -p "+measure_folder).c_str());
-    system(("mkdir -p "+confs_folder).c_str());
+    CHECK_ERROR(system(("mkdir -p "+measure_folder).c_str()));
+    CHECK_ERROR(system(("mkdir -p "+confs_folder).c_str()));
 
-    system(("rm -rf "+(main_dir + "/max_V_reached")).c_str());
-    system(("rm -rf "+(main_dir + "/all_fine")).c_str());
+    CHECK_ERROR(system(("rm -rf "+(main_dir + "/max_V_reached")).c_str()));
+    CHECK_ERROR(system(("rm -rf "+(main_dir + "/all_fine")).c_str()));
 
     
     Triangulation uni;
@@ -104,7 +110,7 @@ int main(int argc, char* argv[]){
     }
 //    cout<<uni<<endl;
     
-    RandomGen r;
+    RandomGen r(seed);
 
     auto t_start = std::chrono::high_resolution_clock::now();
     auto t_end = t_start;
