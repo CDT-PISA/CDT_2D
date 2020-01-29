@@ -22,6 +22,7 @@ struct arg_list{
     int max_V = -1;
     int max_iters = -1;
     int walltime = -1;
+    int seed = -1;
     int meas_V= -1;
     int meas_Vprofile = -1;
     int meas_Qcharge = -1;
@@ -47,6 +48,7 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"max_V: "<<al.max_V<<endl;
     o<<"max_iters: "<<al.max_iters<<endl;
     o<<"walltime: "<<al.walltime<<endl;
+    o<<"seed: "<<al.seed<<endl;
     o<<"meas_V: "<<al.meas_V<<endl;
     o<<"meas_Vprofile: "<<al.meas_Vprofile<<endl;
     o<<"meas_Qcharge: "<<al.meas_Qcharge<<endl;
@@ -74,6 +76,7 @@ string args_string(){
   ret += "[--max_V (-1)] \n";
   ret += "[--max_iters (-1)] \n";
   ret += "[--walltime (-1)] \n";
+  ret += "[--seed (-1)] \n";
   ret += "[--meas_V (-1)] \n";
   ret += "[--meas_Vprofile (-1)] \n";
   ret += "[--meas_Qcharge (-1)] \n";
@@ -162,6 +165,9 @@ int parse_arguments(arg_list& args, int argc, char** argv){
 
     // (int) walltime
     parse_flag_valued_term(args.walltime, "--walltime", argc, fixed_args, argmap, argmap_inv);
+
+    // (int) seed
+    parse_flag_valued_term(args.walltime, "--seed", argc, fixed_args, argmap, argmap_inv);
 
     // (int) meas_V
     parse_flag_valued_term(args.meas_V, "--meas_V", argc, fixed_args, argmap, argmap_inv);

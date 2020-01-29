@@ -33,20 +33,39 @@ void generator_state::read(istream& input)
 }
 
 
-#define SEED 1145
+//#define SEED 1145
 
 pcg32 RandomGen::rng;
 
 RandomGen::RandomGen()
 {
-    static bool first = true;
 //    struct timeval tval;
 //    gettimeofday(&tval,NULL);
 //    j=tval.tv_sec*1000000ULL+tval.tv_usec;
-    if(first){
-        rng.seed(SEED);
-        first = false;
+    if(RandomGen::check_first()){
+//        rng.seed(SEED);
+      rng.seed(time(NULL));
     }
+}
+
+RandomGen::RandomGen(long long seed)
+{
+//    struct timeval tval;
+//    gettimeofday(&tval,NULL);
+//    j=tval.tv_sec*1000000ULL+tval.tv_usec;
+    if(RandomGen::check_first()){
+//        rng.seed(SEED);
+      rng.seed( (seed>0) ? seed : time(NULL) );
+    }
+}
+
+bool RandomGen::check_first(){
+    static bool first = true;
+    if(first){
+        first=false;
+        return true;
+    }
+    return false;
 }
 
 double RandomGen::next(){

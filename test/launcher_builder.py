@@ -8,11 +8,33 @@ if(len(argv)<2):
 fname = argv[1].replace(".txt","")
 fname_launcher = fname+"_launcher.sh"
 fname_stopper = fname+"_stopper.sh"
+
+# default values
+init_waist=3
+max_iters=1000
+walltime=10
+seed=-1
+w_22=0.05
+w_24=0.1
+max_V=50000
+meas_V=-1
+meas_Vprofile=-1
+meas_Qcharge=-1
+meas_plaquette=-1
+meas_torelon=-1
+fix_V=-1
+fix_V_rate=1e-8
+
+seeds=[]
+
 try:
     inputfile = open(fname+".txt","r")
     exec(inputfile.read())
 except IOError:
     raise IOError("Input file '%s' doesn't exists" % (inputfile+".txt"))
+
+if(len(seeds)==0):
+    seeds = np.random.randint(100,1000000,len(params))
 
 if machine == "marco":
     if len(params)>48:
@@ -47,8 +69,7 @@ if machine == "marco":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
-
-            f.write('./main %d %f %f --main_dir %s --walltime %d --max_iters %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,max_iters,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
+           f.write('./main %d %f %f --main_dir %s --init_waist %d --max_iters %d --walltime %d --seed %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),init_waist,max_iters,walltime,seeds[i],w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
             
         f.write('wait\n\n')
 
@@ -79,8 +100,7 @@ elif machine == "local":
             f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
 
         for i in range(len(params)):
-
-            f.write('./main %d %f %f --main_dir %s --walltime %d --max_iters %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),walltime,max_iters,w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
+           f.write('./main %d %f %f --main_dir %s --init_waist %d --max_iters %d --walltime %d --seed %d --w_22 %f --w_24 %f --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,params[i,0],params[i,1],fname+"/sim_"+str(i),init_waist,max_iters,walltime,seeds[i],w_22,w_24,max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
             
         f.write('wait\n\n')
 
