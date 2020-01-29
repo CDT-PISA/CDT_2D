@@ -961,8 +961,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 
     //Metropolis algorithm:
     // We extract a uniform proposed gauge element    
-    GaugeElement Uprop;
-    Uprop = Uprop.rand();
+    GaugeElement Uprop = e_lab->U * e_lab->U.rand(0.1);
     Uprop.set_base(lab_e);
     Uprop.unitarize();
 
