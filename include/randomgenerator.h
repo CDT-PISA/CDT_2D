@@ -33,11 +33,15 @@ private:
     
    static pcg32 rng;
 
+   bool check_first();
+
 public:
     
     // CLASS STANDARD
     
     RandomGen();
+
+    RandomGen(long long seed);
     
     ~RandomGen(){}
     
