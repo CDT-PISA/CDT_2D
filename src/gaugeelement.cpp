@@ -178,7 +178,7 @@ double GaugeElement::partition_function()
     return Z;
 }
 
-GaugeElement GaugeElement::rand(){
+GaugeElement GaugeElement::rand(double delta){
     RandomGen r;
     
     double pi = 2 * asin(1);
@@ -188,16 +188,13 @@ GaugeElement GaugeElement::rand(){
     }
 
 #if NC == 1
-    //the angle is uniform on the circle
-    double alpha = pi * (2 * r.next() - 1);
+    //the angle is uniform
+    double alpha = delta * pi * (2 * r.next() - 1);
     GaugeElement U(exp(1i * alpha));
 
     return U;
 
 #elif NC == 2
-    //the angles are uniform on the sphere S^3, with measure
-    //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
-    
     double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
     double accept_ratio = 0;
 
@@ -206,12 +203,8 @@ GaugeElement GaugeElement::rand(){
     GaugeElement sigma2(matSigma2);
     GaugeElement sigma3(matSigma3);
 
-    // Von Neumann algorithm to extract cos alpha in [-1, +1] 
-    // distributed as sqrt(1 - cosAlpha^2)
-    do{
-        cosAlpha = (2 * r.next()) - 1;
-        accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
-    }while(r.next() > accept_ratio);
+    // cosAlpha is uniform in [- delta, delta]
+    cosAlpha = delta * ((2 * r.next()) - 1);
     sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
 
 

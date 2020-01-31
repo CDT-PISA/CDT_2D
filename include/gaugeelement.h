@@ -121,7 +121,7 @@ public:
     
     double partition_function();
     
-    GaugeElement rand();
+    GaugeElement rand(double delta = 1.0);
     
     void heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag = false);
 
