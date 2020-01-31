@@ -923,6 +923,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
+
 vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 {
     RandomGen r;
@@ -964,32 +965,14 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 
     Force.set_base(lab_e);
 
-    //Metropolis algorithm:
-    // We extract a uniform proposed gauge element    
-    GaugeElement Uprop;
-    Uprop = Uprop.rand();
-    Uprop.set_base(lab_e);
-    Uprop.unitarize();
+    //WHERE IMPLEMENTED we perform an overrelaxation step
+    bool overrelaxation = true;
+    e_lab->U.heatbath(overrelaxation, Force, debug_flag);
 
-    double delta_Sg = 0;
-    delta_Sg = - beta * real( ((Uprop - e_lab->U) * Force).tr() );
-
-    double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(- delta_Sg)); 
-
-    if(reject_trial > reject_ratio){
-        // if not accepted return    
-        // GE_aft
-        v.push_back(e_lab->U.tr());
-    
-        // Force
-        v.push_back(Force.tr());
-	
-	return v;
-    }
-
-    // if accepted, the gauge element is equal to the proposed element
-    e_lab->U = Uprop; 
+    //     // overrelaxation step
+    //     GaugeElement U_new = Force * e_lab->U * Force;
+    //     U_new.set_base(lab_e);
+    //     e_lab->U = U_new.dagger(); 
     e_lab->U.unitarize();
     
     // GE_aft
@@ -1009,7 +992,6 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     return v;
     // ----- END MOVE -----
 }
-
 
 // +++++ auxiliary functions (for moves) +++++
 
