@@ -789,24 +789,26 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // the staple here it's searching for is the one of the cell with 2 triangles
     // to reconstruct it is needed to sum together the two contributes from the external staple of e0 and e2
     // FALSE --> substracting the contributes of the inner loop (the square)
-    GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
+    GaugeElement Staple1 = v_lab1->looparound(edge2_t,debug_flag);
     //check unitarity staple
 #if NC == 2
-    if(abs(Staple.det() - 1.0) > 1e-6){
-        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    if(abs(Staple1.det() - 1.0) > 1e-6){
+        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple1.det()) - 1.0) + ", " + to_string(imag(Staple1.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple1.det()) - 1));
     }
 #endif
-    GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
+    GaugeElement Force = (Staple1/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
     double beta_N = beta * N;
     double delta_Sg_hat = 0;
     delta_Sg_hat -= (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
     delta_Sg_hat -= (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
-    delta_Sg_hat -= (real(Staple.tr())/(Staple.N * v_lab1->coord_num)) * beta_N;
+    delta_Sg_hat -= (real(Staple1.tr())/(Staple1.N * v_lab1->coord_num)) * beta_N;
     delta_Sg_hat -= beta_N * (1./4);
     // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
     // (because the "new" edges have id as gauge_element)
-    
-    //double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
+
+    // the element related to the edge 2 gets eliminated
+    double delta_Sg_tilde = 0;
+    delta_Sg_tilde = beta_N * real( (e_lab2->U * Force).tr() ) / N;
         
 //     random_device rd;
 //     mt19937_64 mt(rd());
@@ -816,7 +818,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     // ----- REJECT RATIO -----
     int volume = list2.size();
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
+    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat - delta_Sg_tilde) * (num40 / (static_cast<double>(volume)/2 - 1)));
     
     if(reject_trial > reject_ratio){
         tri_lab3->gauge_transform(gt3.dagger());
@@ -924,6 +926,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     /* notice that transition list has not to be updated (no need because of the choices made in move construction, in particular because of triangles are removed on the right, and transitions are represented by right members of the cell) */
 }
 
+
 vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 {
     RandomGen r;
@@ -989,7 +992,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     }
 
     // if accepted, the gauge element is equal to the proposed element
-    e_lab->U = Uprop; 
+    e_lab->U = Uprop;
     e_lab->U.unitarize();
     
     // GE_aft
@@ -1009,7 +1012,6 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     return v;
     // ----- END MOVE -----
 }
-
 
 // +++++ auxiliary functions (for moves) +++++
 
