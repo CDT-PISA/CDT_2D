@@ -13,7 +13,6 @@ fname_stopper = fname+"_stopper.sh"
 init_waist=3
 max_iters=1000
 walltime=10
-seed=-1
 w_22=0.05
 w_24=0.1
 max_V=50000
