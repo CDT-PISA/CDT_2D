@@ -167,7 +167,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     parse_flag_valued_term(args.walltime, "--walltime", argc, fixed_args, argmap, argmap_inv);
 
     // (int) seed
-    parse_flag_valued_term(args.walltime, "--seed", argc, fixed_args, argmap, argmap_inv);
+    parse_flag_valued_term(args.seed, "--seed", argc, fixed_args, argmap, argmap_inv);
 
     // (int) meas_V
     parse_flag_valued_term(args.meas_V, "--meas_V", argc, fixed_args, argmap, argmap_inv);
