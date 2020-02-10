@@ -34,7 +34,7 @@ except IOError:
     raise IOError("Input file '%s' doesn't exists" % (inputfile+".txt"))
 
 if(len(seeds)==0):
-    seeds = np.random.randint(100,1000000,len(params))
+    seeds = 100+np.random.choice(1000000,size=len(params),replace=False)
 
 if machine == "marco":
     if len(params)>48:
