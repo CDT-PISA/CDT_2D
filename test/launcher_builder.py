@@ -66,8 +66,7 @@ with open(fname_launcher,"w") as f:
 
     f.write('\nnparams=%d\n'% len(params))
 
-    for i in range(len(params)):
-        f.write('mkdir -p %s\n' % (fname+"/sim_"+str(i)))
+    f.write('mkdir -p %s/sim_{%d..%d}\n\n' % (fname,0,len(params)-1))
 
     for i in range(len(params)):
        f.write('./main %d %s %s --main_dir %s --init_waist %d --max_iters %d --walltime %d --seed %d --w_22 %s --w_24 %s --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d > %s &\n' %(Tslices,'{:.16}'.format(params[i,0]),'{:.16}'.format(params[i,1]),fname+"/sim_"+str(i),init_waist,max_iters,walltime,seeds[i],'{:.16}'.format(w_22),'{:.16}'.format(w_24),max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
