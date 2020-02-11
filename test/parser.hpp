@@ -28,7 +28,7 @@ struct arg_list{
     int meas_Qcharge = -1;
     int meas_plaquette = -1;
     int meas_torelon = -1;
-    int fix_V = -1;
+    double fix_V = -1;
     double fix_V_rate = 1e-5;
     int fix_V_each = 10;
 //    double w_gauge = 0.7;
@@ -167,7 +167,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     parse_flag_valued_term(args.walltime, "--walltime", argc, fixed_args, argmap, argmap_inv);
 
     // (int) seed
-    parse_flag_valued_term(args.walltime, "--seed", argc, fixed_args, argmap, argmap_inv);
+    parse_flag_valued_term(args.seed, "--seed", argc, fixed_args, argmap, argmap_inv);
 
     // (int) meas_V
     parse_flag_valued_term(args.meas_V, "--meas_V", argc, fixed_args, argmap, argmap_inv);
@@ -184,7 +184,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     // (int) meas_torelon
     parse_flag_valued_term(args.meas_torelon, "--meas_torelon", argc, fixed_args, argmap, argmap_inv);
 
-    // (int) fix_V
+    // (double) fix_V
     parse_flag_valued_term(args.fix_V, "--fix_V", argc, fixed_args, argmap, argmap_inv);
 
     // (double) fix_V_rate

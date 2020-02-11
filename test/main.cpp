@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
     int meas_Qcharge = args.meas_Qcharge;
     int meas_plaquette = args.meas_plaquette;
     int meas_torelon = args.meas_torelon;
-    int fix_V = args.fix_V;
+    double fix_V = args.fix_V;
     double fix_V_rate = args.fix_V_rate;
     uint mean_V_items = args.fix_V_each;
     vector<uint> aver_V;
@@ -108,7 +108,6 @@ int main(int argc, char* argv[]){
         uni.save(conf_filename);
         uni.save(confbkp_filename);
     }
-//    cout<<uni<<endl;
     
     RandomGen r(seed);
 
@@ -168,17 +167,22 @@ int main(int argc, char* argv[]){
                     aver_V[idx_last_V]=vol_meas;
                     idx_last_V = (idx_last_V +1)%mean_V_items;
                     double mean_V = 0.0;
+                    double std_V = 0.0;
                     for(uint jj=0U; jj<mean_V_items; ++jj){
                         mean_V+=aver_V[jj];
+                        std_V+=aver_V[jj]*aver_V[jj];
                     }
                     mean_V/=(double)mean_V_items;
-                    if(mean_V > fix_V*1.2){
-                        uni.lambda += fix_V_rate*pow(abs(mean_V-fix_V),1.3);
-                    }else if(mean_V < fix_V/1.2){
-                        uni.lambda -= fix_V_rate*pow(abs(mean_V-fix_V),1.8);
+                    std_V/=(double)mean_V_items;
+                    std_V-=mean_V*mean_V;
+                    std_V=sqrt(std_V/(double)(mean_V_items-1))+1e-8;
+                    if(mean_V > fix_V*1.01){
+                        uni.lambda += fix_V_rate*pow(abs(mean_V-fix_V)/std_V,2.0);
+                    }else if(mean_V < fix_V/1.01){
+                        uni.lambda -= fix_V_rate*pow(abs(mean_V-fix_V)/std_V,2.0);
                     }
                     meas_file = fopen(lambda_fname.c_str(),"a");
-                    fprintf(meas_file, "%ld %u %lg\n", uni.iterations_done, vol_meas, uni.lambda);
+                    fprintf(meas_file, "%ld %lg %lg %lg %u %lg\n", uni.iterations_done, fix_V, mean_V, std_V, vol_meas, uni.lambda);
                     fclose(meas_file);
                 }
             }
