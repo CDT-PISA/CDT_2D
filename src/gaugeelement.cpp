@@ -187,14 +187,22 @@ GaugeElement GaugeElement::rand(double delta){
         throw runtime_error("rand: not implemented for N != 1");
     }
 
+    //control delta
+    delta = (delta <= 1) ? delta : 1.0;
+
 #if NC == 1
-    //the angle is uniform
+    //the element is uniform in a ball of radius delta
+    //around the identity
+
     double alpha = delta * pi * (2 * r.next() - 1);
     GaugeElement U(exp(1i * alpha));
 
     return U;
 
 #elif NC == 2
+    //the element is uniform in a ball
+    //around the identity in the sphere S^3
+
     double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
     double accept_ratio = 0;
 
@@ -203,10 +211,13 @@ GaugeElement GaugeElement::rand(double delta){
     GaugeElement sigma2(matSigma2);
     GaugeElement sigma3(matSigma3);
 
-    // cosAlpha is uniform in [- delta, delta]
-    cosAlpha = delta * ((2 * r.next()) - 1);
-    sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
-
+    //cos alpha is distributed with measure sin(alpha) d cos(alpha)
+    //in a ball around the identity
+    do{
+        cosAlpha = 1 - (2 * delta * r.next()); 
+	sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+	accept_ratio = sinAlpha;
+    }while(r.next() > accept_ratio);
 
     //cos theta is uniform in [-1, +1]
     cosTheta = (2 * r.next()) - 1;
@@ -223,7 +234,6 @@ GaugeElement GaugeElement::rand(double delta){
 
     return U;
 #endif
-
 }
 
 void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag)
