@@ -90,6 +90,10 @@ int main(int argc, char* argv[]){
     string torelon_fname = measure_folder + "/torelon";
     FILE * meas_file;
 
+    if(walltime_seconds<0 and max_iters<0){
+        fprintf(stderr,"Set any of the <walltime> or <max_iters> options\n"); 
+        exit(1);
+    }
 
     CHECK_ERROR(system(("mkdir -p "+measure_folder).c_str()));
     CHECK_ERROR(system(("mkdir -p "+confs_folder).c_str()));
