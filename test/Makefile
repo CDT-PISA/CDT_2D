@@ -1,6 +1,6 @@
 CXX      := g++
 CXXFLAGS := -Werror -std=c++17 # -pedantic-errors 
-LDFLAGS  := -L /usr/lib -lstdc++ -lm
+LDFLAGS  := #-L /home/delia/lib64 -lstdc++ -lm
 BUILD    := ./build
 OBJ_DIR  := $(BUILD)/objects
 APP_DIR  := $(BUILD)/apps
