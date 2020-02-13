@@ -445,8 +445,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
     GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
 #if NC == 2
-    if(abs(Staple.det() - 1.0) > 1e-6){
-        throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    if(debug_flag){
+        if(abs(Staple.det() - 1.0) > 1e-6){
+            throw runtime_error("move 24: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+        }
     }
 #endif
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
@@ -785,8 +787,10 @@ void Triangulation::move_42(int cell, bool debug_flag)
     GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
     //check unitarity staple
 #if NC == 2
-    if(abs(Staple.det() - 1.0) > 1e-6){
-        throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+    if(debug_flag){
+        if(abs(Staple.det() - 1.0) > 1e-6){
+            throw runtime_error("move 42: N = " + to_string(N) + " : Staple is not unitary:\n\tdet Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + ", " + to_string(imag(Staple.det())) + ")\n\t|Staple| - 1 = " + to_string(abs(Staple.det()) - 1));
+        }
     }
 #endif
     GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
@@ -951,10 +955,12 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     v.push_back(e_lab->U.tr());
     
     GaugeElement Force = e_lab->force(debug_flag);
-#if NC == 2    
+#if NC == 2
     //TODO check force
-    if(abs(Force.det()) > (4./16.)){
-        throw runtime_error("move gauge: force is too big? (> 2./16.): |force| = " + to_string(abs(Force.det())));
+    if(debug_flag){
+        if(abs(Force.det()) > (4./16.)){
+            throw runtime_error("move gauge: force is too big? (> 2./16.): |force| = " + to_string(abs(Force.det())));
+        }
     }
 #endif
 

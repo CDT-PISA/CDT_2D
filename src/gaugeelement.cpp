@@ -155,8 +155,10 @@ double GaugeElement::partition_function()
         
         trProd = (Source.dagger() * Source).tr();
 	//check reality
-	if(abs(imag(trProd)) > 1e-8){
-	    throw runtime_error("partition_function: N == 2: tr(J.dag * J) is not real: imag = " + to_string(abs(imag(trProd))));
+	if(debug_flag){
+	    if(abs(imag(trProd)) > 1e-8){
+	        throw runtime_error("partition_function: N == 2: tr(J.dag * J) is not real: imag = " + to_string(abs(imag(trProd))));
+	    }
 	}
 
 	//TODO check positivity
@@ -327,22 +329,28 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 		+ cosAlpha;
 
 	//Unitarity check
-	if(abs(U_tilde.det() - 1.0) > 1e-8){
-	    throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
+	if(debug_flag){
+	    if(abs(U_tilde.det() - 1.0) > 1e-8){
+	        throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
+	    }
 	}
 
 	//rotate in the direction of the force
 	GaugeElement Force_phase = Force / Force_mod;
 	Force_phase.set_base(this->base_edge);
 	//Unitarity check
-	if(abs(Force_phase.det() - 1.0) > 1e-8){
-	    throw runtime_error("heatbath: N == 2: Force phase is not special unitary:\n\tdet f - 1 = (" + to_string(real(Force_phase.det()) - 1.0) + ", " + to_string(imag(Force_phase.det())) + ")\n\t|f| - 1 = " + to_string(abs(abs(Force_phase.det()) - 1.0)));
+	if(debug_flag){
+	    if(abs(Force_phase.det() - 1.0) > 1e-8){
+	        throw runtime_error("heatbath: N == 2: Force phase is not special unitary:\n\tdet f - 1 = (" + to_string(real(Force_phase.det()) - 1.0) + ", " + to_string(imag(Force_phase.det())) + ")\n\t|f| - 1 = " + to_string(abs(abs(Force_phase.det()) - 1.0)));
+	    }
 	}
 	
 	U = U_tilde * (Force_phase.dagger());
 	//Unitarity check
-	if(abs(U.det() - 1.0) > 1e-8){
-	    throw runtime_error("heatbath: N == 2: Rotated extracted gauge element is not unitary:\n\tdet U - 1 = (" + to_string(real(U.det()) - 1.0) + ", " + to_string(imag(U.det())) + ")\n\t|U| - 1 = " + to_string(abs(abs(U.det()) - 1.0)));
+	if(debug_flag){
+	    if(abs(U.det() - 1.0) > 1e-8){
+	        throw runtime_error("heatbath: N == 2: Rotated extracted gauge element is not unitary:\n\tdet U - 1 = (" + to_string(real(U.det()) - 1.0) + ", " + to_string(imag(U.det())) + ")\n\t|U| - 1 = " + to_string(abs(abs(U.det()) - 1.0)));
+	    }
 	}
 
 	*this = U;

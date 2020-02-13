@@ -173,8 +173,10 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
         
         //check unitarity
 #if NC == 2
-	if(abs(current_previous.det() - 1.) > 1e-8){
-	    throw runtime_error("looparound plaquette: link is not special unitary:\n\tdet link -1  = (" + to_string(real(current_previous.det()) - 1.) + ", " + to_string(imag(current_previous.det())) + ")\n\t|link| - 1 = " + to_string(abs(current_previous.det()) - 1));
+	if(debug_flag){
+	    if(abs(current_previous.det() - 1.) > 1e-8){
+	        throw runtime_error("looparound plaquette: link is not special unitary:\n\tdet link -1  = (" + to_string(real(current_previous.det()) - 1.) + ", " + to_string(imag(current_previous.det())) + ")\n\t|link| - 1 = " + to_string(abs(current_previous.det()) - 1));
+	    }
 	}
 #endif
         
@@ -196,9 +198,11 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     }
  
     //check unitarity
-#if NC == 2    
-    if(abs(Plaquette.det() - 1.) > 1e-8){
-        throw runtime_error("looparound: plaquette is not unitary:\n\tdet plaq - 1 = (" + to_string(real(Plaquette.det()) - 1) + ", " + to_string(imag(Plaquette.det())) + ")\n\t|plaq| - 1 = " + to_string(abs(Plaquette.det()) - 1));
+#if NC == 2
+    if(debug_flag){
+        if(abs(Plaquette.det() - 1.) > 1e-8){
+            throw runtime_error("looparound: plaquette is not unitary:\n\tdet plaq - 1 = (" + to_string(real(Plaquette.det()) - 1) + ", " + to_string(imag(Plaquette.det())) + ")\n\t|plaq| - 1 = " + to_string(abs(Plaquette.det()) - 1));
+	}
     }
 #endif
     
@@ -265,8 +269,10 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
         
         //check unitarity
 #if NC == 2
-	if(abs(current_previous.det() - 1.0) > 1e-8){
-	    throw runtime_error("looparound: link is not special unitary:\n\t det link - 1 = (" + to_string(real(current_previous.det()) - 1.0) + " ," + to_string(imag(current_previous.det())) + ")\n\t|link| = " + to_string(abs(current_previous.det()) - 1));
+	if(debug_flag){
+	    if(abs(current_previous.det() - 1.0) > 1e-8){
+	        throw runtime_error("looparound: link is not special unitary:\n\t det link - 1 = (" + to_string(real(current_previous.det()) - 1.0) + " ," + to_string(imag(current_previous.det())) + ")\n\t|link| = " + to_string(abs(current_previous.det()) - 1));
+	    }
 	}
 #endif
 
@@ -284,8 +290,10 @@ GaugeElement Vertex::looparound(Triangle* edge_t[2], bool debug_flag)
  
     //check unitarity
 #if NC == 2
-    if(abs(abs(Staple.det()) - 1) > 1e-8){
-        throw runtime_error("looparound: staple is not special unitary:\n\t det Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + " ," + to_string(imag(Staple.det())) + ")\n\t|staple| = " + to_string(abs(Staple.det()) - 1));
+    if(debug_flag){
+        if(abs(abs(Staple.det()) - 1) > 1e-8){
+            throw runtime_error("looparound: staple is not special unitary:\n\t det Staple - 1 = (" + to_string(real(Staple.det()) - 1.0) + " ," + to_string(imag(Staple.det())) + ")\n\t|staple| = " + to_string(abs(Staple.det()) - 1));
+        }
     }
 #endif
     
