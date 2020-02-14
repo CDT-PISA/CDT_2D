@@ -304,14 +304,6 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         }        
     }
     
-    GaugeElement U;
-    if(r.next() < 0.5){
-        tri_lab0->gauge_transform(U.rand(), debug_flag);
-    }
-    else{
-        tri_lab1->gauge_transform(U.rand(), debug_flag);
-    }
-    
     if(debug_flag){
         cout << endl;
         cout << "┌────────────────────────┐" << endl;
