@@ -125,7 +125,7 @@ complex<double>* GaugeElement::operator[](int i)
     return mat[i];
 }
 
-double GaugeElement::partition_function()
+double GaugeElement::partition_function(bool debug_flag)
 {
     /** @todo
      * deve dipendere da N
