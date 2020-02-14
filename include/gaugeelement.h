@@ -119,7 +119,7 @@ public:
     
     // ##### OPERATIONS #####
     
-    double partition_function();
+    double partition_function(bool debug_flag = false);
     
     GaugeElement rand();
     
