@@ -180,6 +180,61 @@ double GaugeElement::partition_function(bool debug_flag)
     return Z;
 }
 
+GaugeElement GaugeElement::rand(){
+    RandomGen r;
+    
+    double pi = 2 * asin(1);
+
+    if(N != 1 && N != 2){
+        throw runtime_error("rand: not implemented for N != 1");
+    }
+
+#if NC == 1
+    //the angle is uniform on the circle
+    double alpha = pi * (2 * r.next() - 1);
+    GaugeElement U(exp(1i * alpha));
+
+    return U;
+
+#elif NC == 2
+    //the angles are uniform on the sphere S^3, with measure
+    //d(phi) sinTheta d(theta) (sinAlpha)^2 d(alpha)
+    
+    double accept_ratio;
+    double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+
+    //Pauli matrices
+    GaugeElement sigma1(matSigma1);
+    GaugeElement sigma2(matSigma2);
+    GaugeElement sigma3(matSigma3);
+
+    // Von Neumann algorithm to extract cos alpha in [-1, +1] 
+    // distributed as sqrt(1 - cosAlpha^2)
+    do{
+        cosAlpha = (2 * r.next()) - 1;
+        accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
+    }while(r.next() > accept_ratio);
+    sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+
+
+    //cos theta is uniform in [-1, +1]
+    cosTheta = (2 * r.next()) - 1;
+    sinTheta = sqrt(1 - (cosTheta * cosTheta));
+
+    //phi is uniform in [0, 2*pi]
+    phi = r.next() * 2 * pi;
+
+    GaugeElement U;
+    U = sigma3 * (1i * (sinAlpha * sinTheta * cos(phi)))
+      + sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
+      + sigma1 * (1i * (sinAlpha * cosTheta))
+      + cosAlpha;
+
+    return U;
+#endif
+
+}
+
 void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_flag)
 {
     RandomGen r;
