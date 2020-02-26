@@ -232,9 +232,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	}
 
 #elif NC == 2
-        double Force_mod, gamma, accept_ratio;
-
-	double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+        GaugeElement U;
 
 	//Pauli matrices
 	GaugeElement sigma1(matSigma1);
@@ -244,58 +242,82 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	GaugeElement sigma3(matSigma3);
 	sigma3.set_base(this->base_edge);
 
-        Force_mod = sqrt(abs(Force.det()));
-	gamma = 2 * beta * Force_mod;
+        double Force_mod = sqrt(abs(Force.det()));
+	// Check if the module of the force is too small
+	// If the module is too small the division of the force by its module gives a nan
+	// Indeed, if the force is zero, it does not have a defined direction
+	// and the element gets extracted uniformly the SU(2) group
+	
+	if(Force_mod > 1e-10){
+	    if(debug_flag){
+	        cout << "heatbath: N == 2:\n\tForce module = " << Force_mod << "\nCreutz algorithm\n"; 
+	    }
+
+	    double gamma = 2 * beta * Force_mod;
 //TODO
 //cout << gamma <<" "<< Force.partition_function() << endl;
 
-	// Creutz algorithm:
-        // Von Neumann algorithm to extract cos alpha in [-1, +1] 
-	// distributed as sqrt(1 - cosAlpha^2) * exp(gamma * cosAlpha)
-        do{
-            cosAlpha = expRand(gamma);
-            accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
-        }while(r.next() > accept_ratio);
-        sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+	    double cosAlpha, sinAlpha, cosTheta, sinTheta, phi;
+	    double accept_ratio;
+	    // Creutz algorithm:
+            // Von Neumann algorithm to extract cos alpha in [-1, +1] 
+	    // distributed as sqrt(1 - cosAlpha^2) * exp(gamma * cosAlpha)
+            do{
+                cosAlpha = expRand(gamma);
+                accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
+            }while(r.next() > accept_ratio);
+            sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
 
 
-	//cos theta is uniform in [-1, +1]
-	cosTheta = (2 * r.next()) - 1;
-	sinTheta = sqrt(1 - (cosTheta * cosTheta));
+	    //cos theta is uniform in [-1, +1]
+	    cosTheta = (2 * r.next()) - 1;
+	    sinTheta = sqrt(1 - (cosTheta * cosTheta));
 
-	//phi is uniform in [0, 2*pi]
-	phi = r.next() * 2 * pi;
-        
-	GaugeElement U_tilde, U;
-	U_tilde.set_base(this->base_edge);
-	U_tilde = sigma3 * (1i * (sinAlpha * sinTheta * cos(phi)))
-		+ sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
-		+ sigma1 * (1i * (sinAlpha * cosTheta))
-		+ cosAlpha;
+	    //phi is uniform in [0, 2*pi]
+	    phi = r.next() * 2 * pi;
+            
+	    GaugeElement U_tilde;
+	    U_tilde = sigma3 * (1i * (sinAlpha * sinTheta * cos(phi)))
+	    	    + sigma2 * (1i * (sinAlpha * sinTheta * sin(phi)))
+	    	    + sigma1 * (1i * (sinAlpha * cosTheta))
+	    	    + cosAlpha;
+	    U_tilde.set_base(this->base_edge);
 
-	//Unitarity check
-	if(debug_flag){
-	    if(abs(U_tilde.det() - 1.0) > 1e-8){
-	        throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
+	    //Unitarity check
+	    if(debug_flag){
+	        if(abs(U_tilde.det() - 1.0) > 1e-8){
+	            throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
+	        }
 	    }
-	}
 
-	//rotate in the direction of the force
-	GaugeElement Force_phase = Force / Force_mod;
-	Force_phase.set_base(this->base_edge);
-	//Unitarity check
-	if(debug_flag){
-	    if(abs(Force_phase.det() - 1.0) > 1e-8){
-	        throw runtime_error("heatbath: N == 2: Force phase is not special unitary:\n\tdet f - 1 = (" + to_string(real(Force_phase.det()) - 1.0) + ", " + to_string(imag(Force_phase.det())) + ")\n\t|f| - 1 = " + to_string(abs(abs(Force_phase.det()) - 1.0)));
+	    //rotate in the direction of the force
+	    GaugeElement Force_phase = Force / Force_mod;
+	    Force_phase.set_base(this->base_edge);
+	    //Unitarity check
+	    if(debug_flag){
+	        if(abs(Force_phase.det() - 1.0) > 1e-8){
+	            throw runtime_error("heatbath: N == 2: Force phase is not special unitary:\n\tdet f - 1 = (" + to_string(real(Force_phase.det()) - 1.0) + ", " + to_string(imag(Force_phase.det())) + ")\n\t|f| - 1 = " + to_string(abs(abs(Force_phase.det()) - 1.0)));
+	        }
+	        if(isnan( abs(Force_phase.det()) )){
+	            throw runtime_error("heatbath: N == 2: Force phase is nan!");
+	        }
 	    }
-	}
-	
-	U = U_tilde * (Force_phase.dagger());
-	//Unitarity check
-	if(debug_flag){
-	    if(abs(U.det() - 1.0) > 1e-8){
-	        throw runtime_error("heatbath: N == 2: Rotated extracted gauge element is not unitary:\n\tdet U - 1 = (" + to_string(real(U.det()) - 1.0) + ", " + to_string(imag(U.det())) + ")\n\t|U| - 1 = " + to_string(abs(abs(U.det()) - 1.0)));
+	    
+	    U = U_tilde * (Force_phase.dagger());
+	    //Unitarity check
+	    if(debug_flag){
+	        if(abs(U.det() - 1.0) > 1e-8){
+	            throw runtime_error("heatbath: N == 2: Rotated extracted gauge element is not unitary:\n\tdet U - 1 = (" + to_string(real(U.det()) - 1.0) + ", " + to_string(imag(U.det())) + ")\n\t|U| - 1 = " + to_string(abs(abs(U.det()) - 1.0)));
+	        }
 	    }
+
+	}else{
+	    if(debug_flag){
+	        cout << "heatbath: N == 2:\n\tForce module = " << Force_mod << "\nExtract uniformly\n"; 
+	    }
+
+	    U = U.rand();
+            U.set_base(this->base_edge);
 	}
 
 	*this = U;
