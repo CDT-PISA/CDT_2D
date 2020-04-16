@@ -109,11 +109,13 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     
     double beta_N = beta * N;
     double delta_Sg = 0;
-    delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
-    delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
-    delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
-    
+    if(!isBetaZero){
+        delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
+        delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
+        delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
+        delta_Sg += ( v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1)*v_lab3->coordination()) ) * beta_N;
+    }
+
     double reject_trial = r.next();
     double acceptance = exp(-delta_Sg) * static_cast<double>(num_t)/(num_t + x);
     double reject_ratio = min(1.0, acceptance);
@@ -303,13 +305,15 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
             list0[num40 + num40p]->id = num40 + num40p;
         }        
     }
-    
-    GaugeElement U;
-    if(r.next() < 0.5){
-        tri_lab0->gauge_transform(U.rand(), debug_flag);
-    }
-    else{
-        tri_lab1->gauge_transform(U.rand(), debug_flag);
+
+    if(!isBetaZero){
+        GaugeElement U;
+        if(r.next() < 0.5){
+            tri_lab0->gauge_transform(U.rand(), debug_flag);
+        }
+        else{
+            tri_lab1->gauge_transform(U.rand(), debug_flag);
+        }
     }
     
     if(debug_flag){
@@ -420,38 +424,46 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
-    GaugeElement gt0(e_lab0->gauge_element());
-    tri_lab0->gauge_transform(gt0, debug_flag);
-    
-    if(debug_flag){
-        GaugeElement Id(1.);
-        GaugeElement Zero = e_lab0->gauge_element() - Id;
-        
-        if(Zero.norm() > 1e-10)
-            throw runtime_error("move 24: e_lab0 element is not Id after gauge_transform.");
-        else
-            cout << endl << "move 24: gauge_transform check passed!" << endl << endl;
-    }
-
-
-    double beta_N = beta * N;
-    double delta_Sg_hat = 0;
-    delta_Sg_hat += (v_lab1->Pi_tilde(debug_flag) / v_lab1->coordination()) * beta_N;
-    delta_Sg_hat += (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
-    delta_Sg_hat += (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
-    delta_Sg_hat += beta_N * (1./4+1./v_lab1->coordination());
-    
-    // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
-    Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
-    GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
-    GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.);
-    
     double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(volume) / (2*(num40+1)) ));
+    double reject_ratio = 1.0;
+    GaugeElement Force;
+    if(!isBetaZero){
+        GaugeElement gt0(e_lab0->gauge_element());
+        tri_lab0->gauge_transform(gt0, debug_flag);
+        
+        if(debug_flag){
+            GaugeElement Id(1.);
+            GaugeElement Zero = e_lab0->gauge_element() - Id;
+            
+            if(Zero.norm() > 1e-10)
+                throw runtime_error("move 24: e_lab0 element is not Id after gauge_transform.");
+            else
+                cout << endl << "move 24: gauge_transform check passed!" << endl << endl;
+        }
+
+
+        double beta_N = beta * N;
+        double delta_Sg_hat = 0;
+        delta_Sg_hat += (v_lab1->Pi_tilde(debug_flag) / v_lab1->coordination()) * beta_N;
+        delta_Sg_hat += (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() + 1) * v_lab2->coordination()) ) * beta_N;
+        delta_Sg_hat += (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() + 1) * v_lab3->coordination()) ) * beta_N;
+        delta_Sg_hat += beta_N * (1./4+1./v_lab1->coordination());
+
+        // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
+        Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
+        GaugeElement Staple = v_lab1->looparound(edge0_t, debug_flag);
+        Force = (Staple/v_lab1->coordination() + 1./4.);
+        reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (static_cast<double>(list2.size()) / (2*(num40+1)) ));
+    }else{
+        reject_ratio = min(1.0, exp(-2*lambda) * (static_cast<double>(list2.size()) / (2*(num40+1)) ));
+    }
+    
+    
+    
     
     
     if(reject_trial > reject_ratio){
-        tri_lab0->gauge_transform(gt0.dagger());
+
         if(debug_flag){
             cout << endl;
         }
@@ -611,8 +623,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
     // ___ extraction of GaugeElement on link 6 ___
-    e_lab6->U.heatbath(Force, debug_flag);
-    e_lab6->U.unitarize();
+    if(!isBetaZero){
+        e_lab6->U.heatbath(Force, debug_flag);
+        e_lab6->U.unitarize();
+    }
     /* the other links don't need to be extracted:
      *  - the old one (0-4) have already the correct values
      *  - the new one (5,7) are set to id by default (by create_edge function), and is correct 
@@ -739,52 +753,63 @@ void Triangulation::move_42(int cell, bool debug_flag)
         cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
     }    
     
-    // Gauge transforming on: 
-    //  - the left triangle with G.dagger(), G the gauge element on e1
-    //  - the upper triangle with G, the gauge element on e0
-    //  - the right triangle with G, the gauge element on e3
-    // this element (G) will be transform with G.dagger()
-    GaugeElement gt1(e_lab1->gauge_element().dagger());
-    tri_lab1->gauge_transform(gt1, debug_flag);
-    GaugeElement gt0(e_lab0->gauge_element());
-    tri_lab0->gauge_transform(gt0, debug_flag);
-    GaugeElement gt3(e_lab3->gauge_element());
-    tri_lab3->gauge_transform(gt3, debug_flag);
+    if(!isBetaZero){
+        // Gauge transforming on: 
+        //  - the left triangle with G.dagger(), G the gauge element on e1
+        //  - the upper triangle with G, the gauge element on e0
+        //  - the right triangle with G, the gauge element on e3
+        // this element (G) will be transform with G.dagger()
+        GaugeElement gt1(e_lab1->gauge_element().dagger());
+        tri_lab1->gauge_transform(gt1, debug_flag);
+        GaugeElement gt0(e_lab0->gauge_element());
+        tri_lab0->gauge_transform(gt0, debug_flag);
+        GaugeElement gt3(e_lab3->gauge_element());
+        tri_lab3->gauge_transform(gt3, debug_flag);
     
     
-    if(debug_flag){
-        GaugeElement Id(1.);
-        GaugeElement Zero1 = e_lab1->gauge_element() - Id;
-        GaugeElement Zero0 = e_lab0->gauge_element() - Id;
-        GaugeElement Zero3 = e_lab3->gauge_element() - Id;
-        
-        if(Zero1.norm() > 1e-10)
-            throw runtime_error("move 42: e_lab1 element is not Id after gauge_transform.");
-        else if(Zero0.norm() > 1e-10)
-            throw runtime_error("move 42: e_lab0 element is not Id after gauge_transform.");
-        else if(Zero3.norm() > 1e-10)
-            throw runtime_error("move 42: e_lab3 element is not Id after gauge_transform.");
-        else
-            cout << endl << "move 42: gauge_transform check passed!" << endl << endl;
+        if(debug_flag){
+            GaugeElement Id(1.);
+            GaugeElement Zero1 = e_lab1->gauge_element() - Id;
+            GaugeElement Zero0 = e_lab0->gauge_element() - Id;
+            GaugeElement Zero3 = e_lab3->gauge_element() - Id;
+            
+            if(Zero1.norm() > 1e-10)
+                throw runtime_error("move 42: e_lab1 element is not Id after gauge_transform.");
+            else if(Zero0.norm() > 1e-10)
+                throw runtime_error("move 42: e_lab0 element is not Id after gauge_transform.");
+            else if(Zero3.norm() > 1e-10)
+                throw runtime_error("move 42: e_lab3 element is not Id after gauge_transform.");
+            else
+                cout << endl << "move 42: gauge_transform check passed!" << endl << endl;
+        }
     }
     
     // the conventional direction for GaugeElement on Edges is from down to up (and from left to right)
     Triangle *edge2_t[2] = {tri_lab2, tri_lab3};
-//    Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
-    // the staple here it's searching for is the one of the cell with 2 triangles
-    // to reconstruct it is needed to sum together the two contributes from the external staple of e0 and e2
-    // FALSE --> substracting the contributes of the inner loop (the square)
-    GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
-    GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
-    
-    double beta_N = beta * N;
-    double delta_Sg_hat = 0;
-    delta_Sg_hat -= (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
-    delta_Sg_hat -= (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
-    delta_Sg_hat -= (real(Staple.tr())/(Staple.N * v_lab1->coord_num)) * beta_N;
-    delta_Sg_hat -= beta_N * (1./4);
-    // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
-    // (because the "new" edges have id as gauge_element)
+
+    double reject_trial = r.next();
+    double reject_ratio = 1.0;
+
+    if(!isBetaZero){
+    //    Triangle *edge0_t[2] = {tri_lab1, tri_lab0};
+        // the staple here it's searching for is the one of the cell with 2 triangles
+        // to reconstruct it is needed to sum together the two contributes from the external staple of e0 and e2
+        // FALSE --> substracting the contributes of the inner loop (the square)
+        GaugeElement Staple = v_lab1->looparound(edge2_t,debug_flag);
+        GaugeElement Force = (Staple/v_lab1->coordination() + 1./4.); // the coordination of v1 is unchanged
+        
+        double beta_N = beta * N;
+        double delta_Sg_hat = 0;
+        delta_Sg_hat -= (v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1) * v_lab2->coordination()) ) * beta_N;
+        delta_Sg_hat -= (v_lab3->Pi_tilde(debug_flag) / ((v_lab3->coordination() - 1) * v_lab3->coordination()) ) * beta_N;
+        delta_Sg_hat -= (real(Staple.tr())/(Staple.N * v_lab1->coord_num)) * beta_N;
+        delta_Sg_hat -= beta_N * (1./4);
+        // the coordinations have to be adjusted to match the move_24, while the plaquettes remain the same
+        // (because the "new" edges have id as gauge_element)
+        reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(list2.size())/2 - 1)) / Force.partition_function());
+    }else{
+        reject_ratio = min(1.0, exp(2*lambda) * (num40 / (static_cast<double>(list2.size())/2 - 1)));
+    }
     
     //double reject_ratio = min(1.0, exp(-2*lambda - delta_Sg_hat) * Force.partition_function() * (volume / (2*(num40+1)) ));
         
@@ -795,13 +820,8 @@ void Triangulation::move_42(int cell, bool debug_flag)
     
     // ----- REJECT RATIO -----
     int volume = list2.size();
-    double reject_trial = r.next();
-    double reject_ratio = min(1.0, exp(2*lambda - delta_Sg_hat) * (num40 / (static_cast<double>(volume)/2 - 1)) / Force.partition_function());
     
     if(reject_trial > reject_ratio){
-        tri_lab3->gauge_transform(gt3.dagger());
-        tri_lab0->gauge_transform(gt0.dagger());
-        tri_lab1->gauge_transform(gt1.dagger());
         if(debug_flag){
             cout << endl;
         }
@@ -907,6 +927,10 @@ void Triangulation::move_42(int cell, bool debug_flag)
 
 vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
 {
+    if(isBetaZero){
+        return vector<complex<double>>();
+    }
+
     RandomGen r;
     int e_num;
     

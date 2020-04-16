@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "label.h"
 #include "edge.h"
 #include "vertex.h"
@@ -71,6 +72,7 @@ int main(int argc, char* argv[]){
     int meas_Qcharge = args.meas_Qcharge;
     int meas_plaquette = args.meas_plaquette;
     int meas_torelon = args.meas_torelon;
+    int meas_abscomp = args.meas_abscomp;
     double fix_V = args.fix_V;
     double fix_V_rate = args.fix_V_rate;
     uint mean_V_items = args.fix_V_each;
@@ -88,6 +90,8 @@ int main(int argc, char* argv[]){
     string Qcharge_fname = measure_folder + "/Qcharge";
     string plaquette_fname = measure_folder + "/plaquette";
     string torelon_fname = measure_folder + "/torelon";
+    string abscomp_folder = measure_folder + "/abscomps";
+    string abscomp_fstem = abscomp_folder + "/abscomp_";
     FILE * meas_file;
 
     if(walltime_seconds<0 and max_iters<0){
@@ -95,7 +99,9 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
+
     CHECK_ERROR(system(("mkdir -p "+measure_folder).c_str()));
+    CHECK_ERROR(system(("mkdir -p "+abscomp_folder).c_str()));
     CHECK_ERROR(system(("mkdir -p "+confs_folder).c_str()));
 
     CHECK_ERROR(system(("rm -rf "+(main_dir + "/max_V_reached")).c_str()));
@@ -153,6 +159,9 @@ int main(int argc, char* argv[]){
             hit_walltime = secs_passed>walltime_seconds;
             if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
                 hit_walltime = true;
+            }
+            if(hit_walltime){
+                cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
             }
         }
 
@@ -230,6 +239,13 @@ int main(int argc, char* argv[]){
             fprintf(meas_file, "\n");
 
             fclose(meas_file);
+        }
+        if(i%meas_abscomp==0 and meas_abscomp>0){
+            ofstream of((abscomp_fstem+to_string(uni.iterations_done)).c_str());
+
+            uni.save_abscomp(of); // wants ifstream
+
+            of.close();
         }
     }
     
