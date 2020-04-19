@@ -125,7 +125,7 @@ int main(int argc, char* argv[]){
     auto t_end = t_start;
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
-    int i=1;
+    long long int i;
     for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
          switch(dice()){
