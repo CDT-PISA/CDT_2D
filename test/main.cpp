@@ -131,48 +131,46 @@ int main(int argc, char* argv[]){
     auto t_end = t_start;
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
-    long long int i;
+    unsigned long long int i;
     for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
-         int dice_outcome = dice();
-         switch(dice_outcome){
-             case 1:{
-                 uni.move_22();
-                 break;
-             }
-             case 2:{
-                 uni.move_22();
-                 break;
-             }
-             case 3:{
-                 uni.move_24();
-                 break;   
-             }
-             case 4:{
-                 uni.move_42();
-                 break;
-             }
-             case 5:{
-                 uni.move_gauge();
-                 break;
-             }
-        }
+         for(uint j=0; j<1000; ++j){
+             int dice_outcome = dice();
+             switch(dice_outcome){
+                 case 1:{
+                     uni.move_22();
+                     break;
+                 }
+                 case 2:{
+                     uni.move_22();
+                     break;
+                 }
+                 case 3:{
+                     uni.move_24();
+                     break;   
+                 }
+                 case 4:{
+                     uni.move_42();
+                     break;
+                 }
+                 case 5:{
+                     uni.move_gauge();
+                     break;
+                 }
+            }
+         }
 
         uni.iterations_done++;
-        printf("Here after move\n");
 
-        if(i%1000==0){ //FIXME: magic number
-            t_end = std::chrono::high_resolution_clock::now();
-            secs_passed = std::chrono::duration<double>(t_end-t_start).count();
-            hit_walltime = secs_passed>walltime_seconds;
-            if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
-                hit_walltime = true;
-            }
-            if(hit_walltime){
-                cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
-            }
+        t_end = std::chrono::high_resolution_clock::now();
+        secs_passed = std::chrono::duration<double>(t_end-t_start).count();
+        hit_walltime = secs_passed>walltime_seconds;
+        if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
+            hit_walltime = true;
         }
-        printf("Here premeas\n");
+        if(hit_walltime){
+            cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
+        }
 
         // check and perform measures
         // TODO: optimizable
