@@ -2,14 +2,14 @@ import numpy as np
 
 # parameters:       lambda beta
 
-Tslices = 40
+Tslices = 20
 
 w_22 = 0.05
 w_24 = 0.1
 
 max_V = 10000
 
-walltime = 2*60*60 # seconds
+walltime = (23*60+50)*60 # seconds
 max_iters = -1
 
 init_waist = 20
@@ -26,4 +26,4 @@ params = np.array([[0.7, 0.01],
 
 
 resub = False
-machine = "local"
+machine = "pierone"

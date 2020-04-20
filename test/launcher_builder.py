@@ -21,6 +21,7 @@ meas_Vprofile=-1
 meas_Qcharge=-1
 meas_plaquette=-1
 meas_torelon=-1
+meas_abscomp=-1
 fix_V=-1
 fix_V_rate=1e-8
 fix_V_each=10
@@ -46,7 +47,7 @@ if machine == "marco":
     partition = "skl_usr_dbg"
     account = "INF20_npqcd"
 
-    timestring="23:59:59"
+    timestring="24:00:00"
     if partition[-3:]=="dbg":
         timestring = "00:29:59"
     
@@ -59,7 +60,7 @@ elif machine == "pierone":
 
     partition = "workq"
 
-    timestring="23:59:59"
+    timestring="600:00:00"
     launch_command="echo cannot relaunch" #"qsub"
     
 
@@ -93,7 +94,7 @@ with open(fname_launcher,"w") as f:
     f.write('mkdir -p %s/sim_{%d..%d}\n\n' % (fname,0,len(params)-1))
 
     for i in range(len(params)):
-       f.write('./main %d %s %s --main_dir %s --init_waist %d --max_iters %d --walltime %d --seed %d --w_22 %s --w_24 %s --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --fix_V %d --fix_V_rate %s --fix_V_each %d >> %s &\n' %(Tslices,'{:.16}'.format(params[i,0]),'{:.16}'.format(params[i,1]),fname+"/sim_"+str(i),init_waist,max_iters,walltime,seeds[i],'{:.16}'.format(w_22),'{:.16}'.format(w_24),max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
+       f.write('./main %d %s %s --main_dir %s --init_waist %d --max_iters %d --walltime %d --seed %d --w_22 %s --w_24 %s --max_V %d --meas_V %d --meas_Vprofile %d --meas_Qcharge %d --meas_plaquette %d --meas_torelon %d --meas_abscomp %d --fix_V %d --fix_V_rate %s --fix_V_each %d >> %s &\n' %(Tslices,'{:.16}'.format(params[i,0]),'{:.16}'.format(params[i,1]),fname+"/sim_"+str(i),init_waist,max_iters,walltime,seeds[i],'{:.16}'.format(w_22),'{:.16}'.format(w_24),max_V,meas_V,meas_Vprofile,meas_Qcharge,meas_plaquette, meas_torelon, meas_abscomp, fix_V, fix_V_rate, fix_V_each, fname+"/sim_"+str(i)+"/log"))
         
     f.write('wait\n\n')
 

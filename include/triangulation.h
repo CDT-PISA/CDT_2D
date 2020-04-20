@@ -34,6 +34,7 @@ public: /// @todo deve essere private (forse?)
     double lambda;
     
     double beta;
+    bool isBetaZero;
     
     double N;
     
@@ -312,6 +313,8 @@ public:
     void load(string filename);
     
     void load(ifstream& input);
+
+    void save_abscomp(ofstream& of);
     
     // ##### ADJACENCY LIST & CO. #####
     

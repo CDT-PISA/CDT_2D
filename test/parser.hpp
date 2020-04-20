@@ -28,6 +28,7 @@ struct arg_list{
     int meas_Qcharge = -1;
     int meas_plaquette = -1;
     int meas_torelon = -1;
+    int meas_abscomp = -1;
     double fix_V = -1;
     double fix_V_rate = 1e-5;
     int fix_V_each = 10;
@@ -54,6 +55,7 @@ ostream& operator<<(ostream& o, const arg_list& al){
     o<<"meas_Qcharge: "<<al.meas_Qcharge<<endl;
     o<<"meas_plaquette: "<<al.meas_plaquette<<endl;
     o<<"meas_torelon: "<<al.meas_torelon<<endl;
+    o<<"meas_abscomp: "<<al.meas_abscomp<<endl;
     o<<"fix_V: "<<al.fix_V<<endl;
     o<<"fix_V_rate: "<<al.fix_V_rate<<endl;
     o<<"fix_V_each: "<<al.fix_V_each<<endl;
@@ -82,6 +84,7 @@ string args_string(){
   ret += "[--meas_Qcharge (-1)] \n";
   ret += "[--meas_plaquette (-1)] \n";
   ret += "[--meas_torelon (-1)] \n";
+  ret += "[--meas_abscomp (-1)] \n";
   ret += "[--fix_V (-1)] \n";
   ret += "[--fix_V_rate (1e-5)] \n";
   ret += "[--fix_V_each (10)] \n";
@@ -114,6 +117,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     map<int,string> argmap_inv;
 //    char *end;
 //    int base_strtoull = 10;
+
 
     if(argc<=fixed_args){
       cout<<"usage:\n"<<argv[0]<<" "<<args_string()<<endl;
@@ -184,6 +188,9 @@ int parse_arguments(arg_list& args, int argc, char** argv){
     // (int) meas_torelon
     parse_flag_valued_term(args.meas_torelon, "--meas_torelon", argc, fixed_args, argmap, argmap_inv);
 
+    // (int) meas_abscomp
+    parse_flag_valued_term(args.meas_abscomp, "--meas_abscomp", argc, fixed_args, argmap, argmap_inv);
+
     // (double) fix_V
     parse_flag_valued_term(args.fix_V, "--fix_V", argc, fixed_args, argmap, argmap_inv);
 
@@ -199,7 +206,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
         throw "ERROR: argument <T> invalid";
     }
 
-    if(args.beta <= 0.0){
+    if(args.beta < 0.0){
         throw "ERROR: argument <beta> invalid";
     }
 

@@ -18,6 +18,8 @@
 #include <complex>
 #include <string>
 #include <algorithm>
+#include <unordered_set>
+#include <unordered_map>
 #include "randomgenerator.h"
 #include "triangulation.h"
 #include "vertex.h"
@@ -54,6 +56,7 @@ void Triangulation::initialize(int TimeLength, double Lambda, double Beta, int w
  
     lambda = Lambda;
     beta = Beta;
+    isBetaZero = (Beta==0.0);
     
     num40 = 0;
     num40p = 0;
@@ -743,6 +746,7 @@ void Triangulation::load(string filename)
     
     ifstream input(filename, ios::binary | ios::in);
     load(input);
+    isBetaZero = (beta==0.0);
     input.close();
 }
 
@@ -859,6 +863,84 @@ void Triangulation::load(ifstream& input)
     }
     
 }
+
+
+struct pair_hash{
+        template <class T1, class T2>
+                std::size_t operator() (const std::pair<T1, T2> &pair) const{
+                            return (std::hash<T1>()(pair.first) << 8) ^ std::hash<T2>()(pair.second);
+                                }
+};
+
+typedef std::unordered_set<std::pair<int,int>,pair_hash> PairSet;
+
+template <typename T> inline
+std::pair<T,T> make_sorted_pair(const T& a, const T& b){
+        return (a>b) ? std::make_pair(b,a) : std::make_pair(a,b);
+}
+
+void Triangulation::save_abscomp(ofstream& of)
+{
+    int dim, nverts, nlinks, nsimpx;
+    std::unordered_map<std::pair<uint,uint>,double,pair_hash> links_sqlen_map;
+    int simpx_nverts, simpx_nlinks;
+    std::vector<std::vector<uint>> simpx_verts;     
+
+    dim = 2;
+    simpx_nverts = dim+1;
+    simpx_nlinks = (dim*dim+dim)/2;
+    nverts = list0.size();
+    nlinks = list1.size();
+    nsimpx = 0;
+    double unit_len = 1.0;
+    
+    for(int ti=0; ti<list2.size(); ++ti){
+        Triangle* tri = list2[ti].dync_triangle();
+        std::vector<uint> tri_verts = {static_cast<uint>(tri->v[0]->id), static_cast<uint>(tri->v[1]->id), static_cast<uint>(tri->v[2]->id)};
+        std::sort(tri_verts.begin(),tri_verts.end());
+        simpx_verts.push_back(tri_verts);
+
+        for(int rvi=0; rvi<simpx_nverts-1; ++rvi){
+            uint vi = tri_verts[rvi];
+            for(int rvj=rvi+1; rvj<simpx_nverts; ++rvj){
+                uint vj = tri_verts[rvj];
+                auto vivj = make_sorted_pair(vi,vj);
+                links_sqlen_map[vivj]=unit_len;
+            }
+        }
+        nsimpx++;
+    } 
+
+    assert(nlinks==links_sqlen_map.size());
+    assert(nsimpx==simpx_verts.size());
+
+    of.write((char*)&dim,sizeof(dim));
+    of.write((char*)&nverts,sizeof(nverts));
+    of.write((char*)&nlinks,sizeof(nlinks));
+    of.write((char*)&nsimpx,sizeof(nsimpx));
+
+//    if(verbose){
+//        std::cout<<"dim = "<<dim<<std::endl;
+//        std::cout<<"nverts = "<<nverts<<std::endl;
+//        std::cout<<"nlinks = "<<nlinks<<std::endl;
+//        std::cout<<"nsimpx = "<<nsimpx<<std::endl;
+//        std::cout<<"simpx_nverts = "<<simpx_nverts<<std::endl;
+//        std::cout<<"simpx_nlinks = "<<simpx_nlinks<<std::endl;
+//    }
+
+    for(int si = 0; si <nsimpx; ++si){
+        of.write((char*)&(simpx_verts[si][0]), simpx_nverts*sizeof(uint));
+//        if(verbose){
+//            std::cout<<"\nsimpx_verts["<<si<<"]: ";
+//            for(int i = 0; i< simpx_nverts; ++i){
+//                std::cout<<simpx_verts[si][i]<<" ";
+//            }
+//            std::cout<<std::endl;
+//        }
+    }
+     
+}
+
 
 // ##### ADJACENCY LIST #####
 

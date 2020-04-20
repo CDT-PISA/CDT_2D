@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "label.h"
 #include "edge.h"
 #include "vertex.h"
@@ -71,11 +72,18 @@ int main(int argc, char* argv[]){
     int meas_Qcharge = args.meas_Qcharge;
     int meas_plaquette = args.meas_plaquette;
     int meas_torelon = args.meas_torelon;
+    int meas_abscomp = args.meas_abscomp;
     double fix_V = args.fix_V;
     double fix_V_rate = args.fix_V_rate;
     uint mean_V_items = args.fix_V_each;
     vector<uint> aver_V;
     uint idx_last_V=0;
+
+    if(beta==0.0){
+        double weight_sum=move22+move24;
+        move22/=weight_sum;
+        move24/=weight_sum;
+    }
 
     string confs_folder = main_dir + "/confs";
     string conf_filename = confs_folder+ "/"+confname;
@@ -88,6 +96,8 @@ int main(int argc, char* argv[]){
     string Qcharge_fname = measure_folder + "/Qcharge";
     string plaquette_fname = measure_folder + "/plaquette";
     string torelon_fname = measure_folder + "/torelon";
+    string abscomp_folder = measure_folder + "/abscomps";
+    string abscomp_fstem = abscomp_folder + "/abscomp_";
     FILE * meas_file;
 
     if(walltime_seconds<0 and max_iters<0){
@@ -95,7 +105,9 @@ int main(int argc, char* argv[]){
         exit(1);
     }
 
+
     CHECK_ERROR(system(("mkdir -p "+measure_folder).c_str()));
+    CHECK_ERROR(system(("mkdir -p "+abscomp_folder).c_str()));
     CHECK_ERROR(system(("mkdir -p "+confs_folder).c_str()));
 
     CHECK_ERROR(system(("rm -rf "+(main_dir + "/max_V_reached")).c_str()));
@@ -119,10 +131,11 @@ int main(int argc, char* argv[]){
     auto t_end = t_start;
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
-    int i=1;
+    long long int i;
     for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
-         switch(dice()){
+         int dice_outcome = dice();
+         switch(dice_outcome){
              case 1:{
                  uni.move_22();
                  break;
@@ -146,6 +159,7 @@ int main(int argc, char* argv[]){
         }
 
         uni.iterations_done++;
+        printf("Here after move\n");
 
         if(i%1000==0){ //FIXME: magic number
             t_end = std::chrono::high_resolution_clock::now();
@@ -154,7 +168,11 @@ int main(int argc, char* argv[]){
             if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
                 hit_walltime = true;
             }
+            if(hit_walltime){
+                cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
+            }
         }
+        printf("Here premeas\n");
 
         // check and perform measures
         // TODO: optimizable
@@ -230,6 +248,13 @@ int main(int argc, char* argv[]){
             fprintf(meas_file, "\n");
 
             fclose(meas_file);
+        }
+        if(i%meas_abscomp==0 and meas_abscomp>0){
+            ofstream of((abscomp_fstem+to_string(uni.iterations_done)).c_str());
+
+            uni.save_abscomp(of); // wants ifstream
+
+            of.close();
         }
     }
     
