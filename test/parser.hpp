@@ -84,6 +84,7 @@ string args_string(){
   ret += "[--meas_Qcharge (-1)] \n";
   ret += "[--meas_plaquette (-1)] \n";
   ret += "[--meas_torelon (-1)] \n";
+  ret += "[--meas_abscomp (-1)] \n";
   ret += "[--fix_V (-1)] \n";
   ret += "[--fix_V_rate (1e-5)] \n";
   ret += "[--fix_V_each (10)] \n";
@@ -120,7 +121,7 @@ int parse_arguments(arg_list& args, int argc, char** argv){
 
     if(argc<=fixed_args){
       cout<<"usage:\n"<<argv[0]<<" "<<args_string()<<endl;
-      return 0;
+      return 1;
     }
 
     // fixed arguments

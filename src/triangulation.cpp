@@ -745,6 +745,7 @@ void Triangulation::load(string filename)
     
     ifstream input(filename, ios::binary | ios::in);
     load(input);
+    isBetaZero = (beta==0.0);
     input.close();
 }
 

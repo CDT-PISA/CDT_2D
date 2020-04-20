@@ -421,6 +421,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Edge* e_lab3 = lab_e3.dync_edge();   //    3  *   *  4
     Edge* e_lab4 = lab_e4.dync_edge();   //        * *       
                                          //         *        
+
     
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()

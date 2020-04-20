@@ -79,6 +79,12 @@ int main(int argc, char* argv[]){
     vector<uint> aver_V;
     uint idx_last_V=0;
 
+    if(beta==0.0){
+        double weight_sum=move22+move24;
+        move22/=weight_sum;
+        move24/=weight_sum;
+    }
+
     string confs_folder = main_dir + "/confs";
     string conf_filename = confs_folder+ "/"+confname;
     string confbkp_filename = confs_folder+ "/"+confname+"_bkp";
@@ -128,7 +134,8 @@ int main(int argc, char* argv[]){
     long long int i;
     for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
-         switch(dice()){
+         int dice_outcome = dice();
+         switch(dice_outcome){
              case 1:{
                  uni.move_22();
                  break;
@@ -152,6 +159,7 @@ int main(int argc, char* argv[]){
         }
 
         uni.iterations_done++;
+        printf("Here after move\n");
 
         if(i%1000==0){ //FIXME: magic number
             t_end = std::chrono::high_resolution_clock::now();
@@ -164,6 +172,7 @@ int main(int argc, char* argv[]){
                 cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
             }
         }
+        printf("Here premeas\n");
 
         // check and perform measures
         // TODO: optimizable
