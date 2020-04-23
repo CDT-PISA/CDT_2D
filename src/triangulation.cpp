@@ -700,7 +700,9 @@ void Triangulation::save(ofstream& output)
     output.write((char*)&volume_step, sizeof(volume_step));
     output.write((char*)&steps_done, sizeof(steps_done));
     output.write((char*)&iterations_done, sizeof(iterations_done));
-    rng_state.write(output);
+    RandomGen r;
+    uint64_t rng_state = r.get_state();
+    output.write((char*)&rng_state,sizeof(rng_state));
     
     output.write((char*)&lambda, sizeof(lambda));
     output.write((char*)&beta, sizeof(beta));
@@ -759,7 +761,10 @@ void Triangulation::load(ifstream& input)
     input.read((char*)&volume_step, sizeof(volume_step));
     input.read((char*)&steps_done, sizeof(steps_done));
     input.read((char*)&iterations_done, sizeof(iterations_done));
-    rng_state.read(input);
+    uint64_t rng_state;
+    input.read((char*)&rng_state,sizeof(rng_state));
+    RandomGen r;
+    r.set_state(rng_state);
     
     input.read((char*)&lambda, sizeof(lambda));
     input.read((char*)&beta, sizeof(beta));
@@ -807,8 +812,7 @@ void Triangulation::load(ifstream& input)
     
     // FURTHER STRUCTURES RECOSTRUCTION
     
-    RandomGen r;
-    r.set_state(rng_state);
+//r.set_state(rng_state);
     
     int TimeLength;
     input.read((char*)&TimeLength, sizeof(TimeLength));

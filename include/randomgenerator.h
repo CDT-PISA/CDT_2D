@@ -9,25 +9,10 @@
 
 using namespace std;
 
-struct generator_state
-{
-    uint64_t state;
-    
-    generator_state(){}
-    
-    generator_state(uint64_t i) : state(i) {}
-    
-    ~generator_state(){}
-    
-    // ##### FILE I/O #####
-    
-    void write(ostream& output);
-    void read(istream& input);
-};
-
 class RandomGen
 {
 private:
+public:
     
     // DATA
     
@@ -35,7 +20,6 @@ private:
 
    bool check_first();
 
-public:
     
     // CLASS STANDARD
     
@@ -50,10 +34,12 @@ public:
     double next();
     
     void really_rand();
+
+    void set_seed(long long seed);
+
+    uint64_t get_state();
     
-    generator_state get_state();
-    
-    void set_state(generator_state gs);
+    void set_state(uint64_t state);
 };
 
 #endif // RANDOMGEN_H

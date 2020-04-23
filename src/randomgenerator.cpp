@@ -22,17 +22,6 @@
 
 using namespace std;
 
-void generator_state::write(ostream& output)
-{
-    output.write((char*)&state, sizeof(state));
-}
-
-void generator_state::read(istream& input)
-{
-    input.read((char*)&state, sizeof(state));
-}
-
-
 //#define SEED 1145
 
 pcg32 RandomGen::rng;
@@ -89,13 +78,18 @@ void RandomGen::really_rand()
     rng.seed(j);
 }
 
-generator_state RandomGen::get_state()
-{
-    generator_state gs(rng.state);
-    return gs;
+void RandomGen::set_seed(long long seed){
+    rng.seed((seed>0)? seed : time(NULL));
 }
 
-void RandomGen::set_state(generator_state gs)
+uint64_t RandomGen::get_state()
 {
-    rng.state = gs.state;
+    return rng.state;
+}
+
+
+void RandomGen::set_state(uint64_t state)
+{
+//    rng.state = gs.state;
+    rng.state=state;
 }
