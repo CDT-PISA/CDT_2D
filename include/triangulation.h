@@ -129,8 +129,6 @@ public:
     long steps_done;
     long iterations_done;
     
-    generator_state rng_state;
-    
     // ##### STARTING TRIANGULATION INITIALIZATION #####
     
     /** @todo initialization from file */ 

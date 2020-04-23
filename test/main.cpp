@@ -47,6 +47,8 @@ int dice(){
 
 arg_list args;
 
+RandomGen r;
+
 int main(int argc, char* argv[]){
 
     int ret = parse_arguments(args, argc, argv);
@@ -117,15 +119,19 @@ int main(int argc, char* argv[]){
     Triangulation uni;
 
     if(access( conf_filename.c_str(), F_OK ) != -1){
+        cout<<"configuration found"<<endl;
         uni.load(conf_filename);
+        cout<<"RMME: state loaded: "<<r.rng.state<<endl;
         uni.save(confbkp_filename);
     }else{
+        cout<<"configuration not found"<<seed<<endl;
+        r.set_seed(seed);
+        cout<<"RMME: seed:"<<seed<<", state = "<<r.rng.state<<endl;
         uni.initialize(T, lambda, beta, init_waist);
         uni.save(conf_filename);
         uni.save(confbkp_filename);
     }
     
-    RandomGen r(seed);
 
     auto t_start = std::chrono::high_resolution_clock::now();
     auto t_end = t_start;
@@ -258,6 +264,7 @@ int main(int argc, char* argv[]){
     
     cout<<"saving configuration in "<<conf_filename<<endl;
     uni.save(conf_filename);
+    cout<<"RMME: state saved: "<<r.rng.state<<endl;
 
     if(uni.list2.size()>=(uint)max_V){
         cout<<"Max volume threshold saturated!!"<<endl;
