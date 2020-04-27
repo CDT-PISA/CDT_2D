@@ -915,6 +915,66 @@ void Triangulation::save_abscomp(ofstream& of)
         nsimpx++;
     } 
 
+    if(nlinks!=links_sqlen_map.size()){
+        cout<<"nlinks="<<nlinks<<", sqlen_mapsize="<<links_sqlen_map.size()<<endl;
+        cout<<"Check if there are links in list1, which are not present in map"<<endl;
+        for(int li=0; li<list1.size(); ++li){
+            Edge* edge = list1[li].dync_edge();
+            uint v0 = static_cast<uint>(edge->v[0]->id); 
+            uint v1 = static_cast<uint>(edge->v[1]->id); 
+            if(v0>v1) swap(v0,v1);
+            bool found=false;
+            for(auto& it : links_sqlen_map){
+                if(v0==(it.first.first) and v1==(it.first.second)){
+                    found=true;
+                    break;
+                }
+            }
+            if(!found){
+                cout<<"Not found link "<<li<<endl;
+                throw std::runtime_error("ERROR: not found link in structures");
+            }
+        }
+        cout<<"All links found, are there copies in list1?"<<endl;
+
+        bool found=false;
+        for(int li=0; li<list1.size(); ++li){
+            Edge* ei = list1[li].dync_edge();
+            uint eiv0=ei->v[0]->id; 
+            uint eiv1=ei->v[1]->id; 
+            if(eiv0==eiv1){
+                cout<<"link "<<li<<" connect the vertex "<<eiv0<<" with itself"<<endl;
+                found=true;
+                break;
+            }
+
+            if(eiv0>eiv1) std::swap(eiv0,eiv1);
+
+            if(ei->id!=li){
+                cout<<"Index in structure "<<ei->id<<" do not coincides with index in list1 "<<li<<endl;
+                found=true;
+                break;
+            }
+
+            for(int lj=li+1; lj<list1.size(); ++lj){
+                Edge* ej = list1[lj].dync_edge();
+                uint ejv0=ej->v[0]->id; 
+                uint ejv1=ej->v[1]->id; 
+
+                if(ejv0>ejv1) std::swap(ejv0,ejv1);
+
+                if(eiv0==ejv0 and eiv1==ejv1){
+                    cout<<"links "<<li<<" and "<<lj<<" appear to have the same vertices"<<endl;
+                    found=true;
+                }
+           } 
+            if(found)
+                break;
+        }
+        if(!found){
+            cout<<"Not found copies in list1 and all references are correct"<<endl;
+        }
+    }
     assert(nlinks==links_sqlen_map.size());
     assert(nsimpx==simpx_verts.size());
 
@@ -943,6 +1003,46 @@ void Triangulation::save_abscomp(ofstream& of)
 //        }
     }
      
+}
+
+bool Triangulation::test(){
+    // checking links
+    bool found=false;
+    for(int li=0; li<list1.size(); ++li){
+        Edge* ei = list1[li].dync_edge();
+        uint eiv0=ei->v[0]->id; 
+        uint eiv1=ei->v[1]->id; 
+        if(eiv0==eiv1){
+            cout<<"link "<<li<<" connect the vertex "<<eiv0<<" with itself"<<endl;
+            found=true;
+            break;
+        }
+
+        if(eiv0>eiv1) std::swap(eiv0,eiv1);
+
+        if(ei->id!=li){
+            cout<<"Index in structure "<<ei->id<<" do not coincides with index in list1 "<<li<<endl;
+            found=true;
+            break;
+        }
+
+        for(int lj=li+1; lj<list1.size(); ++lj){
+            Edge* ej = list1[lj].dync_edge();
+            uint ejv0=ej->v[0]->id; 
+            uint ejv1=ej->v[1]->id; 
+
+            if(ejv0>ejv1) std::swap(ejv0,ejv1);
+
+            if(eiv0==ejv0 and eiv1==ejv1){
+                cout<<"links "<<li<<" and "<<lj<<" appear to have the same vertices"<<endl;
+                found=true;
+            }
+       } 
+        if(found)
+            break;
+    }
+    return found;
+
 }
 
 

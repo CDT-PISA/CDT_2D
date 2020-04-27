@@ -132,6 +132,7 @@ int main(int argc, char* argv[]){
         uni.save(confbkp_filename);
     }
     
+    cout<<"Num colors = "<<uni.N<<endl;
 
     auto t_start = std::chrono::high_resolution_clock::now();
     auto t_end = t_start;
@@ -164,13 +165,17 @@ int main(int argc, char* argv[]){
                      break;
                  }
             }
+//            if(uni.test()){
+//                cout<<"ERROR: on test() at iteration "<<uni.iterations_done<<", subiteration "<<j<<endl;
+//                exit(1);
+//            }
          }
 
         uni.iterations_done++;
 
         t_end = std::chrono::high_resolution_clock::now();
         secs_passed = std::chrono::duration<double>(t_end-t_start).count();
-        hit_walltime = secs_passed>walltime_seconds;
+        hit_walltime = walltime_seconds>0 and secs_passed>walltime_seconds;
         if(access( (main_dir + "/stop").c_str(), F_OK ) != -1){
             hit_walltime = true;
         }
@@ -180,7 +185,7 @@ int main(int argc, char* argv[]){
 
         // check and perform measures
         // TODO: optimizable
-        if(i%meas_V==0 and meas_V>0){
+        if((uni.iterations_done)%meas_V==0 and meas_V>0){
             uint vol_meas = uni.list2.size();
             meas_file = fopen(V_fname.c_str(),"a");
             fprintf(meas_file, "%ld %u\n", uni.iterations_done, vol_meas);
@@ -213,7 +218,7 @@ int main(int argc, char* argv[]){
                 }
             }
         }
-        if(i%meas_Vprofile==0 and meas_Vprofile>0){
+        if((uni.iterations_done)%meas_Vprofile==0 and meas_Vprofile>0){
             meas_file = fopen(Vprofile_fname.c_str(),"a");
             
             fprintf(meas_file, "%ld %zu ", uni.iterations_done, uni.spatial_profile.size());
@@ -224,7 +229,7 @@ int main(int argc, char* argv[]){
 
             fclose(meas_file);
         }
-        if(i%meas_Qcharge==0 and meas_Qcharge>0){
+        if((uni.iterations_done)%meas_Qcharge==0 and meas_Qcharge>0){
             meas_file = fopen(Qcharge_fname.c_str(),"a");
 
             double qval = uni.topological_charge();
@@ -233,14 +238,14 @@ int main(int argc, char* argv[]){
 
             fclose(meas_file);
         }
-        if(i%meas_plaquette==0 and meas_plaquette>0){
+        if((uni.iterations_done)%meas_plaquette==0 and meas_plaquette>0){
             meas_file = fopen(plaquette_fname.c_str(),"a");
 
             fprintf(meas_file, "%ld %lg\n", uni.iterations_done, uni.average_plaquette());
 
             fclose(meas_file);
         }
-        if(i%meas_torelon==0 and meas_torelon>0){
+        if((uni.iterations_done)%meas_torelon==0 and meas_torelon>0){
             meas_file = fopen(torelon_fname.c_str(),"a");
 
             auto profile = uni.spatial_profile;
@@ -253,7 +258,7 @@ int main(int argc, char* argv[]){
 
             fclose(meas_file);
         }
-        if(i%meas_abscomp==0 and meas_abscomp>0){
+        if((uni.iterations_done)%meas_abscomp==0 and meas_abscomp>0){
             ofstream of((abscomp_fstem+to_string(uni.iterations_done)).c_str());
 
             uni.save_abscomp(of); // wants ifstream

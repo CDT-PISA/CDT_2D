@@ -355,6 +355,8 @@ public:
     void explore();
     
     friend ostream& operator<<(ostream& os, Triangulation& T);
+
+    bool test();
 };
 
 #endif // TRIANGULATION_H
