@@ -208,7 +208,7 @@ void Triangle::read(istream& input, const vector<Label>& List0, const vector<Lab
 
 void Triangle::print_elements(std::ostream& os)
 {
-    print_elements(false, os);
+    print_elements(true, os);
 }
 
 void Triangle::print_elements(bool trans, ostream& os)

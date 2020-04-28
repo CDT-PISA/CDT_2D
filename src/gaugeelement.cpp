@@ -287,7 +287,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	}
 
 #elif NC == 2
-        GaugeElement U;
+    GaugeElement U;
 
 	//Pauli matrices
 	GaugeElement sigma1(matSigma1);
@@ -297,7 +297,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	GaugeElement sigma3(matSigma3);
 	sigma3.set_base(this->base_edge);
 
-        double Force_mod = sqrt(abs(Force.det()));
+    double Force_mod = sqrt(abs(Force.det()));
 	// Check if the module of the force is too small
 	// If the module is too small the division of the force by its module gives a nan
 	// Indeed, if the force is zero, it does not have a defined direction
@@ -319,14 +319,14 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 	    // distributed as sqrt(1 - cosAlpha^2) * exp(gamma * cosAlpha)
             do{
                 cosAlpha = expRand(gamma);
-                accept_ratio = sqrt(1 - (cosAlpha * cosAlpha));
+                accept_ratio = sqrt(max(0.0,1 - (cosAlpha * cosAlpha)));
             }while(r.next() > accept_ratio);
-            sinAlpha = sqrt(1 - (cosAlpha * cosAlpha));
+            sinAlpha = sqrt(max(0.0,1 - (cosAlpha * cosAlpha)));
 
 
 	    //cos theta is uniform in [-1, +1]
 	    cosTheta = (2 * r.next()) - 1;
-	    sinTheta = sqrt(1 - (cosTheta * cosTheta));
+	    sinTheta = sqrt(max(0.0,1 - (cosTheta * cosTheta)));
 
 	    //phi is uniform in [0, 2*pi]
 	    phi = r.next() * 2 * pi;
@@ -340,6 +340,7 @@ void GaugeElement::heatbath(bool overrelaxation, GaugeElement Force, bool debug_
 
 	    //Unitarity check
 	    if(debug_flag){
+            cout<<"U_tilde = "<<U_tilde<<endl; 
 	        if(abs(U_tilde.det() - 1.0) > 1e-8){
 	            throw runtime_error("heatbath: N == 2: Extracted gauge element is not special unitary:\n\tdet U_tilde - 1 = (" + to_string(real(U_tilde.det()) - 1.0) + ", " + to_string(imag(U_tilde.det())) + "))\n\t|U_tilde| - 1 = " + to_string(abs(abs(U_tilde.det()) - 1.0)));
 	        }

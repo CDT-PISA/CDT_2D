@@ -364,6 +364,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
 //     uniform_real_distribution<double> reject_trial(0.0,1.0);
     
     RandomGen r;
+    if(debug_flag){ cout<<"move24 rgen state1 = "<<r.rng.state<<endl; }
     
     // ___ cell recognition ___
     
@@ -373,6 +374,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     // if it is not specified (cell = -1), as in real runs, the cell is extracted
     if(cell == -1){
         extr  = r.next() * volume;
+    if(debug_flag){ cout<<"cell == -1 , rng state"<<r.rng.state<<endl; }
         if(extr == volume) // this shouldn't happen never
             extr = volume - 1;
         //     int extr = extracted_triangle(mt);
@@ -416,6 +418,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
     
     // Gauge transforming on the upper triangle with G the gauge element on e0 will be transform with G.dagger()
     double reject_trial = r.next();
+    if(debug_flag){ cout<<"reject_trial; rng.state"<<r.rng.state<<endl; }
     double reject_ratio = 1.0;
     GaugeElement Force;
 
@@ -607,6 +610,8 @@ void Triangulation::move_24(int cell, bool debug_flag)
     }
     // vertex 2 and 3 couldn't be of coord. 4 before, because they have more than one time link toward the same time slice
     
+    if(debug_flag){ cout<<"after a bunch of stuff; rng.state"<<r.rng.state<<endl; }
+
     if(debug_flag){
         cout << endl;
         cout << "┌──────────────────────┐" << endl;
@@ -623,6 +628,7 @@ void Triangulation::move_24(int cell, bool debug_flag)
         // because there is no previous link!!
         bool overrelaxation = false;
         e_lab6->U.heatbath(overrelaxation, Force, debug_flag);
+    if(debug_flag){ cout<<"after heatbath; rng.state"<<r.rng.state<<endl; }
         e_lab6->U.unitarize();
     }
 
@@ -952,6 +958,10 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     
     vector<complex<double>> v;
         
+    if(debug_flag){
+        cout<<"e_num = "<<e_num<<endl;
+        cout<<"link: "<<list1[e_num].dync_edge()->U.tr()<<endl;
+    }
     Label lab_e = list1[e_num];
     Edge* e_lab = lab_e.dync_edge();
     
@@ -965,6 +975,7 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
         if(abs(Force.det()) > (4./16.)){
             throw runtime_error("move gauge: force is too big? (> 2./16.): |force| = " + to_string(abs(Force.det())));
         }
+        cout<<"Force = "<<Force<<endl; 
     }
 #endif
 
@@ -978,13 +989,20 @@ vector<complex<double>> Triangulation::move_gauge(int cell, bool debug_flag)
     //     GaugeElement U_new = Force * e_lab->U * Force;
     //     U_new.set_base(lab_e);
     //     e_lab->U = U_new.dagger(); 
+    if(debug_flag){
+        cout<<"e_lab->U.tr() (preunitarize)= "<<e_lab->U.tr()<<endl; 
+    }
     e_lab->U.unitarize();
+
     
     // GE_aft
     v.push_back(e_lab->U.tr());
     
     // Force
     v.push_back(Force.tr());
+    if(debug_flag){
+        cout<<"e_lab->U.tr() = "<<e_lab->U.tr()<<endl; 
+    }
 
     
     if(debug_flag){

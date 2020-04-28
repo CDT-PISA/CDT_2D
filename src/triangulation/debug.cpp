@@ -461,6 +461,9 @@ ostream& operator<<(ostream& os, Triangulation& T){
     os << "\033[93m-------------" << endl;
     os << "TRIANGULATION" << endl;
     os << "-------------\033[0m" << endl;
+
+    RandomGen r;
+    os << "rng state: " << r.get_state();
     
     os << "lambda: " << T.lambda << ", beta: " << T.beta << ", N: " << T.N << endl;
     os << "iterations_done: " << T.iterations_done << " volume_step: " << T.volume_step << " steps_done: " << T.steps_done << endl << endl;

@@ -12,6 +12,7 @@
 #include "parser.hpp"
 #include <chrono>
 #include <unistd.h>
+#include <sstream>
 
 #define CHECK_ERROR(fzcall) \
     {int erri;\
@@ -115,18 +116,19 @@ int main(int argc, char* argv[]){
     CHECK_ERROR(system(("rm -rf "+(main_dir + "/max_V_reached")).c_str()));
     CHECK_ERROR(system(("rm -rf "+(main_dir + "/all_fine")).c_str()));
 
+//    FILE * rgn_statefile = fopen((main_dir+"/rgn").c_str(),"a");
     
     Triangulation uni;
-
+    r.set_seed(seed);
     if(access( conf_filename.c_str(), F_OK ) != -1){
         cout<<"configuration found"<<endl;
         uni.load(conf_filename);
-        cout<<"RMME: state loaded: "<<r.rng.state<<endl;
+//        fprintf(rgn_statefile,"loaded\n");
+        cout<<"RMME: state loaded: "<<r.rng.state<<", inc: "<<r.rng.inc<<endl;
         uni.save(confbkp_filename);
     }else{
-        cout<<"configuration not found"<<seed<<endl;
-        r.set_seed(seed);
-        cout<<"RMME: seed:"<<seed<<", state = "<<r.rng.state<<endl;
+        cout<<"configuration not found"<<endl;
+        cout<<"RMME: seed: "<<seed<<", state = "<<r.rng.state<<endl;
         uni.initialize(T, lambda, beta, init_waist);
         uni.save(conf_filename);
         uni.save(confbkp_filename);
@@ -139,7 +141,9 @@ int main(int argc, char* argv[]){
     double secs_passed; // = (1./1000.)*std::chrono::duration<double, std::milli>(t_end-t_start).count();
     bool hit_walltime = false;
     unsigned long long int i;
-    for(i=1; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
+
+    cout<<"max_V = "<<max_V<<endl;
+    for(i=0; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
          for(uint j=0; j<1000; ++j){
              int dice_outcome = dice();
@@ -161,17 +165,14 @@ int main(int argc, char* argv[]){
                      break;
                  }
                  case 5:{
-                     uni.move_gauge();
+                    uni.move_gauge();
                      break;
                  }
             }
-//            if(uni.test()){
-//                cout<<"ERROR: on test() at iteration "<<uni.iterations_done<<", subiteration "<<j<<endl;
-//                exit(1);
-//            }
          }
+         
+         uni.iterations_done++;
 
-        uni.iterations_done++;
 
         t_end = std::chrono::high_resolution_clock::now();
         secs_passed = std::chrono::duration<double>(t_end-t_start).count();
@@ -266,6 +267,7 @@ int main(int argc, char* argv[]){
             of.close();
         }
     }
+//    fclose(rgn_statefile);
     
     cout<<"saving configuration in "<<conf_filename<<endl;
     uni.save(conf_filename);

@@ -565,12 +565,9 @@ double Triangulation::average_plaquette(bool debug_flag)
     double S=0.0;
     for(auto lab_v: list0){
         if(debug_flag)
-            cout << lab_v->position() << "\n"; cout.flush();
+            cout << "lab_v->position() = "<<lab_v->position() << "\n"; cout.flush();
         
         double contrib = lab_v.dync_vertex()->ReTr_plaquette(debug_flag);
-        
-        if(debug_flag)
-            cout << lab_v->position() << "ciao\n"; cout.flush();
         
         S += contrib;
     }
@@ -728,6 +725,11 @@ void Triangulation::save(ofstream& output)
         
     for(auto lab_tri : list2)
         lab_tri.dync_triangle()->write(output);
+
+    size_t tr1221_size = transition1221.size();
+    output.write((char*)&tr1221_size,sizeof(tr1221_size));
+    size_t tr2112_size = transition2112.size();
+    output.write((char*)&tr2112_size,sizeof(tr2112_size));
     
     int TimeLength = spatial_profile.size();
     output.write((char*)&TimeLength, sizeof(TimeLength));
@@ -809,6 +811,10 @@ void Triangulation::load(ifstream& input)
     
     for(int i=0; i<n_tri; i++)
         list2[i].dync_triangle()->read(input, list0, list1, list2);
+
+    size_t tr1221_size, tr2112_size;
+    input.read((char*)&tr1221_size,sizeof(tr1221_size));
+    input.read((char*)&tr2112_size,sizeof(tr2112_size));
     
     // FURTHER STRUCTURES RECOSTRUCTION
     
@@ -830,25 +836,16 @@ void Triangulation::load(ifstream& input)
     // transition lists
     transition1221.clear();
     transition2112.clear();
+    transition1221.resize(tr1221_size);
+    transition2112.resize(tr2112_size);
     
     for(auto x : list2){
         Triangle tri = *x.dync_triangle();
         
-        if(tri.is12()){
-            if(tri.adjacent_triangles()[1].dync_triangle()->is21()){
-                x.dync_triangle()->transition_id = transition2112.size();
-                transition2112.push_back(x);
-            }
-            else
-                x.dync_triangle()->transition_id = -1;
-        }
-        else{
-            if(tri.adjacent_triangles()[1].dync_triangle()->is12()){
-                x.dync_triangle()->transition_id = transition1221.size();
-                transition1221.push_back(x);
-            }
-            else
-                x.dync_triangle()->transition_id = -1;
+        if(tri.is12() and tri.adjacent_triangles()[1].dync_triangle()->is21()){
+            transition2112[x.dync_triangle()->transition_id]=x;
+        }else if(tri.is21() and tri.adjacent_triangles()[1].dync_triangle()->is12()){
+            transition1221[x.dync_triangle()->transition_id]=x;
         }
     }
      

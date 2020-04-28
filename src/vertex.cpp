@@ -116,6 +116,11 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     
     GaugeElement Plaquette;
     Vertex bond = *this;
+    if(debug_flag){
+        cout<<"start bond info:"<<endl;
+        bond.print_elements();
+        cout<<endl;
+    }
     Triangle *start = bond.near_t.dync_triangle();
     
     if(debug_flag)
@@ -156,15 +161,18 @@ GaugeElement Vertex::looparound(vector<int>& triangle_list, bool debug_flag)
     while(*current != *start || first_round){
         first_round = false;
         
-        if(debug_flag){
-            cout << "\t previous: " << current->t[previous_idx]->id;
-            cout << " current: " << current->position() << endl;
-        }
         
         if(initial_size == 0)
             triangle_list.push_back(current->id);
         
         GaugeElement current_previous = current->edges()[previous_idx].dync_edge()->gauge_element();
+
+        if(debug_flag){
+            cout << "\t previous: " << current->t[previous_idx]->id;
+            cout << " current: " << current->position() << endl;
+            cout << " edge: " << current->edges()[previous_idx].dync_edge()->id<<endl;
+            cout << " link: "<<current_previous<<endl;
+        }
         
         // ORIENTAZIONE
         ///@todo

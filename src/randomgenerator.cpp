@@ -92,4 +92,5 @@ void RandomGen::set_state(uint64_t state)
 {
 //    rng.state = gs.state;
     rng.state=state;
+    RandomGen::check_first();
 }
