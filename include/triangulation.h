@@ -24,10 +24,23 @@ class GaugeElement;
 
 #define MINIMAL_WAIST 3
 
-struct int_pair_hash{
-    size_t operator()(pair<int,int> const &p) const {
-        auto mm = minmax(p.first,p.second);
-        return static_cast<size_t>((mm.first << 8) ^ mm.second);
+typedef pair<Vertex*,Vertex*> SimPair;
+struct opair{
+    SimPair p;
+    opair(Vertex* a, Vertex* b) : p(a,b) {};
+    SimPair& operator()(){ return p; };
+
+};
+
+struct opair_hash{
+    size_t operator()(opair const &p) const {
+        return std::hash<Vertex*>{}(p.p.first)^std::hash<Vertex*>{}(p.p.second);
+    }
+};
+
+struct opair_equal_to{
+    bool operator()(opair const& a, opair const& b) const{
+        return (a.p.first==b.p.first && a.p.second==b.p.second)||(a.p.first==b.p.second && a.p.second==b.p.first);
     }
 };
 
@@ -135,7 +148,7 @@ public: /// @todo deve essere private (forse?)
     /**
     * @brief hash set for link existence checking
     */
-    unordered_set<pair<int,int>,int_pair_hash> edge_uset;
+    unordered_set<opair,opair_hash,opair_equal_to> edge_uset;
 
 
     

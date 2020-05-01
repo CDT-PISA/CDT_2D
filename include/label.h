@@ -13,8 +13,8 @@ class Triangle;
 
 class Label{
 private:
-    shared_ptr<Simplex> sh_ptr_simplex;
 public:
+    shared_ptr<Simplex> sh_ptr_simplex;
     // Constructors
     Label(): sh_ptr_simplex(nullptr) {}
     Label(Simplex*);

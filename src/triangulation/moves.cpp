@@ -112,7 +112,7 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
 
-    if(edge_uset.find(make_pair<int,int>(int(v_lab1->id),int(v_lab3->id)))!=edge_uset.end()){
+    if(edge_uset.find(opair(v_lab1,v_lab3))!=edge_uset.end()){
         if(debug_flag){
             cout<<"rejected since link ("<<v_lab1->id<<","<<v_lab3->id<<") already exists"<<endl;
         }
@@ -213,6 +213,15 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         cout<<"After changes on structures"<<endl;
     }
 
+    // remove edge from hash set and add new edge
+    auto edge_iter = edge_uset.find(opair(v_lab0, v_lab2));
+    if(edge_iter==edge_uset.end()){
+        cout<<v_lab0->id<<", "<<v_lab2->id<<endl;
+        cout<<"elab_0.v: "<<e_lab0->vertices()[0]->id<<", "<<e_lab0->vertices()[1]->id<<endl;
+        throw std::runtime_error("ERROR: in move22(): the edge to be flipped do not exist in the edge hash set");
+    }
+    edge_uset.erase(edge_iter); 
+    edge_uset.emplace(v_lab1, v_lab3);
         
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -240,12 +249,6 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     e_lab0->vertices()[0] = lab_v1;
     e_lab0->vertices()[1] = lab_v3;
 
-    // remove edge from hash set and add new edge
-    auto edge_iter = edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab2->id)));
-    if(edge_iter==edge_uset.end())
-        throw std::runtime_error("ERROR: in move22(): the edge to be flipped do not exist in the edge hash set");
-    edge_uset.erase(edge_iter); 
-    edge_uset.emplace(v_lab1->id,v_lab3->id);
 
     
     // ___ modify vertices' near_t ___
@@ -541,10 +544,19 @@ void Triangulation::move_24(int cell, bool debug_flag)
     if(debug_flag){                                     
         cout << " (time " << v_lab0->time() << ")" << endl;
     }
+
+    auto edge_iter = edge_uset.find(opair(v_lab0, v_lab1));
+    if(edge_iter==edge_uset.end()){
+        cout<<v_lab0->id<<", "<<v_lab1->id<<endl;
+        cout<<"e_lab0 = "<<e_lab0->id<<", elab_0.v: "<<e_lab0->vertices()[0]->id<<", "<<e_lab0->vertices()[1]->id<<endl;
+        throw std::runtime_error("ERROR: in move24(): the edge to be removed do not exist in the edge hash set");
+    }
+    edge_uset.erase(edge_iter); 
     
     // ___ create new Triangles and vertex, and put already in them the right values ___
     Label lab_v4 = create_vertex(v_lab0->time(),4,lab_t0);
     Vertex* v_lab4 = lab_v4.dync_vertex();
+
     
     Label t2_adjancencies[3];
     Label t3_adjancencies[3];
@@ -607,14 +619,10 @@ void Triangulation::move_24(int cell, bool debug_flag)
     }
 
     // remove edge 0 and add new edge 0 and edges 5, 6 and 7 to hash set
-    auto edge_iter = edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab1->id)));
-    if(edge_iter==edge_uset.end())
-        throw std::runtime_error("ERROR: in move24(): the edge to be removed do not exist in the edge hash set");
-    edge_uset.erase(edge_iter); 
-    edge_uset.emplace(v_lab0->id,v_lab4->id);
-    edge_uset.emplace(v_lab1->id,v_lab4->id);
-    edge_uset.emplace(v_lab2->id,v_lab4->id);
-    edge_uset.emplace(v_lab3->id,v_lab4->id);
+    edge_uset.emplace(v_lab0, v_lab4);
+    edge_uset.emplace(v_lab1, v_lab4);
+    edge_uset.emplace(v_lab2, v_lab4);
+    edge_uset.emplace(v_lab3, v_lab4);
     
     // ___ update adjancencies and vertices of the initial triangles ___
     tri_lab0->adjacent_triangles()[0] = lab_t3;
@@ -839,7 +847,7 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }    
 
     // check if the edge to be created already exists
-    if(edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab1->id)))!=edge_uset.end()){
+    if(edge_uset.find(opair(v_lab0,v_lab1))!=edge_uset.end()){
         if(debug_flag){
             cout<<"rejected since link ("<<v_lab0->id<<","<<v_lab1->id<<") already exists"<<endl;
         }
@@ -925,13 +933,13 @@ void Triangulation::move_42(int cell, bool debug_flag)
 
     // remove edge 0 and add new edge 0 and edges 5, 6 and 7 to hash set
     for(Vertex* v : {v_lab0,v_lab1,v_lab2,v_lab3}){
-        auto edge_iter = edge_uset.find(make_pair<int,int>(int(v->id),int(v_lab4->id)));
+        auto edge_iter = edge_uset.find(opair(v,v_lab4));
         if(edge_iter==edge_uset.end()){
             throw std::runtime_error("ERROR: in move24(): the edge to be removed do not exist in the edge hash set");
         }
         edge_uset.erase(edge_iter); 
     }
-    edge_uset.emplace(v_lab0->id,v_lab1->id);
+    edge_uset.emplace(v_lab0,v_lab1);
     
     // ___ update adjacencies of persisting simplexes ___
     

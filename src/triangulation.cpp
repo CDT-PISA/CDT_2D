@@ -330,7 +330,9 @@ void Triangulation::fill_edge_uset(){
     for(size_t i=0; i<list1.size(); i++){        
         // fills edge hash set
         Label *lab_v_arr = list1[i].dync_edge()->v;
-        edge_uset.emplace(lab_v_arr[0].dync_vertex()->id,lab_v_arr[1].dync_vertex()->id);
+        Vertex* v0=lab_v_arr[0].dync_vertex();
+        Vertex* v1=lab_v_arr[1].dync_vertex();
+        edge_uset.emplace(v0,v1);
     }
 }
 
