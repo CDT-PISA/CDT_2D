@@ -149,7 +149,11 @@ int main(int argc, char* argv[]){
              int dice_outcome = dice();
              switch(dice_outcome){
                  case 1:{
+                     if(uni.iterations_done==2025 and j==792){
+                     uni.move_22(true);
+                     }else{
                      uni.move_22();
+                     }
                      break;
                  }
                  case 2:{
@@ -168,7 +172,13 @@ int main(int argc, char* argv[]){
                     uni.move_gauge();
                      break;
                  }
-            }
+             }
+             if(uni.iterations_done==2025 and j==792){
+                 if(uni.test()){
+                    cout<<"Something happened at it="<<uni.iterations_done<<", sub_it="<<j<<", dice_outcome="<<dice_outcome<<endl;
+                    exit(1);
+                 }
+             }
          }
          
          uni.iterations_done++;

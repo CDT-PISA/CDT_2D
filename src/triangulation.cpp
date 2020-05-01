@@ -66,6 +66,7 @@ void Triangulation::initialize(int TimeLength, double Lambda, double Beta, int w
     spatial_profile.clear();
     transition1221.clear();
     transition2112.clear();
+    edge_uset.clear();
     
     // ----- FIRST STRIP -----
     spatial_profile.push_back(waist);
@@ -271,6 +272,8 @@ void Triangulation::initialize(int TimeLength, double Lambda, double Beta, int w
     }
     for(auto t: list2)
         t.dync_triangle()->owner = this;
+
+    fill_edge_uset();
     
     N = list1[0].dync_edge()->gauge_element().N;
 }
@@ -289,6 +292,7 @@ Triangulation::~Triangulation()
 {
     transition1221.clear();
     transition2112.clear();
+    edge_uset.clear();
     
     Label lab(nullptr);
         
@@ -320,6 +324,13 @@ Triangulation::~Triangulation()
         }
         
         list2.pop_back();
+    }
+}
+void Triangulation::fill_edge_uset(){
+    for(size_t i=0; i<list1.size(); i++){        
+        // fills edge hash set
+        Label *lab_v_arr = list1[i].dync_edge()->v;
+        edge_uset.emplace(lab_v_arr[0].dync_vertex()->id,lab_v_arr[1].dync_vertex()->id);
     }
 }
 
@@ -759,6 +770,7 @@ void Triangulation::load(ifstream& input)
     list0.clear();
     list1.clear();
     list2.clear();
+    edge_uset.clear();
     
     input.read((char*)&volume_step, sizeof(volume_step));
     input.read((char*)&steps_done, sizeof(steps_done));
@@ -805,7 +817,11 @@ void Triangulation::load(ifstream& input)
         list1.push_back(lab);
         
         lab.dync_edge()->read(input, list0, list1, list2);
+
     }
+
+    fill_edge_uset();
+
     
     // 4th list: Triangle initialization
     
@@ -1031,7 +1047,7 @@ bool Triangulation::test(){
             if(ejv0>ejv1) std::swap(ejv0,ejv1);
 
             if(eiv0==ejv0 and eiv1==ejv1){
-                cout<<"links "<<li<<" and "<<lj<<" appear to have the same vertices"<<endl;
+                cout<<"links "<<li<<" and "<<lj<<" appear to have the same vertices ("<<eiv0<<" and "<<eiv1<<")"<<endl;
                 found=true;
             }
        } 

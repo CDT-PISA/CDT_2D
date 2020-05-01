@@ -7,6 +7,9 @@
 #include <string>
 #include <complex>
 #include <fstream>
+#include <unordered_set>
+#include <utility>
+#include <algorithm>
 #include "label.h"
 #include "randomgenerator.h"
 using namespace std;
@@ -20,6 +23,13 @@ enum class TriangleType;
 class GaugeElement;
 
 #define MINIMAL_WAIST 3
+
+struct int_pair_hash{
+    size_t operator()(pair<int,int> const &p) const {
+        auto mm = minmax(p.first,p.second);
+        return static_cast<size_t>((mm.first << 8) ^ mm.second);
+    }
+};
 
 /**
  * @todo write docs
@@ -121,6 +131,13 @@ public: /// @todo deve essere private (forse?)
     * the advantage of using a vector of Label instead of a vector of positions in list2 (int) is that I don't have to update it when I do the moves (2,4)-(4,2) if I do these correctly
     */
     vector<Label> transition2112;    
+
+    /**
+    * @brief hash set for link existence checking
+    */
+    unordered_set<pair<int,int>,int_pair_hash> edge_uset;
+
+
     
 public:
     // RUNS CONTINUITY
@@ -165,6 +182,8 @@ public:
      */
     Triangulation& operator=(const Triangulation&) = delete;
     Triangulation(const Triangulation&) = delete;
+
+    void fill_edge_uset();
     
     // ##### SIMPLEX MANAGEMENT #####
     

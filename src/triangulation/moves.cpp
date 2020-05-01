@@ -2,7 +2,7 @@
 
 
 /**
- * Questa sarà la mossa se is22_1 == true, altrimenti la figura e' flippata verticalmente
+ * Questa sarà la mossa se is22_1 == false, altrimenti la figura e' flippata verticalmente
  * \code
  *     v0         v1            v0         v1 
  *      * * * * * *             * * * * * *  
@@ -22,6 +22,9 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     bool is22_1 = r.next()<0.5;
     vector<Label> *transitionlist = (is22_1)? &transition1221 : &transition2112;
     vector<Label> *Atransitionlist = (!is22_1)? &transition1221 : &transition2112;
+    if(debug_flag){
+        cout<<(is22_1?" link is UL to DR":"link is DL to UR")<<endl;
+    }
 
     long num_t = transitionlist->size(); 
     
@@ -73,7 +76,14 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     Triangle* tri_lab3 = lab_t3.dync_triangle();
     
     if(debug_flag){
-        cout << tri_lab1->vertices()[0]->position() << endl;
+        cout<<"triangle 0:";
+        tri_lab0->print_elements();
+        cout<<"triangle 1:";
+        tri_lab1->print_elements();
+        cout<<"triangle 2:";
+        tri_lab2->print_elements();
+        cout<<"triangle 3:";
+        tri_lab3->print_elements();
     }
     
     // ----- REJECT RATIO -----
@@ -89,6 +99,7 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     Vertex* v_lab1 = lab_v1.dync_vertex();
     Vertex* v_lab2 = lab_v2.dync_vertex();
     Vertex* v_lab3 = lab_v3.dync_vertex();
+
     
     if(debug_flag){
         cout << endl;
@@ -100,6 +111,15 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num  << endl;
         cout << " (list0.size = "+to_string(list0.size())+", num40 = "+to_string(num40)+", num40p = "+to_string(num40p)+")" << endl;
     }
+
+    if(edge_uset.find(make_pair<int,int>(int(v_lab1->id),int(v_lab3->id)))!=edge_uset.end()){
+        if(debug_flag){
+            cout<<"rejected since link ("<<v_lab1->id<<","<<v_lab3->id<<") already exists"<<endl;
+        }
+        vector<double> v;
+        v.push_back(0.123456789);
+        return v;
+    }
     
     int x = 1;
     if(is22_1 == tri_lab2->is21())
@@ -107,9 +127,9 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     if(is22_1 == tri_lab3->is12())
         x--;
     
-    double beta_N = beta * N;
     double delta_Sg = 0;
     if(!isBetaZero){
+        double beta_N = beta * N;
         delta_Sg -= ( v_lab0->Pi_tilde(debug_flag) / ((v_lab0->coordination() - 1)*v_lab0->coordination()) ) * beta_N;
         delta_Sg -= ( v_lab2->Pi_tilde(debug_flag) / ((v_lab2->coordination() - 1)*v_lab2->coordination()) ) * beta_N;
         delta_Sg += ( v_lab1->Pi_tilde(debug_flag) / ((v_lab1->coordination() + 1)*v_lab1->coordination()) ) * beta_N;
@@ -144,6 +164,30 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     Edge* e_lab2 = lab_e2.dync_edge();   //      * * * * * *  
     Edge* e_lab3 = lab_e3.dync_edge();   //           4    
     Edge* e_lab4 = lab_e4.dync_edge();   
+
+    if(debug_flag){
+        cout<<"\nedge 0: ";
+        e_lab0->print_elements();
+        cout<<"\nedge 1: ";
+        e_lab1->print_elements();
+        cout<<"\nedge 2: ";
+        e_lab2->print_elements();
+        cout<<"\nedge 3: ";
+        e_lab3->print_elements();
+        cout<<"\nedge 4: ";
+        e_lab4->print_elements();
+
+        cout<<"looparound the slab:"<<endl; //rightward
+        Triangle *tri_curr = tri_lab0;
+        do{
+            tri_curr->print_elements(true);
+            tri_curr = tri_curr->adjacent_triangles()[0].dync_triangle();
+
+        }while(tri_curr!=tri_lab0);
+
+    }
+
+   
     
     // ___ gauge transform on t0 in order to put e0 = 1 ___
     // I'm gauge transforming on the right triangle, so e0 is its left edge
@@ -165,6 +209,10 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         else
             cout << endl << "move 22: gauge_transform check passed!" << endl << endl;
     }
+    if(debug_flag){
+        cout<<"After changes on structures"<<endl;
+    }
+
         
     // ___ modify triangles' adjacencies ___
     tri_lab0->adjacent_triangles()[0] = lab_t1;
@@ -191,6 +239,14 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     // ___ modify edges' vertices ___
     e_lab0->vertices()[0] = lab_v1;
     e_lab0->vertices()[1] = lab_v3;
+
+    // remove edge from hash set and add new edge
+    auto edge_iter = edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab2->id)));
+    if(edge_iter==edge_uset.end())
+        throw std::runtime_error("ERROR: in move22(): the edge to be flipped do not exist in the edge hash set");
+    edge_uset.erase(edge_iter); 
+    edge_uset.emplace(v_lab1->id,v_lab3->id);
+
     
     // ___ modify vertices' near_t ___
     /** @todo pensare se c'è un modo più furbo di fare le assegnazioni */
@@ -202,6 +258,19 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
     v_lab2->coord_num--;
     v_lab1->coord_num++;
     v_lab3->coord_num++;
+
+    if(debug_flag){
+        cout<<"\nedge 0: ";
+        e_lab0->print_elements();
+        cout<<"\nedge 1: ";
+        e_lab1->print_elements();
+        cout<<"\nedge 2: ";
+        e_lab2->print_elements();
+        cout<<"\nedge 3: ";
+        e_lab3->print_elements();
+        cout<<"\nedge 4: ";
+        e_lab4->print_elements();
+    }
     
     // ----- AUXILIARY STRUCTURES -----
     
@@ -217,8 +286,7 @@ vector<double> Triangulation::move_22(int cell, bool debug_flag)
         }
         transitionlist->pop_back();
         tri_lab0->transition_id = -1;
-    }
-    else{
+    } else{
         /* we have to do this only in the case in which t2 is of the type such that a transition between t2 and t1 was not allowed before, indeed otherwise t1 was already a transition-cell right-member, but the transition  doesn't store the value of the left-member, so is not relevant that is changed: t1 was a transition right-member and still is */
         tri_lab1->transition_id = Atransitionlist->size();
         Atransitionlist->push_back(lab_t1);
@@ -525,6 +593,8 @@ void Triangulation::move_24(int cell, bool debug_flag)
     Edge* e_lab5 = lab_e5.dync_edge();                        
     Edge* e_lab6 = lab_e6.dync_edge();                        
     Edge* e_lab7 = lab_e7.dync_edge();
+
+
     
     if(debug_flag){
         cout << endl;
@@ -535,6 +605,16 @@ void Triangulation::move_24(int cell, bool debug_flag)
         cout << " \t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << "        (coordinations) \tv0: " << v_lab0->coord_num << ", v1: " << v_lab1->coord_num << ", v2: " << v_lab2->coord_num << ", v3: " << v_lab3->coord_num << ", v4: " << v_lab4->coord_num << endl;
     }
+
+    // remove edge 0 and add new edge 0 and edges 5, 6 and 7 to hash set
+    auto edge_iter = edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab1->id)));
+    if(edge_iter==edge_uset.end())
+        throw std::runtime_error("ERROR: in move24(): the edge to be removed do not exist in the edge hash set");
+    edge_uset.erase(edge_iter); 
+    edge_uset.emplace(v_lab0->id,v_lab4->id);
+    edge_uset.emplace(v_lab1->id,v_lab4->id);
+    edge_uset.emplace(v_lab2->id,v_lab4->id);
+    edge_uset.emplace(v_lab3->id,v_lab4->id);
     
     // ___ update adjancencies and vertices of the initial triangles ___
     tri_lab0->adjacent_triangles()[0] = lab_t3;
@@ -757,6 +837,14 @@ void Triangulation::move_42(int cell, bool debug_flag)
         cout << " \t\t\t[adjacent triangles] v0: " << v_lab0->adjacent_triangle()->id << ", v1: " << v_lab1->adjacent_triangle()->id << ", v2: " << v_lab2->adjacent_triangle()->id << ", v3: " << v_lab3->adjacent_triangle()->id << ", v4: " << v_lab4->adjacent_triangle()->id << endl;
         cout << " [space volumes] " << spatial_profile[v_lab3->t_slice] << ", " << spatial_profile[v_lab0->t_slice] << ", " << spatial_profile[v_lab2->t_slice] << endl;
     }    
+
+    // check if the edge to be created already exists
+    if(edge_uset.find(make_pair<int,int>(int(v_lab0->id),int(v_lab1->id)))!=edge_uset.end()){
+        if(debug_flag){
+            cout<<"rejected since link ("<<v_lab0->id<<","<<v_lab1->id<<") already exists"<<endl;
+        }
+        return;
+    }
     
     if(!isBetaZero){
         // Gauge transforming on: 
@@ -833,6 +921,17 @@ void Triangulation::move_42(int cell, bool debug_flag)
     }
     
     // ----- CELL "EVOLUTION" -----    
+
+
+    // remove edge 0 and add new edge 0 and edges 5, 6 and 7 to hash set
+    for(Vertex* v : {v_lab0,v_lab1,v_lab2,v_lab3}){
+        auto edge_iter = edge_uset.find(make_pair<int,int>(int(v->id),int(v_lab4->id)));
+        if(edge_iter==edge_uset.end()){
+            throw std::runtime_error("ERROR: in move24(): the edge to be removed do not exist in the edge hash set");
+        }
+        edge_uset.erase(edge_iter); 
+    }
+    edge_uset.emplace(v_lab0->id,v_lab1->id);
     
     // ___ update adjacencies of persisting simplexes ___
     
