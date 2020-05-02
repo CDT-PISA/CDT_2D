@@ -165,7 +165,12 @@ double GaugeElement::partition_function(bool debug_flag)
 
         K = abs(trProd + Source.det() + (Source.dagger()).det());
 
-        Z = cyl_bessel_i(1, 2.0 * sqrt(K)) / sqrt(K);
+	//check for 0 / 0 case
+        if(sqrt(K) > 1e-10){
+	    Z = cyl_bessel_i(1, 2.0 * sqrt(K)) / sqrt(K);
+	}else{
+	    Z = 1.0;
+	}
 //TODO test
 //cout <<2. * beta * sqrt(abs(Force.det()))  << " "<<K << " "<< Z << "\n";
 
