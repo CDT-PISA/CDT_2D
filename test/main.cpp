@@ -183,6 +183,9 @@ int main(int argc, char* argv[]){
         if(hit_walltime){
             cout<<"hit walltime: time passed "<<secs_passed<<" secs, walltime "<<walltime_seconds<<" secs"<<endl;
         }
+//        if(uni.list2.size()==800){
+//            break; 
+//        }
 
         // check and perform measures
         // TODO: optimizable

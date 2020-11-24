@@ -885,17 +885,15 @@ void Triangulation::load(ifstream& input)
 
 
 struct pair_hash{
-        template <class T1, class T2>
-                std::size_t operator() (const std::pair<T1, T2> &pair) const{
-                            return (std::hash<T1>()(pair.first) << 8) ^ std::hash<T2>()(pair.second);
-                                }
+    template <class T1, class T2>
+    std::size_t operator() (const std::pair<T1, T2> &pair) const{
+        return (std::hash<T1>()(pair.first) << 8) ^ std::hash<T2>()(pair.second);
+    }
 };
-
-typedef std::unordered_set<std::pair<int,int>,pair_hash> PairSet;
 
 template <typename T> inline
 std::pair<T,T> make_sorted_pair(const T& a, const T& b){
-        return (a>b) ? std::make_pair(b,a) : std::make_pair(a,b);
+    return (a>b) ? std::make_pair(b,a) : std::make_pair(a,b);
 }
 
 void Triangulation::save_abscomp(ofstream& of)
@@ -930,66 +928,6 @@ void Triangulation::save_abscomp(ofstream& of)
         nsimpx++;
     } 
 
-    if(nlinks!=links_sqlen_map.size()){
-        cout<<"nlinks="<<nlinks<<", sqlen_mapsize="<<links_sqlen_map.size()<<endl;
-        cout<<"Check if there are links in list1, which are not present in map"<<endl;
-        for(int li=0; li<list1.size(); ++li){
-            Edge* edge = list1[li].dync_edge();
-            uint v0 = static_cast<uint>(edge->v[0]->id); 
-            uint v1 = static_cast<uint>(edge->v[1]->id); 
-            if(v0>v1) swap(v0,v1);
-            bool found=false;
-            for(auto& it : links_sqlen_map){
-                if(v0==(it.first.first) and v1==(it.first.second)){
-                    found=true;
-                    break;
-                }
-            }
-            if(!found){
-                cout<<"Not found link "<<li<<endl;
-                throw std::runtime_error("ERROR: not found link in structures");
-            }
-        }
-        cout<<"All links found, are there copies in list1?"<<endl;
-
-        bool found=false;
-        for(int li=0; li<list1.size(); ++li){
-            Edge* ei = list1[li].dync_edge();
-            uint eiv0=ei->v[0]->id; 
-            uint eiv1=ei->v[1]->id; 
-            if(eiv0==eiv1){
-                cout<<"link "<<li<<" connect the vertex "<<eiv0<<" with itself"<<endl;
-                found=true;
-                break;
-            }
-
-            if(eiv0>eiv1) std::swap(eiv0,eiv1);
-
-            if(ei->id!=li){
-                cout<<"Index in structure "<<ei->id<<" do not coincides with index in list1 "<<li<<endl;
-                found=true;
-                break;
-            }
-
-            for(int lj=li+1; lj<list1.size(); ++lj){
-                Edge* ej = list1[lj].dync_edge();
-                uint ejv0=ej->v[0]->id; 
-                uint ejv1=ej->v[1]->id; 
-
-                if(ejv0>ejv1) std::swap(ejv0,ejv1);
-
-                if(eiv0==ejv0 and eiv1==ejv1){
-                    cout<<"links "<<li<<" and "<<lj<<" appear to have the same vertices"<<endl;
-                    found=true;
-                }
-           } 
-            if(found)
-                break;
-        }
-        if(!found){
-            cout<<"Not found copies in list1 and all references are correct"<<endl;
-        }
-    }
     assert(nlinks==links_sqlen_map.size());
     assert(nsimpx==simpx_verts.size());
 
@@ -998,24 +936,19 @@ void Triangulation::save_abscomp(ofstream& of)
     of.write((char*)&nlinks,sizeof(nlinks));
     of.write((char*)&nsimpx,sizeof(nsimpx));
 
-//    if(verbose){
-//        std::cout<<"dim = "<<dim<<std::endl;
-//        std::cout<<"nverts = "<<nverts<<std::endl;
-//        std::cout<<"nlinks = "<<nlinks<<std::endl;
-//        std::cout<<"nsimpx = "<<nsimpx<<std::endl;
-//        std::cout<<"simpx_nverts = "<<simpx_nverts<<std::endl;
-//        std::cout<<"simpx_nlinks = "<<simpx_nlinks<<std::endl;
-//    }
-
     for(int si = 0; si <nsimpx; ++si){
         of.write((char*)&(simpx_verts[si][0]), simpx_nverts*sizeof(uint));
-//        if(verbose){
-//            std::cout<<"\nsimpx_verts["<<si<<"]: ";
-//            for(int i = 0; i< simpx_nverts; ++i){
-//                std::cout<<simpx_verts[si][i]<<" ";
-//            }
-//            std::cout<<std::endl;
-//        }
+    }
+
+    for(const auto& lsq : links_sqlen_map){
+        uint l_v1, l_v2;
+        double l_sqlen;
+        l_v1 = lsq.first.first;
+        l_v2 = lsq.first.second;
+        l_sqlen = lsq.second;
+        of.write((char*)&l_v1, sizeof(uint)); 
+        of.write((char*)&l_v2, sizeof(uint)); 
+        of.write((char*)&l_sqlen, sizeof(double)); 
     }
      
 }
