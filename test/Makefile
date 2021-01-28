@@ -1,34 +1,48 @@
 CXX      := g++
 CXXFLAGS := -Werror -std=c++17 # -pedantic-errors 
 LDFLAGS  := #-L /home/delia/lib64 -lstdc++ -lm
-BUILD    := ./build
-OBJ_DIR  := $(BUILD)/objects
-APP_DIR  := $(BUILD)/apps
 TARGET   := main
-INCLUDE  := -I../include/ -I.
-SRC      := 					   \
-	$(wildcard ../src/*.cpp)       \
-	$(wildcard ./*.cpp)		       \
+BUILDIR	 := build
+INCLUDE  := -I../include/ -I ../src/triangulation/ -I. -I ../src/
+SRCDIR   := ../src
+SRC      :=  $(wildcard $(SRCDIR)/*.cpp) 
 
-OBJECTS := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
+OBJECTS  := $(BUILDIR)/edge.o $(BUILDIR)/gaugeelement.o $(BUILDIR)/label.o $(BUILDIR)/randomgenerator.o $(BUILDIR)/simplex.o $(BUILDIR)/triangle.o $(BUILDIR)/triangulation.o $(BUILDIR)/vertex.o $(BUILDIR)/main.o
 
-all: build $(APP_DIR)/$(TARGET)
-	@rm -f ./main
-	@cp $(APP_DIR)/$(TARGET) $(TARGET)	
+$(BUILDIR):
+	@mkdir -p $(BUILDIR)
 
-$(OBJ_DIR)/%.o: %.cpp
-	@mkdir -p $(@D)
+$(BUILDIR)/edge.o: $(SRCDIR)/edge.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
 
-$(APP_DIR)/$(TARGET): $(OBJECTS)
-	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LDFLAGS) -o $(APP_DIR)/$(TARGET) $(OBJECTS)
+$(BUILDIR)/gaugeelement.o: $(SRCDIR)/gaugeelement.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
 
-.PHONY: all build clean debug install ready release
+$(BUILDIR)/label.o: $(SRCDIR)/label.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
 
-build:
-	@mkdir -p $(APP_DIR)
-	@mkdir -p $(OBJ_DIR)
+$(BUILDIR)/randomgenerator.o: $(SRCDIR)/randomgenerator.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(BUILDIR)/simplex.o: $(SRCDIR)/simplex.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(BUILDIR)/triangle.o: $(SRCDIR)/triangle.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(BUILDIR)/triangulation.o: $(SRCDIR)/triangulation.cpp $(wildcard $(SRCDIR)/triangulation/*.cpp)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(BUILDIR)/vertex.o: $(SRCDIR)/vertex.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(BUILDIR)/main.o: main.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ -c $<
+
+main: $(BUILDIR)/main.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $@ $^	 
+
+all: main
 
 debug: CXXFLAGS += -DDEBUG -g -pg
 debug: all
