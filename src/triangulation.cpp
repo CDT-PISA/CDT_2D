@@ -27,8 +27,11 @@
 #include "triangle.h"
 #include "label.h"
 #include "gaugeelement.h"
+#include <omp.h>
 
 using namespace std;
+
+omp_lock_t transitionlist_lock;
 
 // ##### STARTING TRIANGULATION INITIALIZATION #####
 //

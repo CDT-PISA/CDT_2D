@@ -13,6 +13,7 @@
 #include <chrono>
 #include <unistd.h>
 #include <sstream>
+#include <omp.h>
 
 #define CHECK_ERROR(fzcall) \
     {int erri;\
@@ -26,12 +27,16 @@ using namespace std;
 double move22;
 double move24;
 
+RandomGen r;
+pcg32 ** rng_arr;
+
 int dice(){
-    static RandomGen r;
+//    static RandomGen r;
     int dice = 0;
     
     
-    double extraction = r.next();
+//    double extraction = r.next();
+    double extraction = rng_arr[omp_get_thread_num()]->nextDouble();
     if(extraction < move22/2.)
         dice = 1;
     else if(extraction < move22)
@@ -48,10 +53,10 @@ int dice(){
 
 arg_list args;
 
-RandomGen r;
+
+
 
 int main(int argc, char* argv[]){
-
     int ret = parse_arguments(args, argc, argv);
     if(ret==1){
       exit(1);
@@ -118,6 +123,17 @@ int main(int argc, char* argv[]){
 
 //    FILE * rgn_statefile = fopen((main_dir+"/rgn").c_str(),"a");
     
+    // initialization of parallel structures 
+    cout<<"max threads: "<<omp_get_max_threads()<<endl;
+    rng_arr = new pcg32*[omp_get_max_threads()];
+    for(int i=0; i<omp_get_max_threads(); ++i){
+        rng_arr[i] = new pcg32(time(NULL),i);
+    }
+    
+    omp_init_lock(&transitionlist_lock);
+
+    // end initialization of parallel structures 
+
     Triangulation uni;
     r.set_seed(seed);
     if(access( conf_filename.c_str(), F_OK ) != -1){
@@ -145,30 +161,50 @@ int main(int argc, char* argv[]){
     cout<<"max_V = "<<max_V<<endl;
     for(i=0; (max_iters<0 | i<max_iters) and !hit_walltime and (uni.list2.size()<(uint)max_V); ++i){
  
-         for(uint j=0; j<1000; ++j){
-             int dice_outcome = dice();
-             switch(dice_outcome){
-                 case 1:{
-                     uni.move_22();
-                     break;
-                 }
-                 case 2:{
-                     uni.move_22();
-                     break;
-                 }
-                 case 3:{
-                     uni.move_24();
-                     break;   
-                 }
-                 case 4:{
-                     uni.move_42();
-                     break;
-                 }
-                 case 5:{
-                    uni.move_gauge();
-                     break;
-                 }
-             }
+#pragma omp parallel for
+        for(uint j=0; j<1000; ++j){
+            int dice_outcome = dice();
+
+//#pragma omp critical
+            uni.move_22(rng_arr[omp_get_thread_num()],-1,true);
+
+//            switch(dice_outcome){
+//            case 1:{
+//#pragma omp critical
+//                {
+//                    uni.move_22();
+//                }
+//                     break;
+//                 }
+//                 case 2:{
+//#pragma omp critical
+//                {
+//                     uni.move_22();
+//                }
+//                     break;
+//                 }
+//                 case 3:{
+//#pragma omp critical
+//                {
+//                     uni.move_24();
+//                }
+//                     break;   
+//                 }
+//                 case 4:{
+//#pragma omp critical
+//                {
+//                     uni.move_42();
+//                }
+//                     break;
+//                 }
+//                 case 5:{
+//#pragma omp critical
+//                {
+//                    uni.move_gauge();
+//                }
+//                     break;
+//                 }
+//             }
          }
          
          uni.iterations_done++;
@@ -271,6 +307,14 @@ int main(int argc, char* argv[]){
         }
     }
 //    fclose(rgn_statefile);
+    // free parallel structures
+    for(int i=0; i<omp_get_max_threads(); ++i){
+        delete rng_arr[i];
+    }
+    delete [] rng_arr;
+
+    omp_destroy_lock(&transitionlist_lock);
+    // end free parallel structures
     
     cout<<"saving configuration in "<<conf_filename<<endl;
     uni.save(conf_filename);

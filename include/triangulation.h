@@ -12,7 +12,11 @@
 #include <algorithm>
 #include "label.h"
 #include "randomgenerator.h"
+#include <omp.h>
 using namespace std;
+
+//
+extern omp_lock_t transitionlist_lock;
 
 class Vertex;
 class Edge;
@@ -250,8 +254,8 @@ public:
     /**
     * @todo allegare disegno per distinguere la 22_1 dalla 22_2 (e magari nomi più espliciti, forse 22_sx e 22_dx o boh)
     */
-    vector<double> move_22(int cell = -1, bool debug_flag = false);
-    vector<double> move_22(bool debug_flag){ return move_22(-1, debug_flag);}
+    void move_22(pcg32 * rng, int cell = -1, bool debug_flag = false);
+    void move_22(pcg32 * rng, bool debug_flag){ return move_22(rng, -1, debug_flag);}
     
     void move_24(int cell = -1, bool debug_flag = false);
     void move_24(bool debug_flag){ move_24(-1, debug_flag);}
